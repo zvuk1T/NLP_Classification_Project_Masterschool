@@ -59,11 +59,13 @@ Do not install packages, change environments, download new data, start unrelated
 
 **Question first:** Apply the [Better Questions method](HOW-WE-WORK-AND-LEARN.md). Ask why the question matters, how the evidence and method address it, and what transferable principle Data should learn. Answer direct questions directly; do not force a quiz, an attempt, or a multi-agent process.
 
-**Code:** Prefer direct, descriptive, top-to-bottom beginner/intermediate Python in the existing notebook. Explain unfamiliar concepts, inputs, outputs, assumptions, and relevant trade-offs at first use. For unfamiliar Intermediate/Advanced techniques, verify a relevant official DataCamp reference when possible; never invent a lesson link. Do not add unnecessary helper layers, tests, model families, infrastructure, or automation. Correctness and leakage prevention take priority over cosmetic simplicity.
+**Primary implementation format:** The single authoritative analysis is the **new repository-root `disaster_tweets_classification.py`**, developed in VS Code Python Interactive Window using percent cells: `# %% [markdown]` for educational text and `# %%` for executable Python, run one cell at a time. Do **not** continue, rewrite, or replace `Notebooks/NLP_Classification_Project_Masterschool.ipynb`; it remains an unchanged historical record of Data's early work. A derived `.ipynb` for the original MasterSchool Colab deliverable may be exported from the validated `.py` **only under separate explicit authorization**, never maintained as a second independent implementation.
+
+**Code:** Prefer direct, descriptive, top-to-bottom beginner/intermediate Python in the authoritative `.py`. Explain unfamiliar concepts, inputs, outputs, assumptions, and relevant trade-offs at first use. For unfamiliar Intermediate/Advanced techniques, verify a relevant official DataCamp reference when possible; never invent a lesson link. Do not add unnecessary helper layers, tests, model families, infrastructure, or automation. Correctness and leakage prevention take priority over cosmetic simplicity.
 
 **The agreed first model:** TF-IDF + Logistic Regression, evaluated with a labeled holdout using positive-class (`target=1`) F1 plus relevant supporting metrics. The [Project Map](DA112_PROJECT_MAP.md#5-methodology-contract-for-the-first-reliable-baseline) holds the exact dataset audit, open duplicate-policy decision, leakage precautions, and staged roadmap. Never automatically delete conflicting-label duplicates, learn TF-IDF on held-out text, tune on the final holdout, or present Kaggle unlabeled test data as a labeled evaluation set. Keep CV and hyperparameter tuning as later, separately approved learning steps.
 
-**Source integrity:** Preserve historical learner and mentor code unless a defined, authorized change applies. Label assistant-authored code and adaptations where source provenance matters. Do not silently copy untested time-series machinery or guided-project results into the disaster-tweet notebook.
+**Source integrity:** Preserve historical learner and mentor code unless a defined, authorized change applies. Label assistant-authored code and adaptations where source provenance matters. Do not silently copy untested time-series machinery or guided-project results into the new disaster-tweet Python analysis.
 
 **Explanations:** Favor essential WHY and HOW near a meaningful analytical block, not a comment on every line. Interpret observed results with Data Literacy and DIKW: observation ≠ inference ≠ hypothesis ≠ recommendation. No invented metrics, accuracy claims, operational impact, or implied causal effects.
 
@@ -72,7 +74,7 @@ Do not install packages, change environments, download new data, start unrelated
 For a meaningful analytical slice, distinguish:
 
 - **Technical PASS:** authorized code and relevant checks actually executed successfully, with justified method and correct reported outputs.
-- **Teaching PASS:** the authentic analytical notebook is readable, source-faithful, question-led, and explains necessary concepts without excess complexity.
+- **Teaching PASS:** the authoritative interactive Python analysis is readable, source-faithful, question-led, and explains necessary concepts without excess complexity.
 - **Learning PASS:** Data independently explains the question, evidence, method, output, limitations, and a transferable insight. Never infer this from code execution or a prepared explanation; otherwise say **UNASSESSED**.
 
 Run checks proportionate to the actual task. A documentation check is not a model execution test; a saved notebook output is not a fresh run. Report what was verified now, what was previously observed, and what remains unchecked.

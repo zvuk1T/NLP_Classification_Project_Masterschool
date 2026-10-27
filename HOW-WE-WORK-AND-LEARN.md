@@ -6,11 +6,11 @@ This practical educational guide operates **under** [AGENTS.md](AGENTS.md), the 
 
 ## 1. What we are trying to learn
 
-Our goal is not to make a notebook that simply predicts a label. We want Data to understand **why a particular NLP question is worth asking**, **how relevant text and a sound method yield evidence**, and **what that evidence can and cannot establish**.
+Our goal is not to make an analysis that simply predicts a label. We want Data to understand **why a particular NLP question is worth asking**, **how relevant text and a sound method yield evidence**, and **what that evidence can and cannot establish**.
 
 The guided Sprint 2 movie-review classifier explains the fundamentals. The self-paced Sprint 3 disaster-tweet project is where we independently apply them. The mentor's examples enrich our understanding only when they apply. Hugging Face is a **small optional follow-up** after the classical model, not a replacement for learning TF-IDF and Logistic Regression.
 
-The notebook should function as both the **real analysis** and a **readable learning resource**. Months later, Data should be able to revisit it and explain the problem, data, choices, outputs, mistakes, and lessons without reconstructing an earlier chat.
+The authoritative Python file should function as both the **real analysis** and a **readable learning resource**. Months later, Data should be able to revisit it and explain the problem, data, choices, outputs, mistakes, and lessons without reconstructing an earlier chat.
 
 ## 2. Better Questions — our learning loop
 
@@ -67,13 +67,17 @@ Before a new meaningful learning unit, preserve four distinct items:
 
 Do not reverse-engineer a school requirement from the code that happens to exist. Distinguish source requirements from assistant-authored choices. Do not reveal a solution within the phrasing of a question that is meant to be investigated.
 
-## 3. From question to student-readable notebook
+## 3. From question to student-readable Python analysis
+
+**Primary format:** Write the real analysis in the **new repository-root `disaster_tweets_classification.py`**, using VS Code Python Interactive Window. Use `# %% [markdown]` for Markdown explanations (with `#`-prefixed text lines) and `# %%` for executable Python. Run and inspect cells individually or in a selected sequence; verify the actual interpreter and kernel before claiming execution. The `.py` file remains the **single source of implementation truth**.
+
+**Historical and school formats:** Preserve `Notebooks/NLP_Classification_Project_Masterschool.ipynb` as unchanged original learner work; do not continue or rewrite it. If needed for the original MasterSchool Colab deliverable, export a derived `.ipynb` from the validated `.py` **only in a separately authorized delivery step**. Do not maintain two independent versions or imply that such an export already exists.
 
 Work in **one coherent analytical idea or learning slice at a time**. A learning unit may span multiple Markdown and Python cells. The six teaching elements below are a **unit-level structure**, not six sections for every import, line of Python, or routine operation.
 
 1. **📋 Source, Question & Instructions:** briefly name the relevant school source, question, essential context, conditions, and expected evidence.
 2. **🎯 Goal & Approach — What & Why:** explain why the selected inputs and method are appropriate, including important assumptions and alternatives.
-3. **💻 Real Code + Inline Reasoning:** write readable, executable Python in the existing `.ipynb`. Explain non-obvious operations beside the code without narrating trivial syntax.
+3. **💻 Real Code + Inline Reasoning:** write readable, executable Python in `# %%` cells of `disaster_tweets_classification.py`. Explain non-obvious operations beside the code without narrating trivial syntax.
 4. **✅ Result — What Actually Happened:** give an **observed and verified** output, metric, table, or finding; state how it answers the initial question. Label expected or unexecuted results honestly.
 5. **🧠 Recap — What We Learned:** state one transferable principle, meaningful limitation, or better next question. Do not repeat the code or result.
 6. **🧑‍💼 Recruiter / Transfer Check:** one relevant conceptual question testing independent reasoning at a meaningful milestone, with a concise model answer where useful. It tests understanding; it does **not** establish Data's Learning PASS.
@@ -92,9 +96,9 @@ When an unfamiliar Intermediate or Advanced operation is genuinely required:
 - Prefer a verified, specific **official DataCamp** lesson/chapter link when available. If only a course-level link is verifiable, state that. Do not invent a lesson link or require Data to finish another course before proceeding.
 - Prefer an equally correct, simpler, direct approach when it is easier to understand. Add a function, class, abstraction, or dependency only when the requirement or a demonstrated correctness/clarity benefit warrants it.
 
-Do not replace an authentic learner attempt with the assistant's cleverer code. Where changes to starter cells are authorized, explain the reason and preserve relevant provenance. Mentor code should stay intact as a reference unless its alteration is specifically requested.
+Do not replace an authentic learner attempt with the assistant's cleverer code. The historical starter `.ipynb` is not an implementation target; preserve it untouched while developing separate, source-grounded code in the new `.py`. Mentor code should stay intact as a reference unless its alteration is specifically requested.
 
-A working notebook is not automatically a learning notebook. But a long explanation cannot rescue unnecessarily complicated code; **simplify the solution before adding more commentary**.
+A working Python file is not automatically a learning resource. But a long explanation cannot rescue unnecessarily complicated code; **simplify the solution before adding more commentary**.
 
 ## 5. DA112 methodology as a chain of questions
 
@@ -165,6 +169,6 @@ Evaluate substantial learning slices on three independent dimensions:
 
 Use a brief conversational understanding check only at meaningful milestones, when Data wants to practice or understanding needs testing. Don't turn every cell into an exam. An answer prepared by Troi or Spock is **not** evidence of Data's independent understanding.
 
-Read relevant current sources; do not reconstruct them from chat memory or duplicate whole repositories. Leave durable approved rules in `AGENTS.md`, how-to guidance here, requirements/roadmap in `DA112_PROJECT_MAP.md`, and actual analytical observations beside the real notebook. Avoid extra status files, standalone answer keys, and unnecessary task-management infrastructure.
+Read relevant current sources; do not reconstruct them from chat memory or duplicate whole repositories. Leave durable approved rules in `AGENTS.md`, how-to guidance here, requirements/roadmap in `DA112_PROJECT_MAP.md`, and actual analytical observations beside the authoritative `.py` analysis. Avoid extra status files, standalone answer keys, and unnecessary task-management infrastructure.
 
 **End a bounded work slice with verified evidence and the next proposed question.** Do not use a completed task as permission to begin a new one or publish it.
