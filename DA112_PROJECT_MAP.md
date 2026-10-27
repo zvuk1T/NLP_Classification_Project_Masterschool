@@ -2,9 +2,11 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.0 — 2026-10-26
+> **Version:** 1.1 — 2026-10-27
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work slice.
+>
+> **Progress:** Slice 0, Slice 1, and Slice 2A completed. Duplicate handling remains unresolved; further implementation awaits Data's approval.
 >
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
@@ -23,6 +25,8 @@
 - **Keep it school-level:** follow the guided Sprint 2 methodology, adapting what is genuinely needed for tweets. Avoid unnecessary production engineering, deep learning, elaborate architecture, and unrequested extensions.
 - **No invented results or business impacts.** Never reuse example scores from lessons, previous portfolio claims, or another dataset as results of this project.
 - **Homepage integration is out of scope** until Data separately authorizes it.
+
+**Approved implementation format:** As established by `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`, the sole authoritative analysis is repository-root `disaster_tweets_classification.py`. Develop it in VS Code Python Interactive Window with `# %% [markdown]` explanations and `# %%` code cells. Preserve `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged as historical learner work. A derived Colab `.ipynb` export is a later, separately authorized deliverable, never a second independent implementation.
 
 ## 2. Source authority, scope, and conflict resolution
 
@@ -110,9 +114,13 @@ The supplied closing lessons include:
   - `.gitignore` — existing narrow rules.
   - `learning_materials/mentor_live_sessions/untitled41.py` — mentor-related Python export; **already tracked on this public GitHub repository**.
 
-**Important state distinction:** Remote `main` was inspected. The local clone location, current local branch, clean/dirty status, ahead/behind state, Python environment, and local files **have not been independently verified here**. Treat them as unknown, not clean or synchronized by assumption. This commit hash is a historical audit snapshot, **not** a perpetual expected HEAD after future commits.
+**Historical state distinction:** At the 2026-10-26 snapshot above, only remote `main` had been inspected; local state and environment had not yet been verified. Preserve that snapshot as history, not a perpetual expected HEAD or a description of current local state.
+
+**Local verification, 2026-10-27:** The existing clone is `/Users/zeal.v/Desktop/vs_code/masterschool/NLP_Classification_Project_Masterschool`, on `main`, with origin `https://github.com/zvuk1T/NLP_Classification_Project_Masterschool.git`. An authorized fast-forward from `9d7bf5ed22005ad590cb852d987da5c2234350f5` reached the live, expected `9fac37a305ff17e9e4049c6e29452ea55900d5b2`, changing only the two governance documents. Slice 2A introduces local uncommitted work; matching branch commits do not mean a clean working tree. The 12 school screenshots and two `.DS_Store` files remain untracked; `guided.ipynb` remains ignored and `untitled41.py` remains tracked. Recheck live state before future work.
 
 ### 4.1 Dataset audit facts (exact-text analysis of the tracked CSV)
+
+Reproduced by the new Python analysis during Slice 2A on 2026-10-27, without altering the original table or CSV.
 
 | Measurement | Verified value |
 |---|---:|
@@ -123,7 +131,9 @@ The supplied closing lessons include:
 | Unique exact text strings | 7,503 |
 | Additional rows from exact repeated texts | 110 |
 | Distinct text strings appearing more than once | 69 |
+| Original rows belonging to repeated-text groups | 179 |
 | Distinct text strings carrying **both labels** | 18 |
+| Original rows belonging to conflicting-label groups | 55 |
 
 **Data-quality decision gate:** Duplicate handling is **not decided**. Never automatically delete or relabel these observations. Before splitting, propose and justify a transparent policy for identical texts (including contradictory labels), report how many observations it affects, and obtain Data's approval. Ensure identical text does not silently appear in both train and test, artificially improving results. Check collisions introduced by any normalization as well.
 
@@ -180,7 +190,7 @@ These are **project design constraints**, not claims that any model has been imp
 
 **Rule:** Completing one slice does not authorize the next. Each slice ends with evidence, changed-file inventory, a plain-language explanation, and **STOP for Data's approval**. When Data approves a slice, finish its permitted work without unnecessary intermediate permission requests.
 
-### Slice 0 — Local and remote repository preflight (**NEXT**; READ-ONLY)
+### Slice 0 — Local and remote repository preflight (**COMPLETED**; READ-ONLY)
 
 1. Locate the correct local clone, without assuming an old Mac path.
 2. Verify local repo identity, `origin`, current branch, `git status`, local HEAD and remote `origin/main`; check ahead/behind/divergence.
@@ -190,26 +200,42 @@ These are **project design constraints**, not claims that any model has been imp
 
 **Acceptance:** Remote/local facts are distinguished; no changes made; ambiguities explicitly reported. **STOP.**
 
-### Slice 1 — School requirements and dataset quality (first content work)
+### Slice 1 — School requirements and dataset quality (**COMPLETED**)
 
 1. Read this map, the official Sprint 3 requirement summary, the notebook, CSV, and mentor reference.
-2. Inventory the notebook's reusable starter cells and nonportable paths.
+2. Inventory the historical notebook's starter cells and nonportable paths as source evidence, not an implementation target.
 3. Recheck data shape, labels, blanks, exact duplicates, label conflicts, and text examples.
 4. Explain how tweet text differs from movie-review sentences.
 5. Propose **one** minimal duplicate/holdout policy, with alternatives only if material.
 6. Summarize exactly which files would change in the next slice.
 
-**Acceptance:** The dataset issues and the proposed decision are understandable; **no split/model training yet**. **STOP for Data's data-policy decision.**
+**Acceptance:** The source and dataset review is complete; a duplicate/holdout policy was proposed but not approved. **No split/model training yet.** The unresolved decision gates data alteration and splitting, not the separately authorized descriptive analysis in Slice 2A.
 
-### Slice 2 — Portable notebook, approved preprocessing and holdout
+### Slice 2 — Small learning units in the authoritative Python analysis
 
-1. Fix data loading portably for the **approved** local and/or Colab workflow; do not hardcode another person's absolute path.
-2. Preserve original data, implement the agreed duplicate policy transparently, and document before/after counts.
-3. Create the approved reproducible train/holdout split.
-4. Add only the minimal tweet-aware preprocessing that can be explained.
-5. Verify the split's class proportions and the agreed no-overlap invariant.
+#### Slice 2A — First working Python analysis (**COMPLETED**, 2026-10-27)
 
-**Acceptance:** Notebook runs through split/preprocessing without leakage or unjustified deletion, but **has no trained model yet**. **STOP.**
+**Question:** What do the dataset structure, target distribution, and duplicate tweets tell us before modeling?
+
+1. Prepare an ignored project-local `.venv` with a suitable installed Python, `pandas==2.2.3`, `ipykernel`, and their dependencies. Preserve dependency declarations.
+2. Create root `disaster_tweets_classification.py` with question-led explanations and executable percent cells.
+3. Load the supplied CSV portably; inspect columns, shape, missing/blank values, label validity, class counts, exact-text duplicates, and conflicting labels.
+4. Distinguish observed counts from interpretations, uncertainty, and the next proposed decision.
+5. Execute code, compare with Slice 1 findings, and verify cells in a fresh Interactive Window kernel where available. Report any unverified GUI behavior separately.
+
+**Acceptance:** A working, understandable raw-data analysis exists. Original data and historical materials remain unchanged. No deduplication, preprocessing, split, vectorization, or model is implemented. Report Technical PASS and Teaching PASS evidence; Data's Learning PASS remains **UNASSESSED**. **STOP.**
+
+**Verified outcome:** Six code cells and eight Markdown cells are present. Python **3.11.11**, pandas **2.2.3**, NumPy **1.26.4**, and ipykernel **7.4.0** run in the ignored project `.venv`. Only pandas and ipykernel were requested directly; existing `requirements.txt` pins were used as constraints on their dependencies, without installing the full file. Dependency consistency passed.
+
+- **Technical PASS:** The script ran successfully from the repository root and from a different working directory using its absolute script path. VS Code Interactive Window ran the six cells in order as executions 1–6 in a fresh project kernel; interpreter and CSV paths were checked. In this observed Interactive Window, `__file__` existed and the working directory was the repository root. The resulting DataFrame equaled a fresh read of the original CSV. Counts matched Slice 1: 7,613 rows, classes 4,342/3,271, 7,503 exact texts, 69 repeated groups/179 rows/110 additional occurrences, 92 additional identical `(text, target)` rows, and 18 conflicting groups/55 rows. Missing, blank, and invalid-label counts were zero.
+- **Teaching PASS:** The source-backed question precedes concise explanations and direct code. Duplicate counts have distinct meanings; observations, interpretations, uncertainty, and a transfer question are separate. A verified DataCamp lesson supports `groupby`/`nunique` at first use. This assesses the artifact, not Data's understanding.
+- **Data's Learning PASS: UNASSESSED.** No deduplication decision or model result is implied. Colab export and execution have not been attempted.
+
+#### Later Slice 2 units — proposed, not authorized
+
+- Decide how to handle repeated and contradictory labels; implement a policy only after Data approves it, with transparent before/after counts.
+- Separately approve and build a reproducible holdout and minimal tweet-aware preprocessing. Check class proportions and the agreed no-overlap invariant.
+- Keep original data untouched and all implementation in the authoritative `.py`; no trained model belongs to Slice 2.
 
 ### Slice 3 — TF-IDF + Logistic Regression baseline and honest evaluation
 
@@ -232,8 +258,8 @@ These are **project design constraints**, not claims that any model has been imp
 
 ### Slice 5 — School-style communication and deliverables (**requires approval**)
 
-- Make the notebook readable end to end: question → data → decisions → method → evidence → limitations.
-- Verify the notebook's Colab accessibility, executable cells, understandable commentary, and actual outputs.
+- Make the authoritative `.py` readable end to end: question → data → decisions → method → evidence → limitations.
+- Under separate explicit export authorization, derive a Colab `.ipynb` from the validated `.py` and verify accessibility, execution, commentary, and outputs. Preserve the historical notebook unchanged.
 - Draft a concise retrospective presentation outline covering the topics required by the original school assignment.
 - Treat a recording as **not yet produced** until a real, verified recording exists. Do not claim submission.
 - README clean-up and any portfolio adaptation are separate authorized edits, not automatic side effects.
@@ -245,7 +271,7 @@ These are **project design constraints**, not claims that any model has been imp
 A deliberately small introduction, not a Transformer rebuild:
 
 1. Read one real Hugging Face model card: model task, dataset, limitations, license, and input/output expectations.
-2. Use `transformers.pipeline` in a **separate learning cell/notebook** with a small text-classification inference example; no fine-tuning.
+2. Use `transformers.pipeline` in **separately approved learning cells** with a small text-classification inference example; no fine-tuning or second independent project implementation.
 3. Explain that **sentiment ≠ disaster detection**. A negative sentiment label is not evidence of a real disaster.
 4. If approved, try a small zero-shot disaster/non-disaster demonstration. Present it as an exploratory illustration, not automatically a comparable benchmark.
 5. Compare conceptually: bag-of-words/TF-IDF + trained linear classifier vs. tokenizer + pretrained Transformer inference.
@@ -281,7 +307,7 @@ During an approved slice:
 - Respect all applicable `AGENTS.md` and higher-priority instructions; this map does not replace them.
 - Preserve user's existing work. No force push, `reset --hard`, destructive clean-up, automatic stashing, or silent conflict resolution.
 - Do not edit outside the approved file/path scope. Avoid installing or importing unnecessary advanced libraries.
-- Never silently rewrite the mentor material or copy its code into the notebook.
+- Never silently rewrite the mentor material or copy its code into the authoritative Python analysis.
 - Show meaningful tests/results, file changes, unresolved limitations, and local/remote Git state.
 - **Commit/push only if the current task explicitly authorizes that transport.** Do not assume approval to edit means approval to publish.
 - End every slice with **STOP**; await authorization for the next.
@@ -292,9 +318,10 @@ During an approved slice:
 
 | Decision | Current state | Required handling |
 |---|---|---|
-| Local working-tree status and synchronized branch | **Unknown** | Verify in read-only Slice 0 |
+| Local working-tree status and synchronized branch | **Verified 2026-10-27:** `main` synchronized at `9fac37a…`; Slice 2A work remains uncommitted | Recheck before future work; preserve untracked/ignored materials |
+| Primary implementation format | **Decided:** root `disaster_tweets_classification.py`, VS Code percent cells | Preserve the historical notebook; export a derived Colab notebook only with separate authorization |
 | Exact handling of repeated/conflicting tweet labels | **Unresolved** | Explain options and get Data's decision before train/test |
-| Colab data-loading and sharing workflow | **Unresolved** | Choose a portable path in authorized Slice 2 |
+| Colab data-loading and sharing workflow | **Deferred; unresolved** | Decide during a separately authorized derived-export/delivery step |
 | Final split counts and random seed | **Proposed:** 80/20, stratified, fixed `42` | Confirm after duplicate policy; report actual counts |
 | CV/tuning | **Optional, not approved** | Separate learning decision after baseline |
 | Mentor file redistribution permissions | **Not verified; file currently public** | Do not assume permission; Data decides corrective action |
@@ -305,7 +332,7 @@ During an approved slice:
 ## 10. Project completion criteria
 
 ### Core analytical completion
-- [ ] Repo path, current Git state, and provenance verified.
+- [x] Repo path and Git identity verified; source provenance and its limits documented (recheck live Git state before future work).
 - [ ] Source data audited; duplicate and label conflicts handled under an approved, documented policy.
 - [ ] Reproducible and defensible train/holdout separation.
 - [ ] Preprocessing is tweet-aware and explainable.
@@ -314,8 +341,8 @@ During an approved slice:
 - [ ] Explicit limitations, model errors, and DIKW-driven conclusions.
 
 ### Communication completion (separate from model correctness)
-- [ ] Readable notebook, portable or documented Colab execution path.
-- [ ] Original school deliverable expectations identified without claiming unperformed historical submission.
+- [ ] Full authoritative `.py` analysis readable end to end; derived Colab export and documented execution path verified when separately authorized.
+- [x] Original school deliverable expectations identified without claiming unperformed historical submission.
 - [ ] Any presentation/recording truthfully labeled and actually accessible, if produced.
 - [ ] Optional extensions marked as optional, with their own evidence and approval.
 
@@ -346,8 +373,8 @@ During an approved slice:
 
 ## 12. Current execution instruction
 
-**The next authorized work, when Data requests it, is Slice 0 (read-only local/remote preflight).**
+**Slice 0, Slice 1, and Slice 2A are completed. STOP; await Data's next instruction.**
 
-Do **not** start a new notebook, train a model, reorganize the repository, modify the mentor file, install packages, write a presentation, or perform Hugging Face experiments merely because this map describes future slices.
+Slice 2A changed only the new root `.py`, necessary corrections to this map, and the `.venv/` addition to `.gitignore`; the local environment is ignored. These changes remain uncommitted. The governance documents were synchronized from the approved remote revision, not locally edited. Raw data, the historical notebook, and mentor/school materials remain unchanged. The smallest next proposed step is to discuss and approve a duplicate policy; no data alteration, preprocessing, split, model work, or Git publication is authorized by this completed slice.
 
 **Spock: read the map, verify the facts relevant to the requested slice, do only that slice, report, and STOP.**
