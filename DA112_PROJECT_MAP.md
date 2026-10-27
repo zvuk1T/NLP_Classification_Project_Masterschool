@@ -2,15 +2,15 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.1 — 2026-10-27
+> **Version:** 1.2 — 2026-10-27
 >
-> **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work slice.
+> **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
-> **Progress:** Slice 0, Slice 1, and Slice 2A completed. Duplicate handling remains unresolved; further implementation awaits Data's approval.
+> **Progress:** Slice 0, Slice 1, and Slice 2A completed; Slice 2A published in `3d71400181eb86e865293104e4daa3a91889ace9`. Remaining work follows four larger blocks below. Duplicate handling remains unresolved.
 >
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
-> **Purpose:** A persistent, self-contained source of truth for Spock and Data, with requirements, methodological boundaries, verification gates, and a small-step execution sequence.
+> **Purpose:** A persistent source of truth for Data, Troi, and Spock: requirements, decisions, verified progress, and a coherent route to a portfolio-ready project.
 
 ---
 
@@ -18,15 +18,18 @@
 
 **Primary task:** Build an understandable, independently developed **binary classifier** that predicts whether a tweet describes a **real disaster** (`target = 1`) or **not a real disaster** (`target = 0`).
 
-- **Learning first; portfolio second.** This is a retrospective reconstruction of an unfinished MasterSchool exercise, not a claim that a new school submission or live presentation has already occurred.
-- **WHY before HOW.** The learner must be able to explain the problem, dataset, split, text processing, TF-IDF, model, metrics, decisions, and limitations.
+- **Current phase — Data's decision, 2026-10-27:** Data reports having already worked through this project at school and broadly understanding its methods. This reconstruction now emphasizes effective Data–Troi–Spock collaboration and a clear portfolio case study, followed by homepage integration. It is not a first-time replay of the entire course or evidence of a new school submission.
+- **Understanding remains a quality requirement.** Briefly recap familiar material; explain unfamiliar concepts, consequential choices, and actual errors in more depth. Faster pacing does not mean skipping evidence or correctness checks.
+- **WHY before HOW.** Keep the question, method, evidence, and limitations understandable without explaining every familiar operation again.
 - **Minimum sound approach:** tweet-aware text preprocessing → TF-IDF → Logistic Regression → honest evaluation.
 - **Data Literacy / DIKW:** Data → Information → Knowledge → Wisdom. Separate observed evidence from interpretation, and interpretation from recommendations.
 - **Keep it school-level:** follow the guided Sprint 2 methodology, adapting what is genuinely needed for tweets. Avoid unnecessary production engineering, deep learning, elaborate architecture, and unrequested extensions.
 - **No invented results or business impacts.** Never reuse example scores from lessons, previous portfolio claims, or another dataset as results of this project.
-- **Homepage integration is out of scope** until Data separately authorizes it.
+- **Homepage integration is a planned later objective**, including the appropriate project listing and featured/favorites placement. The actual site, affected files, and publication must be separately inspected and authorized.
 
 **Approved implementation format:** As established by `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`, the sole authoritative analysis is repository-root `disaster_tweets_classification.py`. Develop it in VS Code Python Interactive Window with `# %% [markdown]` explanations and `# %%` code cells. Preserve `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged as historical learner work. A derived Colab `.ipynb` export is a later, separately authorized deliverable, never a second independent implementation.
+
+**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep the established Main Question → Learning → Better Questions method, but do not turn routine checks into standalone tasks or reteach familiar material.
 
 ## 2. Source authority, scope, and conflict resolution
 
@@ -100,7 +103,7 @@ The supplied closing lessons include:
 - **Practical Session on Using Hugging Face Transformers for Multiple NLP Tasks:** Hugging Face `pipeline` demonstrations for sentiment analysis, summarization, question answering, and translation.
 - **Overview of Popular LLMs (GPT, Llama) and Their Applications:** conceptual overview and examples, not a requirement to fine-tune or deploy an LLM.
 
-**Decision:** After the baseline project is sound, do **one small, explainable Hugging Face inference exercise**. It is educational enrichment, not an alternative to completing the core school project.
+**Decision:** A small, explainable Hugging Face inference exercise remains a desired optional follow-up after the baseline. It requires separate approval and is not a prerequisite for the portfolio case study or homepage integration.
 
 ## 4. Repository baseline — verified 2026-10-26, before this map was added
 
@@ -116,7 +119,9 @@ The supplied closing lessons include:
 
 **Historical state distinction:** At the 2026-10-26 snapshot above, only remote `main` had been inspected; local state and environment had not yet been verified. Preserve that snapshot as history, not a perpetual expected HEAD or a description of current local state.
 
-**Local verification, 2026-10-27:** The existing clone is `/Users/zeal.v/Desktop/vs_code/masterschool/NLP_Classification_Project_Masterschool`, on `main`, with origin `https://github.com/zvuk1T/NLP_Classification_Project_Masterschool.git`. An authorized fast-forward from `9d7bf5ed22005ad590cb852d987da5c2234350f5` reached the live, expected `9fac37a305ff17e9e4049c6e29452ea55900d5b2`, changing only the two governance documents. Slice 2A introduces local uncommitted work; matching branch commits do not mean a clean working tree. The 12 school screenshots and two `.DS_Store` files remain untracked; `guided.ipynb` remains ignored and `untitled41.py` remains tracked. Recheck live state before future work.
+**Local verification history, 2026-10-27:** The verified clone was `/Users/zeal.v/Desktop/vs_code/masterschool/NLP_Classification_Project_Masterschool`, on `main`, with origin `https://github.com/zvuk1T/NLP_Classification_Project_Masterschool.git`. An authorized fast-forward from `9d7bf5ed22005ad590cb852d987da5c2234350f5` reached `9fac37a305ff17e9e4049c6e29452ea55900d5b2`, changing only the two governance documents. Slice 2A then introduced local work, subsequently committed and published in `3d71400181eb86e865293104e4daa3a91889ace9`. At that inspection, the 12 school screenshots and two `.DS_Store` files were untracked; `guided.ipynb` was ignored and `untitled41.py` tracked. These are historical observations, not a current clean-working-tree claim.
+
+**Later checkpoint, 2026-10-27:** The question-driven learning update was published in `247251e25a37b7acec0fb7fb3f69879d2d08afea`, changing only `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`. Spock's subsequent read-only report placed local `main` at `3d71400…`, one commit behind that remote checkpoint. Recheck live local and remote state before the next authorized synchronization; this roadmap edit does not synchronize the Mac.
 
 ### 4.1 Dataset audit facts (exact-text analysis of the tracked CSV)
 
@@ -186,11 +191,13 @@ These are **project design constraints**, not claims that any model has been imp
 - Select/tune using training-fold results; use the holdout for a final unbiased assessment, not repeated model selection.
 - Alternative models (Naive Bayes, Random Forest, neural networks) are **not required** and need separate approval.
 
-## 6. Delivery plan — one bounded work slice at a time
+## 6. Delivery plan — coherent work blocks, one at a time
 
-**Rule:** Completing one slice does not authorize the next. Each slice ends with evidence, changed-file inventory, a plain-language explanation, and **STOP for Data's approval**. When Data approves a slice, finish its permitted work without unnecessary intermediate permission requests.
+**Rule:** Data approves a complete, bounded block, not every routine operation inside it. Spock implements and verifies that block, then Data and Troi review its decisions, evidence, and explanations. Stop inside a block only for a material unresolved decision, scope change, missing essential evidence, or correctness/safety problem; continue unaffected approved work where practical. Completing a block does not authorize the next or Git transport.
 
-### Slice 0 — Local and remote repository preflight (**COMPLETED**; READ-ONLY)
+**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four remaining blocks replace the former fine-grained future-slice sequence. They group the school's analytical stages without changing the safeguards in §5 or the learning method.
+
+### Completed foundation — Slice 0: Local and remote repository preflight
 
 1. Locate the correct local clone, without assuming an old Mac path.
 2. Verify local repo identity, `origin`, current branch, `git status`, local HEAD and remote `origin/main`; check ahead/behind/divergence.
@@ -198,9 +205,9 @@ These are **project design constraints**, not claims that any model has been imp
 4. Confirm Python/Jupyter environment only by inspection; **do not install** dependencies.
 5. Report exact local path, branch, SHA/status, blockers, and a safe synchronization recommendation.
 
-**Acceptance:** Remote/local facts are distinguished; no changes made; ambiguities explicitly reported. **STOP.**
+**Completed:** Read-only preflight distinguished remote and local facts. Any subsequent synchronization was separately authorized; a fresh chat does not require repeating the whole investigation.
 
-### Slice 1 — School requirements and dataset quality (**COMPLETED**)
+### Completed foundation — Slice 1: School requirements and dataset quality
 
 1. Read this map, the official Sprint 3 requirement summary, the notebook, CSV, and mentor reference.
 2. Inventory the historical notebook's starter cells and nonportable paths as source evidence, not an implementation target.
@@ -209,11 +216,9 @@ These are **project design constraints**, not claims that any model has been imp
 5. Propose **one** minimal duplicate/holdout policy, with alternatives only if material.
 6. Summarize exactly which files would change in the next slice.
 
-**Acceptance:** The source and dataset review is complete; a duplicate/holdout policy was proposed but not approved. **No split/model training yet.** The unresolved decision gates data alteration and splitting, not the separately authorized descriptive analysis in Slice 2A.
+**Completed:** The source and dataset review is complete; a duplicate/holdout policy was proposed but not approved. **No split/model training yet.** The unresolved decision gates data alteration and splitting, not the separately authorized descriptive analysis in Slice 2A.
 
-### Slice 2 — Small learning units in the authoritative Python analysis
-
-#### Slice 2A — First working Python analysis (**COMPLETED**, 2026-10-27)
+### Completed foundation — Slice 2A: First working Python analysis (2026-10-27)
 
 **Question:** What do the dataset structure, target distribution, and duplicate tweets tell us before modeling?
 
@@ -223,7 +228,7 @@ These are **project design constraints**, not claims that any model has been imp
 4. Distinguish observed counts from interpretations, uncertainty, and the next proposed decision.
 5. Execute code, compare with Slice 1 findings, and verify cells in a fresh Interactive Window kernel where available. Report any unverified GUI behavior separately.
 
-**Acceptance:** A working, understandable raw-data analysis exists. Original data and historical materials remain unchanged. No deduplication, preprocessing, split, vectorization, or model is implemented. Report Technical PASS and Teaching PASS evidence; Data's Learning PASS remains **UNASSESSED**. **STOP.**
+**Completed and published:** Commit `3d71400181eb86e865293104e4daa3a91889ace9` contains only the new `.py`, this map, and the `.venv/` addition to `.gitignore`. Original data and historical materials remain unchanged. No deduplication, preprocessing, split, vectorization, or model is implemented.
 
 **Verified outcome:** Six code cells and eight Markdown cells are present. Python **3.11.11**, pandas **2.2.3**, NumPy **1.26.4**, and ipykernel **7.4.0** run in the ignored project `.venv`. Only pandas and ipykernel were requested directly; existing `requirements.txt` pins were used as constraints on their dependencies, without installing the full file. Dependency consistency passed.
 
@@ -231,53 +236,53 @@ These are **project design constraints**, not claims that any model has been imp
 - **Teaching PASS:** The source-backed question precedes concise explanations and direct code. Duplicate counts have distinct meanings; observations, interpretations, uncertainty, and a transfer question are separate. A verified DataCamp lesson supports `groupby`/`nunique` at first use. This assesses the artifact, not Data's understanding.
 - **Data's Learning PASS: UNASSESSED.** No deduplication decision or model result is implied. Colab export and execution have not been attempted.
 
-#### Later Slice 2 units — proposed, not authorized
+### Work block 1 — Prepare the data for modeling (**NEXT; implementation not yet authorized**)
 
-- Decide how to handle repeated and contradictory labels; implement a policy only after Data approves it, with transparent before/after counts.
-- Separately approve and build a reproducible holdout and minimal tweet-aware preprocessing. Check class proportions and the agreed no-overlap invariant.
-- Keep original data untouched and all implementation in the authoritative `.py`; no trained model belongs to Slice 2.
+**Main Question:** How can we prepare these tweets for a fair, reproducible model evaluation?
 
-### Slice 3 — TF-IDF + Logistic Regression baseline and honest evaluation
+- Resolve the duplicate policy with Data: a concise recommendation, affected counts, trade-offs, and any examples needed for the decision. Keep this within preparation, not a separate research sprint by default.
+- After approval, implement that policy, minimal tweet-aware preprocessing, and the agreed train/holdout split in the authoritative `.py`. Preserve the raw CSV and report before/after counts, class proportions, and any normalization-induced collisions.
+- Verify no prohibited overlap between partitions and no fitting of learned features on the holdout. Explain consequential choices and show a few before/after text examples.
 
-1. Add the simple scikit-learn text-classification pipeline; explain TF-IDF and model logic.
-2. Fit on training examples only.
-3. Predict on the untouched holdout and compute binary F1, precision, recall, accuracy, and confusion matrix.
-4. Interpret error types and at least a few illustrative mistakes without exposing labels to training logic.
-5. State limitations, reproducibility details, and what has **not** been established.
+**Acceptance:** Prepared training/holdout data, reproducible checks, and concise question-led explanations exist. No vectorizer or model has been fitted. Review the whole block once; do not request approval after every routine cell.
 
-**Acceptance:** A repeatable, leakage-resistant, educational baseline and evidence-backed metrics exist. **STOP.**
+### Work block 2 — Baseline model and evaluation (**requires approval**)
 
-### Slice 4 — Optional CV and modest tuning (**requires separate approval**)
+**Main Question:** How well does the simple text classifier perform on held-out tweets, and where does it fail?
 
-- First explain whether CV/tuning will materially improve learning.
-- If approved, perform a minimal training-only, full-pipeline CV comparison.
-- Tune only a small, justified parameter set if still useful; record results separately from final holdout.
-- Reassess the holdout only as the final evaluation for the chosen approach, not an optimization loop.
+- Implement TF-IDF + Logistic Regression together, fit on training data only, predict on the holdout, and report F1, precision, recall, accuracy, class support, and a confusion matrix.
+- Inspect a few false positives and false negatives, explain limitations, and connect the verified results to the question. Do not use this holdout error review to tune the model against the same test set.
+- Verify reproducibility with the actual environment and inputs. Keep familiar mechanics concise; explain new concepts and material decisions where used.
 
-**Acceptance:** Gains/trade-offs are evidenced, not assumed. If omitted, the baseline remains a valid core project. **STOP.**
+**Acceptance:** One executed, explainable baseline with genuine evaluation results and bounded interpretation. No automatic tuning, alternative models, or next-block implementation.
 
-### Slice 5 — School-style communication and deliverables (**requires approval**)
+### Work block 3 — Portfolio case study (**requires approval**)
 
-- Make the authoritative `.py` readable end to end: question → data → decisions → method → evidence → limitations.
-- Under separate explicit export authorization, derive a Colab `.ipynb` from the validated `.py` and verify accessibility, execution, commentary, and outputs. Preserve the historical notebook unchanged.
-- Draft a concise retrospective presentation outline covering the topics required by the original school assignment.
-- Treat a recording as **not yet produced** until a real, verified recording exists. Do not claim submission.
-- README clean-up and any portfolio adaptation are separate authorized edits, not automatic side effects.
+**Main Question:** How can a reader understand the problem, decisions, evidence, and limitations without reading our conversations?
 
-**Acceptance:** A reviewer can reproduce the model and follow the DIKW reasoning. Label historical and newly created deliverables truthfully. **STOP.**
+- Refine the analytical narrative, README, and a small set of useful visuals in the approved file scope. Present the work honestly as a MasterSchool educational reconstruction.
+- Explain what was classified, why the approach was chosen, what the model achieved on the defined holdout, where it failed, and what follows from the evidence.
+- Preserve the authoritative `.py` and historical notebook. A derived Colab export or retrospective recording remains separately authorized; neither is an automatic prerequisite for this portfolio adaptation.
 
-### Slice 6 — Optional Hugging Face mini-lab (**after core completion, separate approval**)
+**Acceptance:** A clear, evidence-backed case study and reproducibility instructions are ready for website presentation. No invented business impact, historical submission, recording, or learning-assessment claims.
 
-A deliberately small introduction, not a Transformer rebuild:
+### Work block 4 — Homepage integration (**planned; requires specific authorization**)
 
-1. Read one real Hugging Face model card: model task, dataset, limitations, license, and input/output expectations.
-2. Use `transformers.pipeline` in **separately approved learning cells** with a small text-classification inference example; no fine-tuning or second independent project implementation.
-3. Explain that **sentiment ≠ disaster detection**. A negative sentiment label is not evidence of a real disaster.
-4. If approved, try a small zero-shot disaster/non-disaster demonstration. Present it as an exploratory illustration, not automatically a comparable benchmark.
-5. Compare conceptually: bag-of-words/TF-IDF + trained linear classifier vs. tokenizer + pretrained Transformer inference.
-6. No LLM deployment, chatbot, RAG integration, GPU provisioning, or cloud services in this mini-lab.
+**Main Question:** How should this project appear coherently within the existing portfolio website?
 
-**Acceptance:** Data can explain what the model does, where it came from, and why task alignment matters. **STOP.**
+- Inspect the actual website repository and existing layout before choosing files or implementation details; do not assume the website lives in this NLP repository.
+- Within approved scope, add the case study to the appropriate project section and the featured/favorites area, matching the existing design and navigation.
+- Verify content, links, relevant builds, and page behavior. Publishing or deployment requires explicit authorization; a local preview is not a published page.
+
+**Acceptance:** The agreed project placements and links are verified. Report separately whether the website changes are prepared, committed, or actually published.
+
+### Optional follow-ups — CV, tuning, and Hugging Face
+
+These are **not prerequisites for blocks 3 or 4**. After the baseline, Data decides whether their learning or analytical value justifies the extra work.
+
+- **CV/tuning:** If approved, use training-only full-pipeline cross-validation and a small justified parameter search, preserving §5.4. Never optimize against the final holdout.
+- **Hugging Face:** If approved, inspect a real model card and run one small inference example in separately approved learning cells. Explain task alignment, limitations, and why sentiment is not disaster detection. No fine-tuning, deployment, chatbot, RAG, GPU provisioning, or cloud expansion.
+- Keep optional evidence separate from the baseline. Do not turn an exploratory demonstration into a claimed comparable benchmark or a mandatory new project.
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
@@ -294,23 +299,26 @@ Do not convert correlation, a held-out metric, or a small notebook demonstration
 
 ## 8. Spock operating protocol and authorization
 
-At the start of each new session:
+**Plan ownership — Data's explicit reassignment, 2026-10-27:** Data and Troi maintain this canonical project roadmap, using the reassignment allowed by `AGENTS.md`. Spock supplies implementation evidence and proposed status corrections; edits to this map require a specific reassignment from Data. This does not change the authority of `AGENTS.md` or authorize Git transport.
 
-1. Read this `DA112_PROJECT_MAP.md` **in full** and identify the current explicitly approved slice.
-2. Check current repository/files before describing implementation state; do not treat the snapshot above as live.
-3. State **WHY**, then the bounded **HOW**, expected files, checks, and a clear STOP condition.
-4. If required source material or a material choice is missing, say what is missing rather than fabricate a lesson, score, file, or requirement.
+Before an approved work block:
 
-During an approved slice:
+1. Read `AGENTS.md` and the relevant current parts of this map and the learning guide. Identify the approved block; do not restart completed reviews solely because a new chat begins.
+2. Check current repository/files before describing implementation state; do not treat historical checkpoints as live. Synchronize only when explicitly authorized.
+3. State **WHY**, then the bounded **HOW**, expected files, checks, and a clear end-of-block review point.
+4. If required source material or a material choice is missing, name the gap rather than fabricate a lesson, score, file, or requirement.
+
+During an approved block:
 
 - Work only in the correct existing repository. **Never create a substitute repo** or repurpose another MasterSchool project.
 - Respect all applicable `AGENTS.md` and higher-priority instructions; this map does not replace them.
 - Preserve user's existing work. No force push, `reset --hard`, destructive clean-up, automatic stashing, or silent conflict resolution.
 - Do not edit outside the approved file/path scope. Avoid installing or importing unnecessary advanced libraries.
 - Never silently rewrite the mentor material or copy its code into the authoritative Python analysis.
-- Show meaningful tests/results, file changes, unresolved limitations, and local/remote Git state.
+- Complete routine implementation and verification within scope without repeated permission requests. Escalate genuine decision gates, not every cell or familiar operation.
+- Return one concise block report: changed files, actual checks/results, key decisions, limitations, and the next proposed question. Distinguish Technical PASS, Teaching PASS, and Learning PASS; leave learning **UNASSESSED** without independent evidence, rather than imposing an exam after every block.
 - **Commit/push only if the current task explicitly authorizes that transport.** Do not assume approval to edit means approval to publish.
-- End every slice with **STOP**; await authorization for the next.
+- **STOP at the agreed block boundary**; do not finish the remaining project in one run or automatically begin the next block.
 
 **Approval overrides:** Data may explicitly change priorities or choose a different sound approach. Record the change and its reason in the work report or a separately approved document revision. Do not quietly reinterpret a new instruction as permission to modify the whole project.
 
@@ -318,16 +326,18 @@ During an approved slice:
 
 | Decision | Current state | Required handling |
 |---|---|---|
-| Local working-tree status and synchronized branch | **Verified 2026-10-27:** `main` synchronized at `9fac37a…`; Slice 2A work remains uncommitted | Recheck before future work; preserve untracked/ignored materials |
+| Current focus and pacing | **Agreed 2026-10-27:** reconstruct familiar school work for a portfolio case study; use four larger work blocks | Keep question-led reasoning and correctness; one implementation and one joint review per approved block |
+| Plan maintenance | **Reassigned by Data to Data + Troi** | Spock reports evidence and proposes corrections; no silent roadmap edits |
+| Publication and local synchronization | Slice 2A published in `3d71400…`; learning-loop documents published in `247251e…`. Spock last reported local `main` at `3d71400…` | These are historical checkpoints. Recheck live state before authorized synchronization; preserve untracked/ignored materials |
 | Primary implementation format | **Decided:** root `disaster_tweets_classification.py`, VS Code percent cells | Preserve the historical notebook; export a derived Colab notebook only with separate authorization |
-| Exact handling of repeated/conflicting tweet labels | **Unresolved** | Explain options and get Data's decision before train/test |
+| Exact handling of repeated/conflicting tweet labels | **Unresolved** | Agree a justified policy as part of block 1 before data alteration or splitting; no automatic deletion |
 | Colab data-loading and sharing workflow | **Deferred; unresolved** | Decide during a separately authorized derived-export/delivery step |
-| Final split counts and random seed | **Proposed:** 80/20, stratified, fixed `42` | Confirm after duplicate policy; report actual counts |
-| CV/tuning | **Optional, not approved** | Separate learning decision after baseline |
+| Final split counts and random seed | **Proposed:** 80/20, stratified, fixed `42` | Confirm in block 1 after duplicate policy; report actual counts |
+| CV/tuning | **Optional, not approved** | Separate decision after baseline; not required before portfolio preparation |
 | Mentor file redistribution permissions | **Not verified; file currently public** | Do not assume permission; Data decides corrective action |
-| Retrospective presentation/recording | **Not created** | Discuss only in authorized communication slice |
-| Hugging Face mini-lab | **Desired, not yet implemented** | Separate post-core optional slice |
-| Website/homepage | **Out of scope** | New explicit authorization only |
+| Retrospective presentation/recording | **Not created** | Discuss only in an authorized communication task; do not infer a historical recording from Data's prior coursework |
+| Hugging Face mini-lab | **Desired optional follow-up, not implemented** | Separate post-baseline approval; not required for the portfolio |
+| Website/homepage | **Planned later objective:** project section plus featured/favorites placement | Inspect the actual site and approve specific changes and publication in block 4 |
 
 ## 10. Project completion criteria
 
@@ -340,19 +350,21 @@ During an approved slice:
 - [ ] Real, reproducible holdout F1/precision/recall/accuracy/confusion matrix.
 - [ ] Explicit limitations, model errors, and DIKW-driven conclusions.
 
-### Communication completion (separate from model correctness)
-- [ ] Full authoritative `.py` analysis readable end to end; derived Colab export and documented execution path verified when separately authorized.
+### Portfolio communication and integration (separate from model correctness)
+- [ ] Full authoritative `.py` analysis readable end to end, with reproducible execution instructions.
+- [ ] Case study, README, and selected visuals communicate the question, decisions, evidence, errors, and limits.
+- [ ] Approved website project and featured/favorites placements are verified; publication status is reported truthfully.
 - [x] Original school deliverable expectations identified without claiming unperformed historical submission.
-- [ ] Any presentation/recording truthfully labeled and actually accessible, if produced.
-- [ ] Optional extensions marked as optional, with their own evidence and approval.
+- [ ] Any separately approved Colab export or presentation/recording is truthfully labeled and actually verified; neither is implied by case-study completion.
+- [ ] Optional extensions are marked optional, with separate evidence and approval; they do not block a sound portfolio baseline.
 
-**Not part of core completion:** Kaggle leaderboard rank, deep learning, Transformer fine-tuning, deployment, homepage integration, or guaranteed real-world impact.
+**Not required for core analytical completion:** Kaggle leaderboard rank, deep learning, Transformer fine-tuning, model deployment, or guaranteed real-world impact. Homepage integration is a separate planned portfolio block, not evidence of model quality.
 
 ## 11. Source register
 
 **Primary supplied evidence (screen captures shared 2026-10-26; not currently tracked in the repo):**
 - Sprint 3 “Introduction & Key Takeaways” and deliverables: `SCR-20261026-snhr.png` (also a second capture `SCR-20261026-skzi.png`).
-- Sprint 2 overview and guided lessons: `SCR-20261026-slux.png`, `SCR-20261026-slyo.png`, `SCR-20261026-smbw.png`, `SCR-20261026-smgd.png`, `SCR-20261026-smix.png`, `SCR-20261026-smmj.png`, `SCR-20261026-smpm.png`, `SCR-20261026-sndx.png`.
+- Sprint 2 overview and guided lessons: `SCR-20261026-slux.png`, `SCR-20261026-slyo.png`, `SCR-20261026-smbw.png`, `SCR-20261026-smgd.png`, `SCR-20261026-smix.png`, `SCR-20261026-smpm.png`, `SCR-20261026-sndx.png`.
 - Closing Hugging Face and GPT/Llama lessons: `SCR-20261026-sobc.png`, `SCR-20261026-snrc.png`.
 
 **Online references:**
@@ -373,8 +385,10 @@ During an approved slice:
 
 ## 12. Current execution instruction
 
-**Slice 0, Slice 1, and Slice 2A are completed. STOP; await Data's next instruction.**
+**Slice 0, Slice 1, and Slice 2A are completed. The next proposed implementation is work block 1 — Prepare the data for modeling.**
 
-Slice 2A changed only the new root `.py`, necessary corrections to this map, and the `.venv/` addition to `.gitignore`; the local environment is ignored. These changes remain uncommitted. The governance documents were synchronized from the approved remote revision, not locally edited. Raw data, the historical notebook, and mentor/school materials remain unchanged. The smallest next proposed step is to discuss and approve a duplicate policy; no data alteration, preprocessing, split, model work, or Git publication is authorized by this completed slice.
+Slice 2A was published in `3d71400181eb86e865293104e4daa3a91889ace9`; its work is not pending commit. The later learning-loop update is in `247251e25a37b7acec0fb7fb3f69879d2d08afea`. Local synchronization must be independently checked and explicitly authorized.
 
-**Spock: read the map, verify the facts relevant to the requested slice, do only that slice, report, and STOP.**
+Data has approved the larger-block roadmap and assigned this plan revision to Data and Troi. This documentation change does **not** approve a duplicate policy, local synchronization, data alteration, preprocessing, splitting, modeling, website changes, or their publication. Resolve the duplicate-policy decision concisely before dependent preparation work; do not create another standalone research sprint by default.
+
+**Spock: apply the current canonical method, finish only the explicitly approved work block, report its evidence once, and STOP at the block boundary.**
