@@ -12,39 +12,39 @@ The guided Sprint 2 movie-review classifier explains the fundamentals. The self-
 
 The authoritative Python file should function as both the **real analysis** and a **readable learning resource**. Months later, Data should be able to revisit it and explain the problem, data, choices, outputs, mistakes, and lessons without reconstructing an earlier chat.
 
-## 2. Better Questions — our learning loop
+## 2. Main Question → Learning → Better Questions
 
-This Data-authored questioning loop from the DataCamp Gym method is the conceptual center of DA112:
+The original Data-authored **Better Questions** loop remains in the DataCamp Gym learning method. This is its **DA112 adaptation**: start with a meaningful **Main Question**, not a favorite technique, and finish by using the evidence to formulate a better next question. DataCamp's [Forming Analytical Questions](https://www.datacamp.com/courses/forming-analytical-questions) supports clarifying the purpose, refining relevant and answerable questions, selecting fitting methods, and communicating what the results mean.
 
 ```text
-BETTER QUESTIONS
+MAIN QUESTION
+What do we want to understand, and why?
        │
        ▼
-Šta želimo razumjeti?
+GOAL & GUIDING QUESTIONS
+Which smaller, relevant questions can evidence answer?
        │
        ▼
-Koji kontekst i dokazi su važni?
-       │
-       ▼
-Šta tačno moramo istražiti?
-       │
-       ▼
-Kako ćemo to istražiti?
-       │
-       ▼
+METHOD & ANALYSIS
 Python / Statistics / NLP
        │
        ▼
-Šta nam rezultati stvarno govore?
+EVIDENCE & INTERPRETATION
+What was observed? What can and cannot be inferred?
        │
        ▼
-Šta smo naučili?
+LEARNING → BETTER QUESTIONS
+What did we learn? What remains uncertain?
+Which better question should we ask next?
        │
-       ▼
-Koje bolje pitanje sada možemo postaviti?
+       └──────→ Next MAIN QUESTION
 ```
 
-This is a **revisable reasoning loop**, not an inflexible algorithm. Discovering ambiguous labels, duplicated tweets, unsupported assumptions, or leakage may require changing the question or evaluation design before writing more code.
+This is a **revisable reasoning loop**, not a rigid sequence. Ambiguous labels, duplicates, missing evidence, or leakage may require refining the question before further analysis.
+
+**Three question levels:** The **Project Question** defines the overall analytical task (e.g., can we classify disaster tweets reliably?). A unit's **Main Question** focuses on one meaningful uncertainty (e.g., what do conflicting labels reveal about dataset quality?). **Guiding Questions** identify the few relevant, observable checks needed to investigate it. Not every code cell needs new questions.
+
+**Question-quality check:** Prefer specific, bounded, relevant, evidence-answerable questions. DataCamp defines SMART analytical questions as **Specific, Measurable, Actionable, Relevant, and Time-bound** (here, A means *Actionable*). Apply those criteria proportionately; do not force five headings or an artificial time range onto every educational NLP question. If the dataset cannot establish *why* labels conflict, ask what the conflicting examples actually reveal and what additional evidence would be needed.
 
 ### Three distinct WHY questions
 
@@ -60,7 +60,7 @@ Before a new meaningful learning unit, preserve four distinct items:
 
 | Item | Question to answer |
 | --- | --- |
-| **Problem / Question** | What is the source-backed problem or decision, and why is it important? |
+| **Main Question** | Which bounded, source-backed uncertainty matters to the Project Question, and why? |
 | **Context** | Which data, labels, observations, constraints, and assumptions define the problem? |
 | **Instructions** | What did the actual school task ask, and which implementation choices remain ours? |
 | **Expected outcome** | What type of evidence or output is needed, *without pretending it has already been observed*? |
@@ -75,14 +75,28 @@ Do not reverse-engineer a school requirement from the code that happens to exist
 
 Work in **one coherent analytical idea or learning slice at a time**. A learning unit may span multiple Markdown and Python cells. The six teaching elements below are a **unit-level structure**, not six sections for every import, line of Python, or routine operation.
 
-1. **📋 Source, Question & Instructions:** briefly name the relevant school source, question, essential context, conditions, and expected evidence.
-2. **🎯 Goal & Approach — What & Why:** explain why the selected inputs and method are appropriate, including important assumptions and alternatives.
+1. **📋 Source, Main Question & Instructions:** name the verified school source, the bounded question, essential context, conditions, and expected evidence.
+2. **🎯 Goal, Guiding Questions & Approach:** explain why the question matters, which smaller questions need evidence, and why the chosen inputs and simplest sound method fit; show material assumptions.
 3. **💻 Real Code + Inline Reasoning:** write readable, executable Python in `# %%` cells of `disaster_tweets_classification.py`. Explain non-obvious operations beside the code without narrating trivial syntax.
-4. **✅ Result — What Actually Happened:** give an **observed and verified** output, metric, table, or finding; state how it answers the initial question. Label expected or unexecuted results honestly.
-5. **🧠 Recap — What We Learned:** state one transferable principle, meaningful limitation, or better next question. Do not repeat the code or result.
+4. **✅ Evidence & Interpretation — What Actually Happened:** report only **observed and verified** results, answer the questions the evidence supports, and name relevant limits. Label expected or unexecuted results honestly.
+5. **🧠 Learning → Better Questions:** state the transferable insight, what remains uncertain, and one justified next question (or mark it explicitly open). This written recap does not establish Data's Learning PASS.
 6. **🧑‍💼 Recruiter / Transfer Check:** one relevant conceptual question testing independent reasoning at a meaningful milestone, with a concise model answer where useful. It tests understanding; it does **not** establish Data's Learning PASS.
 
-Use the elements naturally and omit inapplicable parts (for example, a Git setup task has no classification result). Do not duplicate a school rubric or create extra work solely to fill headings. A small **🗺️ Mental Model** or **⚠️ Watch Out** belongs near a genuine conceptual dependency or trap, not as decoration.
+Use the elements naturally and omit inapplicable parts (for example, a Git setup task has no classification result). Put the Main Question and relevant Guiding Questions **before** their Python evidence; complete Evidence & Interpretation and Learning → Better Questions **after** executing the relevant cells. One learning unit may span several Markdown and Python cells. Do not duplicate a school rubric or create extra work solely to fill headings. A small **🗺️ Mental Model** or **⚠️ Watch Out** belongs near a genuine conceptual dependency or trap, not as decoration.
+
+Illustrative `# %% [markdown]` prompts for a future **approved** data-quality unit (not an executed finding):
+
+```python
+# %% [markdown]
+# ## Main Question
+# What do conflicting labels reveal about the reliability of our dataset?
+#
+# **Goal:** Understand conflicting annotations before deciding how to handle them.
+# **Guiding Questions:** Which texts conflict? What do inspected examples show?
+#
+# **Evidence & Interpretation:** Fill in after inspecting actual results and limits.
+# **Learning → Better Questions:** What remains uncertain? What should we ask next?
+```
 
 **Writing style:** Documentation, code, and code comments are in English; our conversation can use Data's preferred language. Prefer 1–3 focused sentences per meaningful explanatory section. Aim for about 10–20 words per sentence and allow up to 23 for clarity; these are readability guidelines, not a reason to omit essential reasoning. One meaningful idea per paragraph or logical code block; no inflated boilerplate.
 
@@ -138,7 +152,7 @@ Wisdom (proportionate next question or decision)
 
 Keep these categories separate: **fact ≠ interpretation ≠ hypothesis ≠ recommendation**. Explain the model's false positives and false negatives in plain language. If F1 improves, say what was compared and on which data; do not claim lives saved or faster response times.
 
-Good storytelling is the structure of defensible reasoning: **question → data → method → evidence → meaning → limitations → better question**. It begins long before a final presentation. The original school required a Colab notebook and a live-presentation recording; retrospectively producing documentation does not mean that historical recording or submission occurred.
+Good storytelling is the structure of defensible reasoning: **question → data → method → evidence → meaning → limitations → better question**. It begins long before a final presentation. DataCamp's [Introduction to Data Literacy](https://www.datacamp.com/courses/introduction-to-data-literacy), [Communicating Data Insights](https://www.datacamp.com/courses/communicating-data-insights), and [Data Storytelling Concepts](https://www.datacamp.com/courses/data-storytelling-concepts) are optional conceptual references, not additional coursework or project deliverables. The original school required a Colab notebook and a live-presentation recording; retrospectively producing documentation does not mean that historical recording or submission occurred.
 
 ## 7. How Data, Troi, and Spock collaborate
 
