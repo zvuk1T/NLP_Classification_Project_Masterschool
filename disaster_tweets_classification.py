@@ -173,3 +173,230 @@ print("Original rows still present:", len(tweets))
 # **Transfer check:** Why could random row splitting overstate performance here?
 # Identical text could appear on both sides, making the holdout less independent.
 # This prepared explanation does not assess Data's understanding: **UNASSESSED**.
+
+# %% [markdown]
+# ## 8. Work block 1 — Prepare the data for modeling
+#
+# **Main Question:** How can we prepare these tweets for a fair, reproducible
+# model evaluation?
+#
+# **Context and instructions:** MasterSchool Sprint 3 requires text preparation
+# and evaluation on unseen labeled data. The Project Map records those sources.
+# Our duplicate policy is a project decision, not a prescribed school rule.
+# Data approved the policy below on 2026-10-27 after reviewing its affected counts.
+# This is Spock-authored implementation; the earlier raw-data analysis stays intact.
+#
+# **Goal:** Produce traceable training and holdout rows without shared text under
+# our approved comparison rule. We expect counts, examples, and reproducibility
+# checks here, not evidence of model quality.
+#
+# **Guiding Questions:** Which observations become equivalent after normalization?
+# How do exclusions change the class distribution and the evaluation population?
+# Can we reproduce the split while preserving labels and preventing text overlap?
+
+# %% [markdown]
+# ### Approved method — Define equivalence before removing rows
+#
+# Compare text after lowercasing, collapsing consecutive whitespace to one space,
+# and trimming the ends. Use that same string as the later model input.
+# This fixed rule learns nothing from the corpus, so applying it before splitting
+# does not fit vocabulary or features on the holdout.
+#
+# Keep hashtags, mentions, URLs, punctuation, negation, and other words; only case
+# and whitespace change. We avoid stemming, stop-word deletion, and speculative
+# encoding repairs. Lowercasing loses emphasis and case distinctions, including
+# those inside names or URLs; original text remains available for inspection.
+#
+# **Approved duplicate policy:** Exclude every row in a normalized-text group
+# containing both labels. For a group with one consistent label, retain its first
+# source row. Never infer a correct label or overwrite the supplied CSV.
+#
+# **Trade-off:** This defines an evaluation population with consistent recorded
+# labels. Excluding ambiguous examples may make evaluation easier; a future score
+# will not describe every original tweet or prove the retained labels are true.
+# Near-duplicates and reports about the same event can still cross partitions.
+#
+# Work on a copy and retain source row indices. The prepared string is also the
+# duplicate key, so normalization collisions cannot escape the duplicate check.
+# `\s+` means one or more whitespace characters, including line breaks.
+
+# %%
+from hashlib import sha256
+
+source_sha256 = sha256(data_path.read_bytes()).hexdigest()
+prepared = tweets.copy()
+prepared["prepared_text"] = (
+    prepared["text"].str.lower().str.replace(r"\s+", " ", regex=True).str.strip()
+)
+
+labels_per_prepared_text = prepared.groupby("prepared_text")["target"].nunique()
+original_forms_per_key = prepared.groupby("prepared_text")["text"].nunique()
+collision_keys = original_forms_per_key[original_forms_per_key > 1].index
+conflicting_keys = labels_per_prepared_text[labels_per_prepared_text > 1].index
+
+print("Normalized keys merging distinct original texts:", len(collision_keys))
+print("Original/prepared example:")
+print(prepared[["text", "prepared_text", "target"]].head(1).to_string())
+print("All normalization collisions (source row indices retained):")
+print(prepared.loc[prepared["prepared_text"].isin(collision_keys)].to_string())
+
+# %% [markdown]
+# ### Apply the approved exclusions and account for every row
+#
+# A conflict concerns the entire normalized group, not just its minority label.
+# Exclude those groups first; then identify redundant occurrences in consistent
+# groups. Keeping the first occurrence follows the original CSV order.
+# The accounting table separates these two reasons for exclusion.
+
+# %%
+conflict_mask = prepared["prepared_text"].isin(conflicting_keys)
+conflicting_rows = prepared.loc[conflict_mask]
+consistent_rows = prepared.loc[~conflict_mask]
+repeat_mask = consistent_rows.duplicated(subset="prepared_text", keep="first")
+redundant_rows = consistent_rows.loc[repeat_mask]
+model_tweets = consistent_rows.loc[~repeat_mask].copy()
+
+preparation_counts = pd.DataFrame({
+    "original": tweets["target"].value_counts(),
+    "conflicts excluded": conflicting_rows["target"].value_counts(),
+    "repeats excluded": redundant_rows["target"].value_counts(),
+    "prepared": model_tweets["target"].value_counts(),
+}).T.reindex(columns=[0, 1], fill_value=0).fillna(0).astype(int)
+preparation_counts["total"] = preparation_counts.sum(axis=1)
+print("Rows by stage and target label:")
+print(preparation_counts.to_string())
+print("Conflicting normalized groups:", len(conflicting_keys))
+
+# %% [markdown]
+# ### Separate training and holdout data
+#
+# **Approved design:** Reserve 20% as holdout, stratify by `target`, and fix
+# `random_state=42`. Stratification keeps class proportions close despite integer
+# rounding; the seed reproduces row selection for this input order and environment.
+#
+# Split the complete table, then select text and labels from each partition.
+# This keeps original text, prepared text, labels, and source indices aligned.
+# Each approved duplicate group now has at most one row, so ordinary stratified
+# splitting cannot distribute that group across both partitions.
+#
+# Work block 1 additionally uses `scikit-learn==1.5.2` in the existing `.venv`.
+# Existing dependency pins constrain installation; the full requirements file is
+# not needed for this block. The code reports the versions actually executing.
+#
+# DataCamp bridge: [Measuring model performance — Supervised Learning with
+# scikit-learn](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/classification-1?ex=7).
+# Its train/test explanation covers stratification and reproducible random seeds.
+# We adapt that splitting concept; no lesson model or score is reused.
+#
+# No vocabulary, TF-IDF weights, or model is fitted here. The next approved block
+# must fit learned transformations on training data only and apply the same
+# deterministic preparation to future inputs.
+
+# %%
+import sklearn
+from sklearn.model_selection import train_test_split
+
+print("scikit-learn:", sklearn.__version__)
+train_rows, holdout_rows = train_test_split(
+    model_tweets, test_size=0.20, random_state=42, stratify=model_tweets["target"]
+)
+X_train = train_rows["prepared_text"]
+y_train = train_rows["target"]
+X_holdout = holdout_rows["prepared_text"]
+y_holdout = holdout_rows["target"]
+
+for name, frame in [("original", tweets), ("prepared", model_tweets),
+                    ("training", train_rows), ("holdout", holdout_rows)]:
+    counts = frame["target"].value_counts().sort_index()
+    summary = counts.to_frame(name="rows")
+    summary["percent"] = (counts / len(frame) * 100).round(2)
+    print(f"\n{name}: {len(frame)} rows")
+    print(summary.to_string())
+
+# %% [markdown]
+# ### Verify preservation, alignment, separation, and repeatability
+#
+# Assertions stop execution if an expected relationship fails. Check that every
+# source row is accounted for, retained labels are unchanged, and both partitions
+# cover the prepared data exactly once. Check original and prepared text overlap.
+#
+# Repeat only the split to verify identical membership and ordering. Compare the
+# raw table with a fresh CSV read and check the file hash for accidental changes.
+# These checks establish preparation integrity, not model generalization or
+# independence between different texts about the same event.
+
+# %%
+assert len(tweets) == len(conflicting_rows) + len(redundant_rows) + len(model_tweets)
+assert model_tweets["prepared_text"].is_unique
+assert not model_tweets["prepared_text"].isna().any()
+assert not model_tweets["prepared_text"].eq("").any()
+assert model_tweets["target"].equals(tweets.loc[model_tweets.index, "target"])
+assert model_tweets["text"].equals(tweets.loc[model_tweets.index, "text"])
+assert X_train.index.equals(y_train.index)
+assert X_holdout.index.equals(y_holdout.index)
+assert y_train.equals(tweets.loc[X_train.index, "target"])
+assert y_holdout.equals(tweets.loc[X_holdout.index, "target"])
+assert set(train_rows.index).isdisjoint(holdout_rows.index)
+assert len(train_rows) + len(holdout_rows) == len(model_tweets)
+assert set(train_rows.index) | set(holdout_rows.index) == set(model_tweets.index)
+
+original_overlap = set(train_rows["text"]) & set(holdout_rows["text"])
+prepared_overlap = set(X_train) & set(X_holdout)
+assert not original_overlap and not prepared_overlap
+for partition in [train_rows, holdout_rows]:
+    proportions = partition["target"].value_counts(normalize=True).sort_index()
+    prepared_proportions = model_tweets["target"].value_counts(normalize=True).sort_index()
+    assert (proportions - prepared_proportions).abs().le(1 / len(partition)).all()
+
+repeat_train, repeat_holdout = train_test_split(
+    model_tweets, test_size=0.20, random_state=42, stratify=model_tweets["target"]
+)
+assert train_rows.equals(repeat_train) and holdout_rows.equals(repeat_holdout)
+assert tweets.equals(pd.read_csv(data_path))
+assert sha256(data_path.read_bytes()).hexdigest() == source_sha256
+
+print("Original/prepared text overlap:", len(original_overlap), len(prepared_overlap))
+print("PASS: row accounting, labels, coverage, class proportions, and reproducible split.")
+print("PASS: original DataFrame and source CSV preserved.")
+print("CSV SHA-256:", source_sha256)
+
+# %% [markdown]
+# ### Evidence & Interpretation — What changed, and what did not?
+#
+# **Observed on 2026-10-27:** Normalization merged two pairs of distinct original
+# strings. Rows 3340/7604 differ in whitespace; row 6119 adds a case variant to
+# an existing conflicting group. Thus 18 conflicting groups contain 56 rows,
+# versus 55 under exact comparison. These are zero-based source row indices.
+#
+# Excluding those 56 rows and 74 redundant consistent occurrences leaves 7,483
+# distinct prepared texts. Original rows and labels remain intact in `tweets`
+# and the CSV. All checks above passed with the approved split settings.
+#
+# | Population | Rows | Label 0 | Label 1 | Label 1 share |
+# | --- | ---: | ---: | ---: | ---: |
+# | Original | 7,613 | 4,342 | 3,271 | 42.97% |
+# | Prepared | 7,483 | 4,297 | 3,186 | 42.58% |
+# | Training | 5,986 | 3,437 | 2,549 | 42.58% |
+# | Holdout | 1,497 | 860 | 637 | 42.55% |
+#
+# **Interpretation:** The prepared class mix changed slightly, and stratification
+# preserved it closely in both partitions. Original and prepared text overlap are
+# both zero; repeated splitting gives identical rows and ordering.
+# These facts support reproducible separation under our rule, not event-level
+# independence, correct annotations, or future model performance.
+#
+# ### Learning → Better Questions
+#
+# **Learning:** Preparation defines both the model's inputs and the population
+# we can evaluate. Checking collisions after normalization prevents superficially
+# different strings from bypassing the duplicate policy. Excluding conflicts
+# simplifies evaluation without resolving why those annotations disagree.
+#
+# **Next Main Question:** How well does a TF-IDF + Logistic Regression baseline
+# classify the held-out tweets, and where does it fail? That requires the next
+# approved work block; no vectorizer or model has been fitted here.
+#
+# **Transfer check:** Does stratification prevent duplicate leakage?
+# No. It controls label proportions, not shared text. Our approved grouping and
+# exclusions address text overlap before splitting; related events may remain.
+# This written explanation does not establish Data's Learning PASS: **UNASSESSED**.
