@@ -1,37 +1,41 @@
 # %% [markdown]
-# # Disaster Tweets — Understanding the Dataset
+# # Disaster Tweets — From Recorded Rows to an Evaluation Population
 #
-# **Question:** What do the dataset structure, target distribution, and duplicate
-# tweets tell us before modeling?
+# **Project Question:** Can tweet text help distinguish disaster from non-disaster
+# examples, and what would make evidence of that ability trustworthy?
 #
-# **Context and source:** MasterSchool DA112 Sprint 3 asks us to classify tweets
-# about real disasters. The supplied `DATA/train.csv` contains `text` and `target`.
-# Label `1` means disaster; label `0` means non-disaster, according to the dataset.
-# The labels are annotations, not independently verified facts about each event.
+# ### 📋 Context, Source & Task
+# MasterSchool DA112 Sprint 3 asks us to classify disaster tweets. The supplied
+# `DATA/train.csv` records text and a target: `1` for disaster, `0` for non-disaster.
+# These are recorded annotations, not independently verified facts about events.
+# The Project Map documents this teaching copy and its unknown transformation history.
 #
-# The Project Map records the school requirements and dataset provenance limits.
-# This is a text-only teaching copy; its exact transformation history is unknown.
+# This assistant-authored analysis retrospectively explains the completed dataset
+# investigation and preparation. The questions organize its reasoning; they do not
+# claim to reconstruct a learner's past thoughts or demonstrate understanding.
 #
-# **Goal and approach:** Count what is present before deciding what to change.
-# We expect a structural summary, class counts, and evidence of repeated or
-# contradictory examples. These checks cannot establish model performance.
-#
-# Spock-authored implementation for Data's approved Slice 2A. No rows or labels
-# are changed, and no preprocessing, splitting, or modeling happens here.
+# The local Sprint 2 `guided.ipynb` supplies the school reference for sequential
+# text preparation and keeping text paired with labels. We adapt those principles
+# to tweets; the limited normalization and retention policy below are project choices.
+# DataCamp links support particular operations, using original explanations here.
 
 # %% [markdown]
-# ## 1. Set up the execution context
+# ## 1. Understand the observations and labels
 #
-# Open this repository folder in VS Code. Select `.venv/bin/python` as the
-# Interactive Window kernel, start a fresh kernel, and run cells from top to bottom.
-# Dependencies for this slice: `pandas==2.2.3` and `ipykernel`.
+# ### ❓ Main Question
+# What do the dataset structure and target distribution tell us before modeling?
 #
-# `Path` builds a location without hardcoding a particular computer's username.
-# A script has `__file__`; an interactive session may not. Without it, start the
-# kernel in the repository root. The check below reports an incorrect location.
+# **🎯 Goal & Approach — What & Why:** Establish what one observation contains
+# and whether its required fields are usable. Count labels to describe the starting
+# population; these proportions provide context, not a measure of predictive ability.
 #
-# Terminal alternative, from the repository root:
-# `.venv/bin/python disaster_tweets_classification.py`
+# **🔎 Guiding Questions:** Are text or labels missing or invalid? How many
+# observations belong to each recorded class?
+#
+# **✅ Notes for Students:** Open this repository in VS Code, select its existing
+# `.venv/bin/python` kernel, restart it, and run cells from top to bottom.
+# This file uses pandas and scikit-learn; ipykernel supports the Interactive Window.
+# A terminal alternative from the root is `.venv/bin/python disaster_tweets_classification.py`.
 
 # %%
 from pathlib import Path
@@ -39,6 +43,8 @@ import sys
 
 import pandas as pd
 
+# A script resolves data beside this file; an interactive session uses its folder.
+# project_root and data_path are filesystem locations, not data tables.
 if "__file__" in globals():
     project_root = Path(__file__).resolve().parent
 else:
@@ -55,322 +61,340 @@ print("Interpreter:", sys.executable)
 print("pandas:", pd.__version__)
 print("CSV:", data_path)
 
-# %% [markdown]
-# ## 2. Read the original rows
-#
-# `read_csv` loads the supplied file into a DataFrame: a table with named columns.
-# Each row is one labeled observation. The first rows help us inspect the format;
-# they are not a representative sample of all tweets.
-
-# %%
+# Read one labeled observation per row; its index is the zero-based source position.
+# Keep tweets unchanged so later subsets can be traced back to these original rows.
 tweets = pd.read_csv(data_path)
 print("Rows and columns:", tweets.shape)
 print("Column types:")
 print(tweets.dtypes.to_string())
-print("First five observations:")
-print(tweets.head().to_string(index=False))
-
-# %% [markdown]
-# ## 3. Check missing values and valid labels
-#
-# Missing values and blank strings are different: spaces can occupy a non-missing
-# field. The temporary `strip()` check detects blank text without changing `tweets`.
-# `isin([0, 1])` checks membership in the two allowed labels.
+print("First five observations (source indices shown; not a representative sample):")
+print(tweets.head().to_string())
 
 # %%
+# isna() flags missing cells; summing down each column counts True as 1, False as 0.
+# missing_counts is a Series indexed by column name, with one missing-value total each.
 missing_counts = tweets.isna().sum()
-blank_text_count = tweets["text"].str.strip().eq("").sum()
-invalid_label_count = (~tweets["target"].isin([0, 1])).sum()
 
+# strip() temporarily trims text ends; eq("") flags rows containing only whitespace.
+# Summing these flags counts blank texts without changing the source column.
+blank_text_count = tweets["text"].str.strip().eq("").sum()
+
+# isin checks membership in allowed labels. ~ reverses each flag: True now means invalid.
+# This is a row count, including missing labels, not a count of distinct bad label values.
+invalid_label_count = (~tweets["target"].isin([0, 1])).sum()
 print("Missing values by column:")
 print(missing_counts.to_string())
 print("Blank text rows:", blank_text_count)
 print("Missing or invalid target rows:", invalid_label_count)
 
+# Stop if required inputs are unusable; subsequent grouping assumes valid text and labels.
 if missing_counts.any() or blank_text_count or invalid_label_count:
     raise ValueError("Unexpected missing, blank, or invalid values; inspect before continuing.")
 
-# %% [markdown]
-# ## 4. Compare the target classes
-#
-# `value_counts()` counts observations per label. Dividing by the total gives
-# each class's share; sorting the index keeps labels in the order `0`, then `1`.
-# Class balance gives context for later evaluation, but does not measure accuracy.
-
-# %%
+# Count observations per label; sort_index orders the label keys as 0, then 1.
+# target_summary has one row per class, with the original row count as its denominator.
 target_counts = tweets["target"].value_counts().sort_index()
 target_summary = target_counts.to_frame(name="rows")
 target_summary["percent"] = (target_counts / len(tweets) * 100).round(2)
+print("Original label distribution:")
 print(target_summary.to_string())
 
 # %% [markdown]
-# ## 5. Count exact-text duplicates
+# ### ✅ Evidence & Interpretation
+# The supplied table has 7,613 rows and two columns, with no missing values,
+# blank texts, or invalid labels. Class `0` contains 4,342 rows (57.03%);
+# class `1` contains 3,271 (42.97%). Non-disaster annotations are moderately more common.
 #
-# Exact equality preserves case, punctuation, and whitespace. Similar wording may
-# therefore remain in different groups. We do not normalize text in this slice.
+# ### 🧠 Learning → Better Questions
+# Usable fields and known class proportions establish a starting population.
+# They do not establish that each row adds a distinct example or a reliable answer.
+# **What changes when we count texts rather than rows, and inspect label agreement?**
+
+# %% [markdown]
+# ## 2. Distinguish repeated texts from conflicting annotations
 #
-# A group repeated three times contributes three participating rows, but only two
-# additional occurrences. `duplicated()` marks occurrences after the first;
-# it does not delete them. Full-row duplication also requires the label to match.
+# ### ❓ Main Question
+# How much repetition and label disagreement does exact text equality reveal?
+#
+# **🎯 Goal & Approach — What & Why:** Group identical strings to distinguish
+# repeated observations from distinct inputs. Count different labels within each
+# group to expose inconsistent supervision without guessing a correct annotation.
+#
+# **🔎 Guiding Questions:** How many groups repeat, and how many rows do they contain?
+# Do all observations with the same exact text carry the same label?
+#
+# **🗺️ Mental Model:** Three observations with text A form one text group.
+# They contribute three participating rows, two extra occurrences, and either one
+# or two distinct labels. These counts answer different questions.
+#
+# Optional reference: DataCamp's [Daily marketing reach by channel](https://campus.datacamp.com/courses/analyzing-marketing-campaigns-with-pandas/pandas-1?ex=9)
+# uses grouping and `nunique()` to count distinct values within groups.
 
 # %%
+# text_counts maps each exact string (its index) to the number of source rows using it.
+# Exact comparison still distinguishes case, whitespace, and punctuation.
 text_counts = tweets["text"].value_counts()
-repeated_text_counts = text_counts[text_counts > 1]
-extra_text_rows = tweets["text"].duplicated().sum()
-extra_identical_rows = tweets.duplicated().sum()
 
+# Keep only groups with more than one observation: len counts groups, sum counts rows.
+repeated_text_counts = text_counts[text_counts > 1]
+
+# duplicated(keep="first") flags later occurrences True and each first occurrence False.
+# Checking the whole table additionally requires the target to match; neither call deletes rows.
+extra_text_rows = tweets["text"].duplicated(keep="first").sum()
+extra_identical_rows = tweets.duplicated(keep="first").sum()
 print("Unique exact texts:", len(text_counts))
 print("Repeated exact-text groups:", len(repeated_text_counts))
 print("Rows belonging to repeated groups:", repeated_text_counts.sum())
 print("Additional exact-text occurrences:", extra_text_rows)
 print("Additional identical (text, target) rows:", extra_identical_rows)
 
-# %% [markdown]
-# ## 6. Find identical texts with conflicting labels
-#
-# `groupby("text")` collects rows with identical original text. Selecting `target`
-# and calling `nunique()` counts distinct labels within each group.
-# With valid labels, a count of two means disagreement; it cannot tell us which
-# label is correct. `isin()` then identifies all original rows in these groups.
-#
-# DataCamp bridge: [Initial exploratory analysis — Analyzing Marketing Campaigns
-# with pandas](https://campus.datacamp.com/courses/analyzing-marketing-campaigns-with-pandas/pandas-1?ex=8).
-# This verified lesson explains grouping and counting distinct values; our tweet
-# analysis adapts the concept, not its marketing example or course code.
-
-# %%
+# Each grouped result holds the number of distinct target values, not observations.
+# Its index contains text strings, not the original integer source-row indices.
 labels_per_text = tweets.groupby("text")["target"].nunique()
-conflicting_texts = labels_per_text[labels_per_text > 1].index
-conflicting_row_count = tweets["text"].isin(conflicting_texts).sum()
 
+# Select counts above one and extract their index: the strings whose groups have both labels.
+conflicting_texts = labels_per_text[labels_per_text > 1].index
+
+# Map the conflicting group keys back to one Boolean flag per original source row.
+# isin is True for any row whose text belongs to those groups, including every label.
+exact_conflict_mask = tweets["text"].isin(conflicting_texts)
+conflicting_row_count = exact_conflict_mask.sum()
 print("Exact-text groups with both labels:", len(conflicting_texts))
 print("Rows belonging to conflicting groups:", conflicting_row_count)
-print("Original rows still present:", len(tweets))
 
 # %% [markdown]
-# ## 7. Evidence, meaning, and the next question
+# ### ✅ Evidence & Interpretation
+# There are 7,503 distinct exact texts. The 69 repeated groups contain 179 rows,
+# including 110 occurrences beyond the first. Only 92 extra rows also repeat the label.
+# Eighteen text groups have both labels, involving 55 observations.
 #
-# **Observed result:** 7,613 rows and two columns; no missing values, blank texts,
-# or invalid labels. Class `0` has 4,342 rows (57.03%); class `1` has 3,271 (42.97%).
+# Repetition and conflict are different: repeating one label adds no disagreement;
+# recording two labels for one input does. These counts do not identify which label
+# is correct or explain why the annotations differ.
 #
-# There are 7,503 unique exact texts. The 69 repeated groups contain 179 rows,
-# including 110 additional text occurrences. There are 92 additional identical
-# `(text, target)` rows. Of the repeated groups, 18 contain both labels: 55 rows.
-# These counts were reproduced during Slice 2A; rerun cells after any data change.
-#
-# **Interpretation:** Non-disaster labels are moderately more common. Repeated
-# texts mean row count overstates the number of distinct exact-text examples.
-# Conflicting labels show that identical input does not always have one recorded
-# answer. We have not established the cause or identified the correct labels.
-#
-# **Transferable lesson:** A complete table can still contain inconsistent
-# supervision. Counting missing values alone does not establish data quality.
-#
-# **Next question:** How should repeated and contradictory examples be handled
-# before constructing an honest evaluation? Data must approve that policy first.
-# Nothing has been removed, relabeled, normalized, split, vectorized, or trained.
-#
-# **Transfer check:** Why could random row splitting overstate performance here?
-# Identical text could appear on both sides, making the holdout less independent.
-# This prepared explanation does not assess Data's understanding: **UNASSESSED**.
+# ### 🧠 Learning → Better Questions
+# The initial row total overstates the number of distinct exact inputs. A table
+# can have complete fields while offering contradictory supervision.
+# Before deciding which examples survive, **does the intended preparation make
+# previously different strings count as the same input?**
 
 # %% [markdown]
-# ## 8. Work block 1 — Prepare the data for modeling
+# ## 3. Understand what normalization changes
 #
-# **Main Question:** How can we prepare these tweets for a fair, reproducible
-# model evaluation?
+# ### ❓ Main Question
+# Which observations become equivalent under our chosen text preparation?
 #
-# **Context and instructions:** MasterSchool Sprint 3 requires text preparation
-# and evaluation on unseen labeled data. The Project Map records those sources.
-# Our duplicate policy is a project decision, not a prescribed school rule.
-# Data approved the policy below on 2026-10-27 after reviewing its affected counts.
-# This is Spock-authored implementation; the earlier raw-data analysis stays intact.
+# **🎯 Goal & Approach — What & Why:** Compare the original text with a copy
+# lowercased, reduced to single whitespace separators, and trimmed at both ends.
+# Use this prepared string as both the duplicate key and the eventual model input.
+# Otherwise, differently written inputs could bypass the duplicate policy.
 #
-# **Goal:** Produce traceable training and holdout rows without shared text under
-# our approved comparison rule. We expect counts, examples, and reproducibility
-# checks here, not evidence of model quality.
+# **🔎 Guiding Questions:** Do distinct original strings merge? Does that change
+# which source rows belong to conflicting groups?
 #
-# **Guiding Questions:** Which observations become equivalent after normalization?
-# How do exclusions change the class distribution and the evaluation population?
-# Can we reproduce the split while preserving labels and preventing text overlap?
-
-# %% [markdown]
-# ### Approved method — Define equivalence before removing rows
+# This fixed rule learns no vocabulary or statistics from the corpus. It keeps
+# words, punctuation, hashtags, mentions, and URLs, though their case may change.
+# Lowercasing loses emphasis and case distinctions; retaining original text makes
+# those losses inspectable. No stemming, stop-word removal, or encoding repair is used.
 #
-# Compare text after lowercasing, collapsing consecutive whitespace to one space,
-# and trimming the ends. Use that same string as the later model input.
-# This fixed rule learns nothing from the corpus, so applying it before splitting
-# does not fit vocabulary or features on the holdout.
-#
-# Keep hashtags, mentions, URLs, punctuation, negation, and other words; only case
-# and whitespace change. We avoid stemming, stop-word deletion, and speculative
-# encoding repairs. Lowercasing loses emphasis and case distinctions, including
-# those inside names or URLs; original text remains available for inspection.
-#
-# **Approved duplicate policy:** Exclude every row in a normalized-text group
-# containing both labels. For a group with one consistent label, retain its first
-# source row. Never infer a correct label or overwrite the supplied CSV.
-#
-# **Trade-off:** This defines an evaluation population with consistent recorded
-# labels. Excluding ambiguous examples may make evaluation easier; a future score
-# will not describe every original tweet or prove the retained labels are true.
-# Near-duplicates and reports about the same event can still cross partitions.
-#
-# Work on a copy and retain source row indices. The prepared string is also the
-# duplicate key, so normalization collisions cannot escape the duplicate check.
-# `\s+` means one or more whitespace characters, including line breaks.
+# The school example motivates visible preparation steps; its broader movie-review
+# cleaning is not adopted. DataCamp's [Normalizing reviews](https://campus.datacamp.com/courses/regular-expressions-in-python/basic-concepts-of-string-manipulation?ex=6)
+# illustrates string operations; here `.str` applies them to every text in a pandas column.
 
 # %%
-from hashlib import sha256
-
-source_sha256 = sha256(data_path.read_bytes()).hexdigest()
+# prepared copies every source row, preserving its index, original text, and target.
+# The new prepared_text column holds the comparable input without overwriting the original.
 prepared = tweets.copy()
-prepared["prepared_text"] = (
-    prepared["text"].str.lower().str.replace(r"\s+", " ", regex=True).str.strip()
-)
+prepared["prepared_text"] = prepared["text"].str.lower()
 
+# The regular expression \s+ matches one or more whitespace characters, including newlines.
+# Replace each run with one space, then strip only leading and trailing whitespace.
+prepared["prepared_text"] = prepared["prepared_text"].str.replace(r"\s+", " ", regex=True)
+prepared["prepared_text"] = prepared["prepared_text"].str.strip()
+
+# Both Series are indexed by normalized strings: count distinct labels or original forms.
+# A normalized group can now collect source rows that had different exact strings.
 labels_per_prepared_text = prepared.groupby("prepared_text")["target"].nunique()
 original_forms_per_key = prepared.groupby("prepared_text")["text"].nunique()
+
+# collision_keys lists normalized strings merging originals; conflicting_keys lists label disputes.
+# These are group keys, not source-row numbers; more than one form does not imply a conflict.
 collision_keys = original_forms_per_key[original_forms_per_key > 1].index
 conflicting_keys = labels_per_prepared_text[labels_per_prepared_text > 1].index
 
+# collision_mask marks each source row involved in a merge. .loc keeps True rows and all columns.
+# The displayed integer index still identifies where each observation came from in the CSV.
+collision_mask = prepared["prepared_text"].isin(collision_keys)
+print("Distinct normalized texts before exclusions:", len(labels_per_prepared_text))
 print("Normalized keys merging distinct original texts:", len(collision_keys))
 print("Original/prepared example:")
 print(prepared[["text", "prepared_text", "target"]].head(1).to_string())
-print("All normalization collisions (source row indices retained):")
-print(prepared.loc[prepared["prepared_text"].isin(collision_keys)].to_string())
+print("Rows in normalization collisions (source indices retained):")
+print(prepared.loc[collision_mask].to_string())
 
 # %% [markdown]
-# ### Apply the approved exclusions and account for every row
+# ### ✅ Evidence & Interpretation
+# Normalization leaves 7,501 distinct keys, merging two pairs of original strings.
+# Source rows 3340 and 7604 differ in whitespace; row 6119 adds a case variant
+# to an existing conflicting group. The source indices are zero-based row positions.
 #
-# A conflict concerns the entire normalized group, not just its minority label.
-# Exclude those groups first; then identify redundant occurrences in consistent
-# groups. Keeping the first occurrence follows the original CSV order.
-# The accounting table separates these two reasons for exclusion.
+# ### 🧠 Learning → Better Questions
+# Equality depends on the representation used. Inspecting only original strings
+# would miss a row that becomes equivalent to conflicting inputs after preparation.
+# **How does applying the agreed policy to these normalized groups change the
+# population we will evaluate?**
+
+# %% [markdown]
+# ## 4. Apply the retention policy and account for the population
+#
+# ### ❓ Main Question
+# Which observations remain under the agreed policy, and what does exclusion cost?
+#
+# **🎯 Goal & Approach — What & Why:** Exclude every row in a normalized group
+# containing both labels, then keep the first source occurrence of each consistent
+# group. Count these two exclusion reasons separately to make the change traceable.
+# This is the project's approved policy, not a prescribed school rule or label repair.
+#
+# **🔎 Guiding Questions:** How many rows and labels does each step remove?
+# Does the resulting table still contain repeated inputs or conflicting groups?
+#
+# A group's first source occurrence is a reproducible choice, not evidence that
+# it is better annotated. Excluding disagreements changes the evaluation population
+# and may make the task easier; it does not settle those disagreements.
+#
+# Optional references: [Driving right (1)](https://campus.datacamp.com/courses/intermediate-python/logic-control-flow-and-filtering?ex=15)
+# separates a Boolean mask from its selection; [Dropping duplicates](https://campus.datacamp.com/courses/data-manipulation-with-pandas/aggregating-dataframes?ex=7)
+# illustrates how the chosen columns define repetition.
 
 # %%
+# Create one flag per source row: True means its normalized group has both labels.
+# .loc selects whole rows; ~ flips the flags so consistent_rows keeps every other group.
 conflict_mask = prepared["prepared_text"].isin(conflicting_keys)
 conflicting_rows = prepared.loc[conflict_mask]
 consistent_rows = prepared.loc[~conflict_mask]
+
+# Among consistent rows, True marks occurrences after the first matching prepared_text.
+# Filtering preserves source order; the first occurrence has the earliest source index.
 repeat_mask = consistent_rows.duplicated(subset="prepared_text", keep="first")
 redundant_rows = consistent_rows.loc[repeat_mask]
+
+# model_tweets keeps one row per surviving normalized input, with original text and label.
+# Its source indices can have gaps; copying does not reset or renumber them.
 model_tweets = consistent_rows.loc[~repeat_mask].copy()
 
-preparation_counts = pd.DataFrame({
-    "original": tweets["target"].value_counts(),
-    "conflicts excluded": conflicting_rows["target"].value_counts(),
-    "repeats excluded": redundant_rows["target"].value_counts(),
-    "prepared": model_tweets["target"].value_counts(),
-}).T.reindex(columns=[0, 1], fill_value=0).fillna(0).astype(int)
-preparation_counts["total"] = preparation_counts.sum(axis=1)
+# Build one summary record per stage; each dictionary names that stage's counts.
+# stage_rows is the corresponding table; eq(label).sum() counts observations of that class.
+stage_records = []
+for stage, stage_rows in [
+    ("original", tweets),
+    ("conflicts excluded", conflicting_rows),
+    ("repeats excluded", redundant_rows),
+    ("prepared", model_tweets),
+]:
+    stage_records.append({
+        "stage": stage,
+        "label_0": stage_rows["target"].eq(0).sum(),
+        "label_1": stage_rows["target"].eq(1).sum(),
+        "total": len(stage_rows),
+    })
+
+# Convert the records to a table indexed by stage names, not tweets or source positions.
+preparation_counts = pd.DataFrame(stage_records).set_index("stage")
 print("Rows by stage and target label:")
 print(preparation_counts.to_string())
 print("Conflicting normalized groups:", len(conflicting_keys))
 
+# Subtract the disjoint removed and retained populations; zero means every row is accounted for.
+unaccounted_rows = len(tweets) - len(conflicting_rows) - len(redundant_rows) - len(model_tweets)
+
+# Count any later repeated input and any surviving group with more than one distinct label.
+# remaining_label_counts again has normalized-text keys; each value counts labels, not rows.
+remaining_duplicates = model_tweets["prepared_text"].duplicated().sum()
+remaining_label_counts = model_tweets.groupby("prepared_text")["target"].nunique()
+remaining_conflicts = (remaining_label_counts > 1).sum()
+print("Unaccounted source rows:", unaccounted_rows)
+print("Remaining extra occurrences / conflicting groups:", remaining_duplicates, remaining_conflicts)
+
 # %% [markdown]
-# ### Separate training and holdout data
+# ### ✅ Evidence & Interpretation
+# The 18 conflicting normalized groups contain 56 rows: 29 labeled `0`, 27 labeled `1`.
+# Removing them, then 74 redundant consistent occurrences (16 / 58 by label),
+# leaves 7,483 rows: 4,297 labeled `0`, 3,186 labeled `1`.
+# The accounting difference, remaining duplicates, and remaining conflicts are all zero.
 #
-# **Approved design:** Reserve 20% as holdout, stratify by `target`, and fix
-# `random_state=42`. Stratification keeps class proportions close despite integer
-# rounding; the seed reproduces row selection for this input order and environment.
+# Class `1` now represents 42.58%, compared with 42.97% originally. A small shift
+# in class proportions does not make the exclusions neutral: ambiguous examples
+# are absent from the population on which future evaluation will be based.
 #
-# Split the complete table, then select text and labels from each partition.
-# This keeps original text, prepared text, labels, and source indices aligned.
-# Each approved duplicate group now has at most one row, so ordinary stratified
-# splitting cannot distribute that group across both partitions.
+# ### 🧠 Learning → Better Questions
+# A group-level decision must be mapped back to all its source rows. Otherwise,
+# removing only a disputed occurrence could silently retain an arbitrary answer.
+# Preparation therefore defines the population a future score describes, not just
+# the input format. **How can we separate this population while preserving label
+# alignment, and what kind of independence can we actually verify?**
+
+# %% [markdown]
+# ## 5. Separate training and holdout observations
 #
-# Work block 1 additionally uses `scikit-learn==1.5.2` in the existing `.venv`.
-# Existing dependency pins constrain installation; the full requirements file is
-# not needed for this block. The code reports the versions actually executing.
+# ### ❓ Main Question
+# What does our training/holdout separation preserve, and what remains uncertain?
 #
-# DataCamp bridge: [Measuring model performance — Supervised Learning with
-# scikit-learn](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/classification-1?ex=7).
-# Its train/test explanation covers stratification and reproducible random seeds.
-# We adapt that splitting concept; no lesson model or score is reused.
+# **🎯 Goal & Approach — What & Why:** Reserve 20% of the prepared rows for
+# holdout evaluation using stratification and `random_state=42`. Split whole rows
+# first, so original text, prepared text, labels, and source indices travel together.
 #
-# No vocabulary, TF-IDF weights, or model is fitted here. The next approved block
-# must fit learned transformations on training data only and apply the same
-# deterministic preparation to future inputs.
+# **🔎 Guiding Questions:** Are class proportions similar in both partitions?
+# Do they share any identical original or prepared text?
+#
+# Stratification keeps label proportions close, subject to whole-row rounding.
+# The seed makes selection reproducible for the same inputs, order, and environment.
+# It cannot establish representativeness; changing inputs or order can change the split.
+# Neither mechanism prevents repeated texts or related events from crossing partitions.
+# The preceding retention policy addresses matching prepared text before this split.
+#
+# DataCamp's [Train/test split + computing accuracy](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/classification-1?ex=8)
+# illustrates stratification and a fixed seed. Only that separation concept is
+# adapted here; no model, score, or learned text transformation is produced.
 
 # %%
 import sklearn
 from sklearn.model_selection import train_test_split
 
+# Randomly partition whole observations; each returned table retains its source indices.
+# stratify uses target counts, not text groups; neither table is sorted back into source order.
 print("scikit-learn:", sklearn.__version__)
 train_rows, holdout_rows = train_test_split(
     model_tweets, test_size=0.20, random_state=42, stratify=model_tweets["target"]
 )
+
+# X holds prepared input strings; y holds recorded labels, each as a one-dimensional Series.
+# Selecting from the same partition preserves matching source indices and element order.
 X_train = train_rows["prepared_text"]
 y_train = train_rows["target"]
 X_holdout = holdout_rows["prepared_text"]
 y_holdout = holdout_rows["target"]
 
-for name, frame in [("original", tweets), ("prepared", model_tweets),
-                    ("training", train_rows), ("holdout", holdout_rows)]:
+# Summarize each partition separately: one row per label, percent of that partition's rows.
+# counts and summary are recalculated for each table, so the denominator changes with it.
+for name, frame in [("training", train_rows), ("holdout", holdout_rows)]:
     counts = frame["target"].value_counts().sort_index()
     summary = counts.to_frame(name="rows")
     summary["percent"] = (counts / len(frame) * 100).round(2)
     print(f"\n{name}: {len(frame)} rows")
     print(summary.to_string())
 
-# %% [markdown]
-# ### Verify preservation, alignment, separation, and repeatability
-#
-# Assertions stop execution if an expected relationship fails. Check that every
-# source row is accounted for, retained labels are unchanged, and both partitions
-# cover the prepared data exactly once. Check original and prepared text overlap.
-#
-# Repeat only the split to verify identical membership and ordering. Compare the
-# raw table with a fresh CSV read and check the file hash for accidental changes.
-# These checks establish preparation integrity, not model generalization or
-# independence between different texts about the same event.
-
 # %%
-assert len(tweets) == len(conflicting_rows) + len(redundant_rows) + len(model_tweets)
-assert model_tweets["prepared_text"].is_unique
-assert not model_tweets["prepared_text"].isna().any()
-assert not model_tweets["prepared_text"].eq("").any()
-assert model_tweets["target"].equals(tweets.loc[model_tweets.index, "target"])
-assert model_tweets["text"].equals(tweets.loc[model_tweets.index, "text"])
-assert X_train.index.equals(y_train.index)
-assert X_holdout.index.equals(y_holdout.index)
-assert y_train.equals(tweets.loc[X_train.index, "target"])
-assert y_holdout.equals(tweets.loc[X_holdout.index, "target"])
-assert set(train_rows.index).isdisjoint(holdout_rows.index)
-assert len(train_rows) + len(holdout_rows) == len(model_tweets)
-assert set(train_rows.index) | set(holdout_rows.index) == set(model_tweets.index)
-
+# Sets contain distinct strings rather than rows; & finds strings present on both sides.
+# These overlap objects therefore hold shared text values, not source indices or labels.
 original_overlap = set(train_rows["text"]) & set(holdout_rows["text"])
 prepared_overlap = set(X_train) & set(X_holdout)
-assert not original_overlap and not prepared_overlap
-for partition in [train_rows, holdout_rows]:
-    proportions = partition["target"].value_counts(normalize=True).sort_index()
-    prepared_proportions = model_tweets["target"].value_counts(normalize=True).sort_index()
-    assert (proportions - prepared_proportions).abs().le(1 / len(partition)).all()
-
-repeat_train, repeat_holdout = train_test_split(
-    model_tweets, test_size=0.20, random_state=42, stratify=model_tweets["target"]
-)
-assert train_rows.equals(repeat_train) and holdout_rows.equals(repeat_holdout)
-assert tweets.equals(pd.read_csv(data_path))
-assert sha256(data_path.read_bytes()).hexdigest() == source_sha256
-
-print("Original/prepared text overlap:", len(original_overlap), len(prepared_overlap))
-print("PASS: row accounting, labels, coverage, class proportions, and reproducible split.")
-print("PASS: original DataFrame and source CSV preserved.")
-print("CSV SHA-256:", source_sha256)
+print("Partition rows / prepared rows:", len(train_rows) + len(holdout_rows), len(model_tweets))
+print("Shared original texts:", len(original_overlap))
+print("Shared prepared texts:", len(prepared_overlap))
 
 # %% [markdown]
-# ### Evidence & Interpretation — What changed, and what did not?
-#
-# **Observed on 2026-10-27:** Normalization merged two pairs of distinct original
-# strings. Rows 3340/7604 differ in whitespace; row 6119 adds a case variant to
-# an existing conflicting group. Thus 18 conflicting groups contain 56 rows,
-# versus 55 under exact comparison. These are zero-based source row indices.
-#
-# Excluding those 56 rows and 74 redundant consistent occurrences leaves 7,483
-# distinct prepared texts. Original rows and labels remain intact in `tweets`
-# and the CSV. All checks above passed with the approved split settings.
+# ### ✅ Evidence & Interpretation
+# Results from the supplied data and existing environment:
 #
 # | Population | Rows | Label 0 | Label 1 | Label 1 share |
 # | --- | ---: | ---: | ---: | ---: |
@@ -379,24 +403,36 @@ print("CSV SHA-256:", source_sha256)
 # | Training | 5,986 | 3,437 | 2,549 | 42.58% |
 # | Holdout | 1,497 | 860 | 637 | 42.55% |
 #
-# **Interpretation:** The prepared class mix changed slightly, and stratification
-# preserved it closely in both partitions. Original and prepared text overlap are
-# both zero; repeated splitting gives identical rows and ordering.
-# These facts support reproducible separation under our rule, not event-level
-# independence, correct annotations, or future model performance.
+# The partitions contain all 7,483 prepared rows and closely preserve their class mix.
+# Both original-text and prepared-text overlap counts are zero. This establishes
+# separation under the compared text definitions, not model performance.
 #
-# ### Learning → Better Questions
+# ### 🧠 Learning → Better Questions
+# The starting row count suggested how much data was available. Grouping and
+# normalization showed why distinct inputs, consistent labels, and retained rows
+# are different quantities. Filtering then changed which population can be evaluated.
 #
-# **Learning:** Preparation defines both the model's inputs and the population
-# we can evaluate. Checking collisions after normalization prevents superficially
-# different strings from bypassing the duplicate policy. Excluding conflicts
-# simplifies evaluation without resolving why those annotations disagree.
+# Stratification controls the class mix; removing repeated inputs addresses a
+# different risk. Zero shared strings still cannot establish independence between
+# reports about the same event or the truth of retained annotations.
 #
-# **Next Main Question:** How well does a TF-IDF + Logistic Regression baseline
-# classify the held-out tweets, and where does it fail? That requires the next
-# approved work block; no vectorizer or model has been fitted here.
+# **Better question:** What additional evidence would justify extending a future
+# score on these retained tweets to other events or ambiguous original examples?
+# This analysis cannot answer that from matching text alone. Keep any future claim
+# limited to the retained population until broader evidence supports it.
 #
-# **Transfer check:** Does stratification prevent duplicate leakage?
-# No. It controls label proportions, not shared text. Our approved grouping and
-# exclusions address text overlap before splitting; related events may remain.
-# This written explanation does not establish Data's Learning PASS: **UNASSESSED**.
+# Any later learned text transformation must be fitted on training data only.
+# The holdout is reserved for evaluation, not tuning; no model is fitted in this file.
+#
+# ### 🧑‍💼 Recruiter / Transfer Check
+# A different dataset has balanced labels and no exact text matches across a split.
+# Is that enough to claim its test observations are independent? Explain the gap.
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. Label balance and exact-string separation answer only two specific questions.
+# Text normalization could merge variants, and different wording can describe the
+# same event. Independence needs evidence about those relationships; balanced class
+# counts do not supply it. This prepared answer does not assess a learner's understanding.
+#
+# </details>
