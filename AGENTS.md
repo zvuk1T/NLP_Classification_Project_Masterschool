@@ -37,7 +37,7 @@ Prefer direct top-to-bottom code and visible intermediate steps. Simplify before
 
 Keep essential analytical checks readable. Do not add assertions, hashing, repeated-split checks, or test infrastructure to the teaching file by default. Preserve essential input/path safeguards; perform additional authorized verification temporarily and report it. Do not hide failures or replace many assertions with many branches.
 
-Follow the guide's [visual aids](HOW-WE-WORK-AND-LEARN.md#optional-aids-ascii-maps-and-ethics): meaningful emoji headings; ASCII-only mental maps in fenced `text` blocks, without Mermaid or Unicode diagram characters; one evidence-grounded **⚖️ Ethical Takeaway** only where relevant, not every exercise. Do not invent harms.
+Apply the guide's [writing standard](HOW-WE-WORK-AND-LEARN.md#writing-and-student-facing-voice): 1–3 sentences per meaningful explanation, a fourth only when necessary; target 15–20 words, normally at most 25 per sentence. Preserve essential reasoning and first-use inline explanations. Keep useful emoji headings. Each compact ASCII mental map belongs in its own `# %% [markdown]` cell, with a fenced `text` diagram; no Mermaid or Unicode diagram characters. Add one evidence-grounded **⚖️ Ethical Takeaway** only where relevant, without invented harms; follow the [visual-aid guidance](HOW-WE-WORK-AND-LEARN.md#optional-aids-ascii-maps-and-ethics).
 
 ## Analytical and public-source safeguards
 

@@ -132,7 +132,9 @@ Use **🗺️ Mental Model**, **⚠️ Watch Out**, and **✅ Notes for Students
 
 **🗺️ Mental Model:** Use plain ASCII diagrams inside fenced `text` blocks, with characters such as `|`, `-`, `+`, `>` and `v`. Keep emoji headings outside the diagram; do not use Mermaid or Unicode box-drawing characters. Keep all diagram content ASCII, including arrow symbols and labels; English labels fit our documentation language. This restriction applies to diagrams, not prose, emoji headings, or the name **Learning → Better Questions**.
 
-In `.py` Markdown cells, prefix the fence and diagram lines with `#`. Use compact diagrams rather than wide layouts that are hard to read on a phone. Do not add a map to every section or relabel an ordinary paragraph as a diagram.
+In the `.py`, place each mental map in its **own `# %% [markdown]` cell**, immediately beside the explanation it supports. Include only the **🗺️ Mental Model** heading, the fenced ASCII diagram, and at most one short caption when necessary. Prefix all Markdown lines with `#`, including the fences. Do not combine a map with Goal, Evidence, Learning, source lists, or executable Python in that cell.
+
+Keep each map focused on one relationship, with short labels and a narrow, preferably vertical layout readable on a phone. Put supporting prose in adjacent cells; simplify an oversized map instead of merely moving it unchanged. Separate genuinely different concepts only when useful; do not add a map or approval gate for every operation. In ordinary Markdown documents, use a standalone fenced block rather than Python cell markers.
 
 **⚖️ Ethical Takeaway — optional**
 
@@ -150,7 +152,13 @@ For this preparation, a brief takeaway beside the interpretation of exclusions o
 
 ### Writing and student-facing voice
 
-Write code, comments, and documentation in English; conversation follows Data's language. Usually use one or two focused sentences, adding a third for a necessary distinct point. Aim for roughly 10–20 words per sentence, allowing up to 23 for clarity; these are readability guidelines, not reasons to remove essential reasoning. Split genuinely different teaching points rather than creating arbitrary fragments.
+Write code, comments, and documentation in English; conversation follows Data's language. **Use 1–3 sentences per meaningful student-facing explanation; a fourth is the maximum and only for a necessary distinct point.** Aim for **15–20 words per sentence**, normally **no more than 25**; shorter sentences are welcome. The word range is a readability target, not a reason to pad sentences or omit essential meaning.
+
+Apply this to assistant-authored Goal, concept explanations, Evidence, Learning, transfer answers, and optional notes, not the entire analytical unit. Inline walkthroughs keep their separate 1–2 short comment-line default, with a third only when useful. Source instructions, quotations, tables, formulas, code, outputs, and these canonical documents are not subject to this prose quota. The optional Ethical Takeaway remains one sentence.
+
+**Necessary and sufficient:** retain WHY, the important mechanism, evidence limits, and the insight connecting questions; remove repetition before substance. Match length to conceptual difficulty; if a topic still needs more space, simplify first, then separate genuinely distinct concepts into connected short explanations. Do not evade the limit with arbitrary paragraphs, excessive headings, long bullet lists, jargon, or fragments. Shorter Markdown must not remove first-use explanations inside executable cells or replace them with links.
+
+Review clarity and completeness rather than mechanically counting every word. Do not introduce word-count validators, test scaffolding, or routine approval stops.
 
 Use a neutral voice useful to another learner. Retain concise provenance and consequential decisions without repeatedly narrating crew actions, approvals, or internal verification. Explain known concepts again only when useful. A written recap or prepared transfer answer never establishes Data's Learning PASS.
 
@@ -206,7 +214,7 @@ Use the [Project Map](DA112_PROJECT_MAP.md#5-methodology-contract-for-the-first-
 | **Are these examples and labels reliable?** | Inspect missingness, repeats, and conflicting annotations. | Conflicting labels reveal disagreement, not its cause or the true label. |
 | **How can we fairly evaluate a classifier?** | Preserve the agreed preparation and reproducible holdout. | Repeated text, related events, and holdout-guided choices limit evaluation. |
 | **How should text become numbers?** | Explain TF-IDF, vocabulary, term frequency, and document frequency. | Fitting on held-out text exposes evaluation-set information. |
-| **What does Logistic Regression learn?** | Fit the linear classifier on training features. | Associations and coefficients do not establish causal disaster signals. |
+| **What does Logistic Regression learn?** | Train the linear classifier on training features. | Associations and coefficients do not establish causal disaster signals. |
 | **What constitutes good performance?** | F1 for `target=1`, precision, recall, accuracy, support, and confusion matrix. | A single score hides error types and limits of the evaluated population. |
 | **Would robustness checks or tuning help?** | Only approved training-fold pipeline CV and modest tuning. | More computation is not automatically better understanding or generalization. |
 | **What should we claim or do next?** | Return to the purpose with DIKW and bounded judgment. | A school classifier does not establish emergency-response benefit or deployment readiness. |
