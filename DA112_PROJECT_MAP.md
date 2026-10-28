@@ -2,11 +2,11 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.5 — 2026-10-28
+> **Version:** 1.6 — 2026-10-28
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
-> **Progress:** Foundation slices and Work blocks 1–3 are complete and published. Preparation was established in `34c61b6`/`f8e166c`, the explained TF-IDF + Logistic Regression baseline in `b106c98`, and the portfolio case study in `7a4007b`. The approved preparation, split, baseline results, and evidence limits remain fixed. **Next planned block: Work block 4 — homepage integration.**
+> **Progress:** Foundation slices and Work blocks 1–3 are complete and published. Preparation was established in `34c61b6`/`f8e166c`, the explained TF-IDF + Logistic Regression baseline in `b106c98`, and the portfolio case study in `7a4007b`. The approved preparation, split, baseline results, and evidence limits remain fixed. **Data has paused homepage integration. Next priority: question-answer learning review and the guided CV/model-comparison methods, followed by a separate Hugging Face mini-lab.**
 >
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
@@ -18,7 +18,7 @@
 
 **Primary task:** Build an understandable, independently developed **binary classifier** that predicts whether a tweet describes a **real disaster** (`target = 1`) or **not a real disaster** (`target = 0`).
 
-- **Current phase — reconciled 2026-10-28:** The data preparation, baseline evaluation, and portfolio case study are published. The next planned phase is homepage integration, after read-only inspection of the real portfolio repository, structure, featured/favorites placement, design, navigation, and build workflow. This reconstruction is not evidence of a new school submission.
+- **Current phase — revised 2026-10-28:** Data has deferred homepage integration to revisit the school methods and understand the existing Pipeline before presenting the project. The required Sprint 3 analytical baseline remains completed; training-only CV, model comparisons, and Hugging Face are additional learning work, not missing mandatory baseline steps. This reconstruction is not evidence of a new school submission.
 - **Understanding remains a quality requirement.** Briefly recap familiar material; explain unfamiliar concepts, consequential choices, and actual errors in more depth. Faster pacing does not mean skipping evidence or correctness checks.
 - **WHY before HOW.** Keep the question, method, evidence, and limitations understandable without explaining every familiar operation again.
 - **Minimum sound approach:** tweet-aware text preprocessing → TF-IDF → Logistic Regression → honest evaluation.
@@ -71,7 +71,7 @@ Guided steps visible in the supplied lessons:
 5. Learn TF-IDF features on training text, train Logistic Regression, transform held-out text, and evaluate predictions.
 6. Interpret precision, recall, F1, accuracy, and class-level results; confusion-matrix reasoning is part of the assignment guidance.
 7. Learn K-fold cross-validation and compare fold-level F1 scores.
-8. Learn hyperparameter search (the guided lesson explores Logistic Regression settings such as `C` and TF-IDF feature ranges).
+8. Compare `LogisticRegression` and `LinearSVC` across TF-IDF `ngram_range=(1, n)` for `n=1..4`, using 10-fold CV in the actual `guided.ipynb`. This guided loop does **not** vary Logistic Regression `C`; `C`/solver trials are separate optional Sprint 3 ideas.
 
 **Scope rule:** Sprint 2 explains the method. Its labels, preprocessing choices, hyperparameters, sample output (including example F1 values), and model results **must not be transferred as established findings** to Disaster Tweets.
 
@@ -104,7 +104,7 @@ The supplied closing lessons include:
 - **Practical Session on Using Hugging Face Transformers for Multiple NLP Tasks:** Hugging Face `pipeline` demonstrations for sentiment analysis, summarization, question answering, and translation.
 - **Overview of Popular LLMs (GPT, Llama) and Their Applications:** conceptual overview and examples, not a requirement to fine-tune or deploy an LLM.
 
-**Decision:** A small, explainable Hugging Face inference exercise remains a desired optional follow-up after the baseline. It requires separate approval and is not a prerequisite for the portfolio case study or homepage integration.
+**Decision updated 2026-10-28:** Data confirms that Hugging Face should be studied after the guided ML-method review and before returning to homepage integration. Start with one small, explainable pretrained-model inference exercise, inspect the actual model card and task, and explain why generic sentiment labels are not disaster annotations. This remains separate from required Sprint 3 work; installations, model downloads, and execution need an approved bounded task.
 
 ## 4. Repository baseline — verified 2026-10-26, before this map was added
 
@@ -212,7 +212,7 @@ These are **project design constraints** that produced the published baseline. P
 
 **Rule:** Data approves a complete, bounded block, not every routine operation inside it. Spock implements and verifies that block, then Data and Troi review its decisions, evidence, and explanations. Stop inside a block only for a material unresolved decision, scope change, missing essential evidence, or correctness/safety problem; continue unaffected approved work where practical. Completing a block does not authorize the next or Git transport.
 
-**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four work blocks group the school's analytical stages without changing the safeguards in §5 or the learning method. **Work blocks 1–3 are complete and published; Work block 4 is the next planned block.**
+**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four work blocks group the school's analytical stages without changing the safeguards in §5 or the learning method. **Work blocks 1–3 are complete and published; Work block 4 (homepage) is deferred while Data prioritizes educational follow-ups.**
 
 ### Completed foundation — Slice 0: Local and remote repository preflight
 
@@ -291,7 +291,7 @@ The authoritative `.py` remains the executable analysis and learning resource; t
 
 **Acceptance status:** Complete. The case study and reproducibility instructions are ready to be represented on the portfolio website.
 
-### Work block 4 — Homepage integration (**NEXT PLANNED BLOCK**)
+### Work block 4 — Homepage integration (**DEFERRED BY DATA**)
 
 **Main Question:** How should this project appear coherently within the existing portfolio website?
 
@@ -303,13 +303,16 @@ The authoritative `.py` remains the executable analysis and learning resource; t
 
 **Acceptance:** The agreed project placements and links are verified against the actual site. Report separately whether changes are prepared, committed, pushed, or deployed.
 
-### Optional follow-ups — CV, tuning, and Hugging Face
+### Prioritized educational follow-ups — guided learning, then Hugging Face
 
-These are **not prerequisites for blocks 3 or 4**. After the baseline, Data decides whether their learning or analytical value justifies the extra work.
+**Data's 2026-10-28 learning priority:** Revisit methods from the real Sprint 2 guided notebook to deepen understanding of the completed Sprint 3 Disaster Tweets baseline. The core Sprint 3 analysis was not skipped; optional guided-method practice was. Homepage integration is paused until Data revisits the educational result. The following work is planned, not an automatic implementation, installation, or Git authorization.
 
-- **CV/tuning:** If approved, use training-only full-pipeline cross-validation and a small justified parameter search, preserving §5.4. Never optimize against the final holdout.
-- **Hugging Face:** If approved, inspect a real model card and run one small inference example in separately approved learning cells. Explain task alignment, limitations, and why sentiment is not disaster detection. No fine-tuning, deployment, chatbot, RAG, GPU provisioning, or cloud expansion.
-- Keep optional evidence separate from the baseline. Do not turn an exploratory demonstration into a claimed comparable benchmark or a mandatory new project.
+1. **Complete the question-answer learning cycle in the existing `.py`.** Check every Project/Main/Guiding/Learning/Better/Transfer question against a clearly stated answer. If the current data do not answer it, say so and identify the evidence boundary. Preserve all existing sound operations and the **🗺️ Mental Model**, **⚠️ Watch Out**, and **⚖️ Ethical Takeaway** aids; do not add a new answer log or redundant teaching scaffold.
+2. **Explain the school method and Pipeline equivalence.** Show how the guided notebook's manual TF-IDF `fit_transform` / `transform` and classifier `fit` / `predict` correspond to our `Pipeline`. A normal scikit-learn Pipeline chains transformations and ordinarily ends in one predictive estimator; the guided notebook compares `LinearSVC` and `LogisticRegression` in a loop, not as simultaneous final predictors inside one Pipeline.
+3. **Restore the skipped guided practice as a bounded post-baseline experiment.** Use 10-fold cross-validation on **training text only**, with TF-IDF fitted independently in each fold inside its own full Pipeline. Compare `LogisticRegression` and `LinearSVC` and, if useful, a small justified range of n-grams, not an unexplained exhaustive grid. Explain fold scores and uncertainty, label the work retrospective, and keep the fixed published baseline and its original holdout results unchanged. The holdout has already been inspected; do not use it for choosing models or claim a newly unbiased final test.
+4. **Then a separate Hugging Face mini-lab.** Inspect verified official school context, the current Hugging Face API, one relevant model card, resource/dependency implications, and run one small inference example only within specifically authorized setup. Contrast a pretrained Transformer inference `pipeline` with our fitted scikit-learn `Pipeline`. Do not equate generic sentiment with verified disaster-event detection.
+
+**No silent scope expansion:** These extensions do not retroactively become required Sprint 3 deliverables. Keep them distinguishable from the published baseline, with independent evidence and explicit limits. Do not fine-tune, deploy, create a chatbot/RAG system, or publish the homepage as part of these learning tasks.
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
@@ -366,11 +369,11 @@ During an approved block:
 | Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
 | DIKW → Better Questions | **Agreed:** Information contextualizes Data; Knowledge explains supported patterns; insight bridges understanding and judgment; Wisdom may justify a better question, action, decision, or pause | Questions must arise from changed understanding, not the next code operation; no automatic next block |
 | Colab workflow | **Deferred; unresolved** | Separately authorize export, execution, and sharing |
-| CV/tuning | **Optional, not approved** | Separate post-baseline decision; not required before portfolio preparation |
+| CV/model comparison | **Requested learning priority, not yet implemented** | Training-only full-Pipeline CV and bounded Logistic Regression / LinearSVC comparisons; preserve the published holdout |
 | Teaching-material publication | `guided.ipynb` publication explicitly authorized; independent rights verification not established here | Both reference files remain unchanged; no broader reuse or publication permission |
 | Retrospective presentation/recording | **Not created** | Do not infer a recording from prior coursework |
-| Hugging Face mini-lab | **Desired optional follow-up, not implemented** | Separate post-baseline approval |
-| Website/homepage | **Next planned block:** project section plus featured/favorites placement | Inspect the real site first; implementation is bounded to the approved site scope; publication/deployment remains separately authorized |
+| Hugging Face mini-lab | **Reconfirmed by Data for the next learning sequence; not implemented** | Separate bounded follow-up after guided ML review; model card and setup verified before execution |
+| Website/homepage | **Deferred by Data pending educational review** | Existing Work block 4 remains the future site integration; no website implementation or publication is authorized by this revision |
 
 ## 10. Project completion criteria
 
@@ -429,8 +432,8 @@ The preparation checkmarks record the published implementation and Spock's repor
 
 **Work blocks 1–3 are complete and published through `7a4007b4137e4a845769bd24e96e00be89a26157`. Do not restart data preparation, baseline modeling, educational refactoring, or portfolio README work.**
 
-**Next planned task: Work block 4 — Homepage integration.** First inspect the real portfolio repository, current project structure, featured/favorites section, design, navigation, and build workflow. Do not assume file locations or deployment behavior. After that grounding, implement only the bounded website changes authorized for this block and verify them proportionately.
+**Current priority:** Data requests an educational review of `disaster_tweets_classification.py` and the actual `guided.ipynb` before homepage work. First repair learner-facing question-answer coverage and explain manual TF-IDF / Logistic Regression steps versus our Pipeline. Then implement a separately bounded, training-only guided CV/model-comparison learning experiment; follow with a separately bounded Hugging Face mini-lab. Preserve the original baseline and holdout evidence.
 
-Homepage publication/deployment remains a separate explicit authorization. Optional CV/tuning and Hugging Face work remain post-baseline choices and are not prerequisites for homepage integration. Data's independent Learning PASS remains **UNASSESSED**.
+**Homepage Work block 4 is deferred.** No website edits, Git transport, deployment, Colab export, or new model downloads are authorized merely by this plan. New educational experiments require clear approved scope and appropriate runtime verification. Data's independent Learning PASS remains **UNASSESSED**.
 
-**Spock: read the current canonical documents, inspect the actual site before implementation, complete only the explicitly approved bounded website task, report evidence and limits, and STOP before publication unless separately authorized.**
+**Spock: read the current canonical documents and school code, check actual repository state, propose or carry out only the specifically authorized educational scope, report verified answers and remaining evidence limits, and STOP at the task boundary.**

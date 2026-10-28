@@ -28,7 +28,7 @@ MAIN QUESTION -> GOAL + RELEVANT GUIDING QUESTIONS
 RELEVANT DATA -> METHOD + EXPLAINED PYTHON
                           |
                           v
-VERIFIED EVIDENCE -> INTERPRETATION + LIMITS
+VERIFIED EVIDENCE -> EXPLICIT ANSWER + LIMITS
                           |
                           v
 LEARNING -> WHAT CHANGED IN OUR UNDERSTANDING?
@@ -39,6 +39,8 @@ LEARNING -> WHAT CHANGED IN OUR UNDERSTANDING?
 ```
 
 This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question should emerge from evidence that changed our understanding, not simply announce the next Python operation. Wisdom considers whether that understanding, its limits, and its consequences justify another question, an action, a narrower claim, or a deliberate pause. More questions alone do not demonstrate wisdom, and no new question authorizes another work block.
+
+**Every question in the student-facing `.py` must have an explicit answer.** This includes Project and Main Questions, Guiding Questions, questions inside Learning, Better Questions, and optional transfer checks. After the relevant evidence, answer each question directly in readable prose; one concise explanation may answer several questions when the mapping is unmistakable. Do not hide answers in code, leave questions silently dangling, or fabricate certainty. For a question beyond the present evidence, state the **current answer: not established**, explain the evidence boundary and what would be needed to resolve it. A Better Question can remain open for future research while still receiving this truthful current answer. Avoid a mechanical Q&A template or repetitive restatement.
 
 ### Keep three question levels connected
 
@@ -93,7 +95,7 @@ A meaningful analytical unit may span several cells. Use these functions natural
 | **🎯 Goal & Approach — What & Why** | Why investigate, why this approach fits, and what evidence is needed. |
 | **🔎 Guiding Questions** | Only the useful smaller questions needed for this unit. |
 | **💻 Real Code + Inline Walkthrough** | The actual executable cells, with nearby comments explaining important mechanisms. |
-| **✅ Evidence & Interpretation** | After execution: verified findings, the supported answer, and its limits. |
+| **✅ Evidence & Interpretation** | After execution: verified findings, explicit answers to the unit's questions, and their limits. |
 | **🧠 Learning → Better Questions** | Transferable insight, changed understanding, significance, and a justified next question, decision, or pause. |
 | **🧑‍💼 Recruiter / Transfer Check** | Optional at a meaningful milestone; a reasoning question with a concise answer under `💡 Show answer`. |
 
@@ -288,7 +290,7 @@ Every analytical handoff names the current canonical documents and carries the q
 
 ## 8. Review and continuity without bureaucracy
 
-Review actual code, prose, source fidelity, and outputs, not just an implementation report. Read a unit's opening without its answer: is the question, input meaning, and expected evidence understandable? Then inspect whether important new objects are explained inside executable cells and findings support the stated insight.
+Review actual code, prose, source fidelity, and outputs, not just an implementation report. Read a unit's opening without its answer: is the question, input meaning, and expected evidence understandable? Then inspect whether important new objects are explained inside executable cells and findings support the stated insight. Trace each learner-facing question to its answer or an explicit, justified 'not established' boundary; a new Better Question does not substitute for answering the previous one.
 
 At meaningful milestones, distinguish:
 
