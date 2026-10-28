@@ -13,6 +13,8 @@
 # This assistant-authored reconstruction retrospectively explains the dataset investigation,
 # preparation, and baseline evaluation. Its questions organize the reasoning without
 # claiming a learner's past thoughts or independent understanding.
+# The separate post-baseline section revisits guided cross-validation and model comparison;
+# it does not replace the published baseline or provide a new final holdout evaluation.
 #
 # The local Sprint 2 `guided.ipynb` supplies the school reference for sequential
 # text preparation and keeping text paired with labels. We adapt those principles
@@ -247,6 +249,8 @@ print(prepared.loc[collision_mask].to_string())
 # Normalization leaves 7,501 distinct keys, merging two pairs of original strings.
 # Source rows 3340 and 7604 differ in whitespace; row 6119 adds a case variant
 # to an existing conflicting group. The source indices are zero-based row positions.
+# Conflict membership therefore increases from 55 to 56 rows, while the number of
+# conflicting groups remains 18.
 #
 # ### 🧠 Learning → Better Questions
 # Equality depends on the representation used. Inspecting only original strings
@@ -342,6 +346,9 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # label from a disputed group. Preparation defines the population a score describes,
 # not just the input format. **Which tweets will our result describe, and which
 # were excluded before evaluation?**
+# It will describe held-out examples drawn from the 7,483 retained rows.
+# The 56 conflicting rows and 74 redundant occurrences are excluded before that evaluation;
+# the result cannot establish performance on those removed observations.
 #
 # **⚖️ Ethical Takeaway:** Disclose exclusions so readers do not mistake results
 # on retained tweets for evidence covering every original example.
@@ -430,8 +437,10 @@ print("Shared prepared texts:", len(prepared_overlap))
 #
 # **Better question:** What additional evidence would justify extending a future
 # score on these retained tweets to other events or ambiguous original examples?
-# This analysis cannot answer that from matching text alone. Keep any future claim
-# limited to the retained population until broader evidence supports it.
+# Generalization to those populations is not established by this text-only table.
+# It would require event identifiers or verified links between reports, annotation review,
+# and separately collected examples representative of the intended use.
+# Keep claims limited to the retained population until that evidence exists.
 #
 # Any later learned text transformation must be fitted on training data only.
 # The holdout is reserved for evaluation, not tuning; no model is fitted in this preparation section.
@@ -476,6 +485,30 @@ print("Shared prepared texts:", len(prepared_overlap))
 # official solutions. Our tweet-specific code and explanations are adaptations.
 # Installed scikit-learn 1.5.2 documentation clarifies defaults and API behavior;
 # it supplies no additional modeling method.
+#
+# ### From the guided manual sequence to our Pipeline
+# The inspected `guided.ipynb` cells below use zero-based notebook positions.
+# This table explains correspondence; it does not run a second version of our baseline.
+#
+# | Guided operation | What our Pipeline does |
+# | --- | --- |
+# | Cell 9: vectorizer `fit_transform(X_train)` | During `fit`, learn training vocabulary/IDF and produce training features. |
+# | Cell 10: classifier `fit(training_features, y_train)` | During the same `fit`, learn classifier coefficients from those features and labels. |
+# | Cell 11: vectorizer `transform(X_test)` | During `predict`, transform held-out text using the already learned vocabulary/IDF. |
+# | Cell 12: classifier `predict(test_features)` | During the same `predict`, use the fitted classifier to return labels. |
+#
+# Pipeline preserves this order and passes each step's output to the next.
+# It is equivalent to manual chaining when inputs and settings match; our defaults
+# differ from the guided `sag` solver, so this is not a claim of identical models.
+#
+# One predictive Pipeline has one final classifier here.
+# Guided cell 15 compares two classifiers in a loop; they are alternatives, not
+# two simultaneous final predictors inside one Pipeline.
+#
+# **⚠️ Source check:** Guided cell 1's positive/negative variable names disagree with
+# the loaded file suffixes; names alone cannot establish label meaning.
+# Cell 9 prints the sample count twice, so its displayed feature count is unreliable.
+# We inspect actual inputs and matrix dimensions rather than copying those displays.
 #
 # ### 6. A — How does text become numerical evidence?
 #
@@ -614,9 +647,13 @@ print("One training document's feature-matrix shape:", training_example_features
 # The classifier's training matrix has 5,986 rows, one per training observation.
 # Training converged within the default limit without warnings or parameter adjustments.
 #
+# TF-IDF learned vocabulary and IDF from text alone; Logistic Regression used those
+# features and the recorded training labels to learn coefficients and an intercept.
+# Prediction reuses all of these quantities without updating them from holdout text or labels.
+#
 # ### 🧠 Learning → Better Questions
 # Fitting has established a representation and model, not their performance on unseen
-# observations. **Does reusing these learned quantities produce useful agreement
+# observations. **How much agreement does reusing these learned quantities produce
 # with the recorded holdout labels, and which errors does that agreement hide?**
 
 # %%
@@ -765,7 +802,241 @@ print(false_negatives.to_string())
 # **Better question:** What independent evidence about event overlap and annotation
 # context would be needed before extending this result beyond the retained tweets?
 # Those relationships are not established by the supplied text-only table.
-# Keep the claim bounded to this holdout; further investigation requires a separate decision.
+# Event identifiers or reviewed report links would reveal shared events;
+# annotation guidelines and independent review would help assess label disagreements.
+# Separately collected, representative examples would be needed to evaluate a broader claim.
+#
+# **Answer to the Project Question:** Text supports measured agreement with recorded
+# labels in this retained holdout: class-1 F1 is 0.7308, with 208 missed recorded positives.
+# Trust beyond this experiment also requires evidence about annotation quality,
+# event separation, and the intended evaluation population; those conditions remain unestablished.
 #
 # The written reasoning is a learning resource. Data's independent Learning PASS
 # remains **UNASSESSED**; successful execution does not demonstrate understanding.
+
+# %% [markdown]
+# ## Post-baseline learning — Guided cross-validation and model comparison
+#
+# ### ❓ Main Question
+# How do classifier choice and adjacent token pairs change training-fold F1,
+# and how consistent are these comparisons across folds?
+#
+# **📋 Context, Source & Task:** This is a retrospective educational extension,
+# written after the published baseline holdout was inspected.
+# It uses only the existing 5,986 training strings and labels; the 1,497-row holdout
+# and its original baseline results remain separate.
+#
+# **🎯 Goal & Approach — What & Why:** Compare four configurations on the same
+# ten validation folds to separate classifier choice from adding short token sequences.
+# Keep all learned text transformations inside each fold so its validation text
+# cannot influence vocabulary or IDF.
+#
+# **🔎 Guiding Questions:** What does one fold score describe?
+# Do bigrams improve both classifiers, and does the highest mean establish a final winner?
+#
+# ### 9. What we transfer from the actual guided notebook
+# Guided cell 14 computes ten F1 scores, their mean, and their standard deviation.
+# Cell 15 compares Logistic Regression and LinearSVC with `(1, n)` n-grams for
+# `n = 1, 2, 3, 4`; it does not vary Logistic Regression's `C`.
+#
+# **⚠️ Watch Out — fold leakage:** Both guided cells fit TF-IDF on all training
+# text before CV, so each validation fold has already influenced vocabulary and IDF.
+# We retain the comparison idea but pass raw prepared strings and the entire
+# Pipeline into CV; each fold learns its own representation.
+#
+# Guided `cv=10` already gives this binary classifier stratified folds without shuffling.
+# We explicitly shuffle within classes with seed 42, retaining approximate class proportions.
+# Reusing the same integer-seeded splitter and input order gives every candidate the same folds.
+#
+# Each validation fold contains 598 or 599 observations; fitting uses the other
+# 5,388 or 5,387 training observations.
+# Each training observation is validated once per configuration, but fitting subsets overlap.
+# These are not ten independent experiments or ten new external datasets.
+#
+# The inspected DataCamp instructions and starter code support:
+# - [Cross-validation for R-squared](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/regression-55bf0d67-0cc2-4212-a6e5-bda0d07d3411?ex=9): splitter, seed, and per-fold scores; we adapt the mechanism to stratified classification and F1.
+# - [Analyzing cross-validation metrics](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/regression-55bf0d67-0cc2-4212-a6e5-bda0d07d3411?ex=10): mean and standard deviation; fold quantiles alone are not a confidence interval for generalization performance.
+# - [Visualizing classification model performance](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=14): loop over alternative models; here learned transformations belong inside the evaluated Pipeline.
+#
+# These are inspected teaching examples, not official tweet solutions or imported scores.
+# The following code is our adaptation; the source notebooks remain unchanged.
+
+# %% [markdown]
+# ### 🗺️ Mental Model — One of ten training-only folds
+#
+# ```text
+# Existing 5,986 training rows
+#            |
+#       +----+----+
+#       |         |
+#   Nine parts  One part
+#       |       validation
+#       v         |
+#   Fit TF-IDF    |
+#       |         |
+#   Fit one       |
+#   classifier    |
+#       |         |
+#       +----+----+
+#            |
+#   Reuse fitted Pipeline
+#   on validation text
+#            |
+#    One class-1 F1 score
+#
+# Repeat for all ten parts
+# Holdout stays outside
+# ```
+
+# %% [markdown]
+# ### 10. Keep the comparison small and explain the alternatives
+# `(1, 1)` uses individual tokens; `(1, 2)` adds adjacent pairs, such as `not safe`,
+# while retaining individual tokens.
+# Bigrams preserve limited local order, but do not guarantee better scores or understanding of a sentence.
+#
+# Two n-gram choices isolate this small representation change without the guided
+# notebook's longer three- and four-token sequences.
+# Both choices keep the existing tokenization, normalization, stop-word policy, and other TF-IDF defaults.
+#
+# Logistic Regression learns coefficients using a probability-based loss.
+# LinearSVC learns a linear separating boundary using a margin-based loss;
+# its decision scores are not native probability estimates.
+# A margin measures signed separation from the decision boundary, rather than the probability that a recorded label is correct.
+#
+# We keep `C=1` and each estimator's remaining defaults; equal `C` does not make
+# their different objectives equivalent.
+# Logistic Regression keeps `lbfgs`; LinearSVC uses its default squared-hinge loss,
+# L2 penalty, and `dual="auto"` optimizer selection, with seed 42 for reproducibility.
+#
+# Ten folds times four configurations means 40 fresh Pipeline fits.
+# The unigram Logistic Regression configuration is evaluated once in this comparison;
+# we do not add a duplicate standalone CV run or refit the selected candidate afterwards.
+#
+# API references for the installed version:
+# [cross_val_score](https://scikit-learn.org/1.5/modules/generated/sklearn.model_selection.cross_val_score.html),
+# [StratifiedKFold](https://scikit-learn.org/1.5/modules/generated/sklearn.model_selection.StratifiedKFold.html),
+# and [LinearSVC](https://scikit-learn.org/1.5/modules/generated/sklearn.svm.LinearSVC.html).
+
+# %%
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.svm import LinearSVC
+
+# cv_splitter defines ten training/validation partitions within X_train and y_train.
+# The integer seed recreates identical memberships for each candidate; no holdout enters it.
+cv_splitter = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+
+# Each tuple names an unfitted classifier option; neither is the fitted baseline object.
+# ngram_options lists the smallest and largest token-sequence lengths included as features.
+cv_classifier_options = [
+    ("Logistic Regression", LogisticRegression()),
+    ("LinearSVC", LinearSVC(random_state=42)),
+]
+ngram_options = [(1, 1), (1, 2)]
+
+# Each dictionary entry will map a configuration name to its ten validation F1 scores.
+# Each summary record will hold one configuration's descriptive statistics, not tweet rows.
+fold_scores_by_configuration = {}
+cv_summary_records = []
+
+for classifier_name, classifier in cv_classifier_options:
+    for ngram_range in ngram_options:
+        # This candidate couples a fresh vectorizer with one classifier option.
+        # cross_val_score clones the entire candidate for every fold, leaving it unfitted here.
+        cv_pipeline = Pipeline([
+            ("tfidf", TfidfVectorizer(ngram_range=ngram_range)),
+            ("classifier", classifier),
+        ])
+
+        # One array element is class-1 F1 from that fold's withheld training observations.
+        # Each clone fits vocabulary, IDF, and classifier only on the other nine parts.
+        # Run folds sequentially; raise fit errors rather than replacing failures with missing scores.
+        fold_f1_scores = cross_val_score(
+            cv_pipeline, X_train, y_train,
+            cv=cv_splitter, scoring="f1", n_jobs=1, error_score="raise",
+        )
+
+        # A readable configuration key identifies the model and its included n-gram lengths.
+        # Store unrounded scores; mean averages ten folds, and std(ddof=0) describes their spread.
+        configuration = f"{classifier_name} {ngram_range}"
+        fold_scores_by_configuration[configuration] = fold_f1_scores
+        cv_summary_records.append({
+            "configuration": configuration,
+            "mean_f1": fold_f1_scores.mean(),
+            "std_f1": fold_f1_scores.std(ddof=0),
+            "min_f1": fold_f1_scores.min(),
+            "max_f1": fold_f1_scores.max(),
+        })
+        print(f"Completed ten training-only folds: {configuration}")
+
+# Rows represent fold numbers 1..10, not source-row indices; columns identify configurations.
+# Matching rows use matching validation observations because all candidates share the splitter.
+cv_fold_scores = pd.DataFrame(fold_scores_by_configuration, index=range(1, 11))
+cv_fold_scores.index.name = "fold"
+print("\nClass-1 validation F1 by training fold:")
+print(cv_fold_scores.round(4).to_string())
+
+# One row per configuration summarizes all ten scores; the index contains configuration names.
+# min/max show observed extremes; rounding changes printed values only, not stored results.
+cv_summary = pd.DataFrame(cv_summary_records).set_index("configuration")
+print("\nRetrospective training-only CV summary (not final holdout performance):")
+print(cv_summary.round(4).to_string())
+
+# %% [markdown]
+# ### 11. Read the fold results without overstating them
+# ### ✅ Evidence & Interpretation
+# The existing Python 3.11.11 / scikit-learn 1.5.2 environment produced the results
+# below with the fixed ten-fold splitter; all 40 fits completed without warnings.
+# These are newly measured training-fold results, not school scores or replacements for the baseline holdout evidence.
+#
+# | Classifier | N-grams | Mean class-1 F1 | Fold standard deviation | Minimum | Maximum |
+# | --- | --- | ---: | ---: | ---: | ---: |
+# | Logistic Regression | `(1, 1)` | 0.7506 | 0.0197 | 0.7161 | 0.7907 |
+# | Logistic Regression | `(1, 2)` | 0.7293 | 0.0181 | 0.6931 | 0.7667 |
+# | LinearSVC | `(1, 1)` | 0.7554 | 0.0246 | 0.7184 | 0.7895 |
+# | LinearSVC | `(1, 2)` | 0.7529 | 0.0170 | 0.7265 | 0.7821 |
+#
+# Unigram LinearSVC has the highest mean, about 0.0048 above unigram Logistic Regression,
+# but exceeds it in only four of ten matching folds.
+# Its fold spread is also larger: 0.0246 versus 0.0197.
+# This observed ranking does not show a consistent advantage across every validation subset.
+#
+# Adding bigrams lowers Logistic Regression's mean from 0.7506 to 0.7293;
+# all ten of its fold scores decrease.
+# LinearSVC's mean also falls, from 0.7554 to 0.7529, although individual folds move in both directions.
+# Bigrams therefore improve neither average here; these scores alone do not establish the cause or predict another dataset's outcome.
+#
+# Each score measures agreement with recorded class-1 labels in one withheld part
+# of the original training set, after fitting on the other nine parts.
+# The mean averages ten separate F1 values; it is not F1 calculated from pooled predictions.
+#
+# Standard deviation describes variation among these ten scores, using divisor ten (`ddof=0`).
+# It is neither a confidence interval nor a significance test, and overlapping fitting
+# subsets prevent treating the scores as independent experiments.
+# LinearSVC with bigrams has the smallest observed spread (0.0170), but that does not
+# establish robustness to other partitions, new events, or different annotations.
+# The original 0.7308 holdout F1 evaluates a different set and training size;
+# subtracting it from a CV average would not measure an improvement on the same evaluation.
+#
+# **⚠️ Watch Out — retrospective selection:** The highest CV mean identifies only
+# the highest observed average among these four configurations on this partition.
+# Using the same results to choose a configuration and advertise its performance introduces selection optimism.
+# Our already inspected holdout cannot become a new independent final evaluation.
+#
+# Guided cell 16 refits its chosen configuration and evaluates its test set.
+# We deliberately stop at training-only comparison, keeping the original baseline model,
+# predictions, and published holdout metrics unchanged.
+#
+# ### 🧠 Learning → Better Questions
+# Cross-validation checks sensitivity to training/validation membership within the retained
+# training population; it does not repair annotation quality or establish event independence.
+# **What evidence would justify treating a preferred configuration as more reliable outside these folds?**
+# That claim is not established here: it needs reviewed labels, event relationships,
+# and fresh representative evaluation data kept separate from model choice.
+#
+# **⚖️ Ethical Takeaway:** Report these results as retrospective training-only comparisons,
+# so a favorable CV average is not mistaken for verified disaster-detection reliability.
+#
+# Hugging Face remains a separate learning task: inspect the actual model card,
+# task labels, resources, and dependency needs before any approved setup or inference.
+# Its pretrained-model `pipeline` serves a different purpose from fitting our scikit-learn
+# Pipeline; a sentiment prediction is not a verified disaster annotation.
