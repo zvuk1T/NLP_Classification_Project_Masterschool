@@ -1,5 +1,5 @@
 # %% [markdown]
-# # Disaster Tweets — From Recorded Rows to an Evaluation Population
+# # Disaster Tweets — From Recorded Rows to a Measured Baseline
 #
 # **Project Question:** Can tweet text help distinguish disaster from non-disaster
 # examples, and what would make evidence of that ability trustworthy?
@@ -11,7 +11,7 @@
 # The Project Map documents this teaching copy and its unknown transformation history.
 #
 # This assistant-authored analysis retrospectively explains the completed dataset
-# investigation and preparation. The questions organize its reasoning; they do not
+# investigation, preparation, and baseline evaluation. The questions organize its reasoning; they do not
 # claim to reconstruct a learner's past thoughts or demonstrate understanding.
 #
 # The local Sprint 2 `guided.ipynb` supplies the school reference for sequential
@@ -123,9 +123,17 @@ print(target_summary.to_string())
 # **🔎 Guiding Questions:** How many groups repeat, and how many rows do they contain?
 # Do all observations with the same exact text carry the same label?
 #
-# **🗺️ Mental Model:** Three observations with text A form one text group.
-# They contribute three participating rows, two extra occurrences, and either one
-# or two distinct labels. These counts answer different questions.
+# **🗺️ Mental Model:** Row counts and group counts answer different questions.
+#
+# ```text
+# Source rows:     A/0     A/0     A/1
+#                   \      |      /
+#                    +-----+-----+
+#                          |
+#                          v
+# One exact-text group: 3 rows, 2 extra occurrences
+#                       2 distinct labels -> disagreement
+# ```
 #
 # Optional reference: DataCamp's [Daily marketing reach by channel](https://campus.datacamp.com/courses/analyzing-marketing-campaigns-with-pandas/pandas-1?ex=9)
 # uses grouping and `nunique()` to count distinct values within groups.
@@ -323,8 +331,9 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # The accounting difference, remaining duplicates, and remaining conflicts are all zero.
 #
 # Class `1` now represents 42.58%, compared with 42.97% originally. A small shift
-# in class proportions does not make the exclusions neutral: ambiguous examples
-# are absent from the population on which future evaluation will be based.
+# in class proportions does not make the exclusions neutral.
+# Examples with conflicting recorded labels are excluded;
+# other ambiguous or incorrectly labeled texts may remain.
 #
 # ### 🧠 Learning → Better Questions
 # A group-level decision must be mapped back to all its source rows. Otherwise,
@@ -332,6 +341,9 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # Preparation therefore defines the population a future score describes, not just
 # the input format. **How can we separate this population while preserving label
 # alignment, and what kind of independence can we actually verify?**
+#
+# **⚖️ Ethical Takeaway:** Disclose exclusions so readers do not mistake results
+# on retained tweets for evidence covering every original example.
 
 # %% [markdown]
 # ## 5. Separate training and holdout observations
@@ -354,7 +366,7 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 #
 # DataCamp's [Train/test split + computing accuracy](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/classification-1?ex=8)
 # illustrates stratification and a fixed seed. Only that separation concept is
-# adapted here; no model, score, or learned text transformation is produced.
+# adapted in this preparation section; it produces no model or learned text transformation.
 
 # %%
 import sklearn
@@ -422,7 +434,7 @@ print("Shared prepared texts:", len(prepared_overlap))
 # limited to the retained population until broader evidence supports it.
 #
 # Any later learned text transformation must be fitted on training data only.
-# The holdout is reserved for evaluation, not tuning; no model is fitted in this file.
+# The holdout is reserved for evaluation, not tuning; no model is fitted in this preparation section.
 #
 # ### 🧑‍💼 Recruiter / Transfer Check
 # A different dataset has balanced labels and no exact text matches across a split.
@@ -436,3 +448,299 @@ print("Shared prepared texts:", len(prepared_overlap))
 # counts do not supply it. This prepared answer does not assess a learner's understanding.
 #
 # </details>
+
+# %% [markdown]
+# ## Work block 2 — Baseline model and evaluation
+#
+# ### ❓ Main Question
+# How well does a TF-IDF + Logistic Regression baseline classify the held-out
+# tweets, and where does it fail?
+#
+# **📋 Context, Source & Task:** Use the unchanged prepared training and holdout
+# objects above. The outcome is one measured baseline for the retained population,
+# not evidence of reliability on every disaster report.
+#
+# The school `guided.ipynb` demonstrates fitting TF-IDF on training text, transforming
+# held-out text, and fitting/evaluating Logistic Regression. Here those steps form
+# one Pipeline. We retain its sound sequence, not its movie-review cleaning,
+# `sag` solver choice, warning suppression, or example scores.
+#
+# DataCamp sources inspected for this adaptation:
+# - [TF-IDF vectors for TED talks](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/tf-idf-and-similarity-scores?ex=3): instructions and starter code for numerical text features.
+# - [Your first TfIdf](https://campus.datacamp.com/courses/sentiment-analysis-in-python/more-on-numeric-vectors-transforming-tweets?ex=14): separate learning and transformation.
+# - [Pipeline for song genre prediction I](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=6)
+#   and [II](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=7): named steps, fitting, and prediction.
+# - [Assessing a diabetes prediction classifier](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/fine-tuning-your-model-3?ex=3): classification report and confusion matrix.
+#
+# These are inspected instructions and available starter code, not claimed completed
+# official solutions. Our tweet-specific code and explanations are adaptations.
+# Installed scikit-learn 1.5.2 documentation clarifies defaults and API behavior;
+# it supplies no additional modeling method.
+#
+# ### 6. A — How does text become numerical evidence?
+#
+# **🎯 Goal & Approach — What & Why:** Translate each prepared tweet into numerical
+# features so a classifier can learn associations with its recorded label.
+# Learn that representation only from training text to keep evaluation separate.
+#
+# **🔎 Guiding Questions:** What occupies a matrix row or column? Which information
+# becomes a feature, and which information is lost?
+#
+# A document is one tweet. A token is a text unit selected by the vectorizer's
+# rule; the vocabulary is the set of selected terms found during training.
+# Each matrix row represents a document, each column one vocabulary term.
+#
+# Term frequency counts a term within a document. Inverse document frequency
+# gives more weight to terms appearing in fewer training documents. Defaults
+# multiply counts by smoothed IDF, then scale each nonzero row to unit L2 length.
+# That scaling makes total squared weights equal one; a weight is not a probability.
+# Most vocabulary terms are absent from any one tweet, so their weights are zero.
+# A sparse matrix stores nonzero entries efficiently instead of a large dense table.
+#
+# **⚠️ Watch Out:** Preserving symbols in `prepared_text` does not preserve them
+# as features. The default `(?u)\b\w\w+\b` rule selects runs of at least two
+# Unicode word characters: letters, digits, and underscores. Punctuation separates
+# tokens; `#fire` becomes `fire`, while the one-character `t` in a URL is dropped.
+# Mentions and URLs can contribute text fragments, not intact structured objects.
+# Only single tokens are features: word order and phrases are not represented.
+# No stop-word list is used, but retaining `not` does not teach phrase-level negation.
+#
+# Defaults are fixed before inspecting holdout scores: word unigrams, no vocabulary
+# cap or stop-word removal, smoothed IDF and L2 row normalization. Logistic Regression
+# uses `lbfgs`, L2 regularization with `C=1`, an intercept, equal class weights,
+# and at most 100 solver iterations. Regularization discourages large coefficients;
+# these are baseline choices, not settings selected for a favorable score.
+#
+# API checks: [TfidfVectorizer](https://scikit-learn.org/1.5/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
+# and [LogisticRegression](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.LogisticRegression.html).
+
+# %%
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+
+# This unfitted vectorizer defines the token/weight rules; it has not learned vocabulary or IDF.
+# The unfitted classifier will learn coefficients for those numerical features plus an intercept.
+tfidf_vectorizer = TfidfVectorizer()
+logistic_classifier = LogisticRegression()
+
+# Each tuple gives a step a name and its object. List order is the data-processing order.
+# Creating the Pipeline connects the objects; it does not yet learn from any tweet.
+baseline_steps = [("tfidf", tfidf_vectorizer), ("classifier", logistic_classifier)]
+baseline_pipeline = Pipeline(baseline_steps)
+
+# %% [markdown]
+# ### 🧠 Learning → Better Questions
+# A prepared string and a model feature are different objects. Tokenization and
+# weighting determine which distinctions the classifier can use; this representation
+# cannot retain every distinction visible to a human reader.
+# **Which quantities must be learned, and how can prediction reuse them without learning from the holdout?**
+#
+# ### 7. B — What does the classifier learn, and how does it predict?
+#
+# **🎯 Goal & Approach — What & Why:** Fit the single Pipeline on the 5,986 training
+# observations, then reuse its learned transformation and classifier for the holdout.
+# This keeps feature columns consistent between learning and prediction.
+#
+# **🔎 Guiding Questions:** Which step uses text alone, which uses labels,
+# and what changes between `fit` and `predict`?
+#
+# **🗺️ Mental Model:** Pipeline runs different operations at the two stages.
+#
+# ```text
+# FIT: training text -> learn vocabulary + IDF -> training feature matrix
+#                                                        |
+#      training labels ----------------------------------+
+#                                                        v
+#                                      learn coefficients + intercept
+#
+# PREDICT: holdout text -> reuse vocabulary + IDF -> holdout feature matrix
+#                                                        |
+#                                                        v
+#                                      reuse classifier -> predicted labels
+# ```
+#
+# Logistic Regression receives numerical weights, not original text. Fitting learns
+# one coefficient per term and an intercept from features and recorded labels.
+# Their weighted combination becomes a class-1 probability estimate; `predict`
+# returns class 1 above 0.5 and class 0 otherwise for this binary model.
+# These learned associations do not explain what caused a real event.
+#
+# A holdout word absent from training has no vocabulary column and is ignored.
+# Prediction neither adds columns nor recalculates IDF. An input containing no known
+# tokens has a zero feature row, leaving only the classifier's intercept.
+# A Pipeline prevents inconsistent step order; it cannot rescue passing the wrong
+# observations to `fit`. The training-only arguments below are essential.
+# See the installed-version [Pipeline contract](https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html).
+
+# %%
+# fit first learns vocabulary and IDF from X_train and transforms that same training text.
+# It then fits classifier coefficients/intercept using the resulting matrix and y_train.
+# TF-IDF does not use the labels; the classifier does. No holdout input participates here.
+baseline_pipeline.fit(X_train, y_train)
+
+# Inspect one training document using the SAME fitted vectorizer, without another fit.
+# Its single sparse row uses the entire learned feature axis; .shape means (documents, terms).
+training_example_text = X_train.head(1)
+training_example_features = tfidf_vectorizer.transform(training_example_text)
+print("Training example (source index retained):")
+print(training_example_text.to_string())
+print("One training document's feature-matrix shape:", training_example_features.shape)
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# The fitted representation has 18,494 term columns. The inspected training document
+# occupies one row on that axis; the training matrix used by the classifier has 5,986 rows.
+# Training converged within the default iteration limit without a convergence warning.
+# No parameter adjustment was needed before moving to the held-out observations.
+#
+# ### 🧠 Learning → Better Questions
+# Fitting has established a representation and model, not their performance on unseen
+# observations. **Does reusing these learned quantities produce useful agreement
+# with the recorded holdout labels, and which errors does that agreement hide?**
+
+# %%
+# predict transforms X_holdout with the learned vocabulary/IDF, then applies the fitted classifier.
+# The returned array contains one 0/1 per input position, in X_holdout order; it has no pandas index.
+holdout_predictions = baseline_pipeline.predict(X_holdout)
+print("Holdout predictions:", len(holdout_predictions))
+
+# %% [markdown]
+# ### 8. C — What do the scores and mistakes tell us?
+#
+# **🎯 Goal & Approach — What & Why:** Compare predictions with the 1,497 recorded
+# holdout labels. Use positive-class F1 as agreed, then inspect its component errors.
+# The holdout is now evaluation evidence; its results must not guide changes to this baseline.
+#
+# **🔎 Guiding Questions:** How precise and complete are predictions of class 1?
+# Which disagreements are hidden by the overall score, and what can examples explain?
+#
+# Treat `target=1` as positive. A true positive (TP) agrees with a recorded disaster
+# label; a false positive (FP) predicts disaster for a recorded non-disaster tweet.
+# A false negative (FN) misses a recorded disaster; a true negative (TN) agrees on class 0.
+# These names describe agreement with annotations, not independently checked events.
+#
+# | Metric | Question and denominator |
+# | --- | --- |
+# | Precision, class 1 | Of predicted disasters, how many agree with label 1? TP / (TP + FP). |
+# | Recall, class 1 | Of recorded disasters, how many were found? TP / (TP + FN). |
+# | F1, class 1 | Harmonic balance of precision and recall: 2TP / (2TP + FP + FN). |
+# | Accuracy | What fraction of all predictions match recorded labels? (TP + TN) / all rows. |
+# | Support | How many evaluated observations carry each recorded label? |
+#
+# F1 weights FP and FN equally in this formula; it does not establish their real-world
+# costs. Class averages in the report are supplementary; the row labeled `1` supplies
+# the primary F1. Accuracy alone can conceal an uneven ability to recognize the two classes.
+#
+# **✅ Notes for Students:** The inspected DataCamp Twitter-metrics exercise describes
+# confusion-matrix axes in reverse. The actual scikit-learn convention is recorded labels
+# in rows, predictions in columns; use that convention and explicit `[0, 1]` order here.
+# See [Twitter lesson](https://campus.datacamp.com/courses/sentiment-analysis-in-python/lets-predict-the-sentiment?ex=6)
+# and the [1.5.2 API definition](https://scikit-learn.org/1.5/modules/generated/sklearn.metrics.confusion_matrix.html).
+
+# %%
+from sklearn.metrics import classification_report, confusion_matrix
+
+# This formatted report compares pairs in matching holdout order, not by pandas index lookup.
+# Each class row contains precision, recall, F1, and support; digits controls display rounding only.
+holdout_report = classification_report(
+    y_holdout, holdout_predictions, labels=[0, 1], digits=4
+)
+print("Holdout classification report (primary metric: F1 in row 1):")
+print(holdout_report)
+
+# Counts are arranged [[TN, FP], [FN, TP]] because row = recorded label, column = prediction.
+# The DataFrame adds readable axis labels; it does not change the counts or their order.
+confusion_counts = confusion_matrix(y_holdout, holdout_predictions, labels=[0, 1])
+confusion_table = pd.DataFrame(
+    confusion_counts,
+    index=["Recorded 0", "Recorded 1"],
+    columns=["Predicted 0", "Predicted 1"],
+)
+print("Confusion matrix (counts):")
+print(confusion_table.to_string())
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# On the unchanged 1,497-row holdout, class-1 F1 is **0.7308**, precision **0.7989**,
+# recall **0.6735**, and overall accuracy **0.7889**. Support is 860 for class 0 and
+# 637 for class 1. These values describe this retained population and fixed experiment.
+#
+# The matrix contains 752 TN, 108 FP, 208 FN, and 429 TP. Thus 429 of 537 predicted
+# disasters match label 1, while 429 of 637 recorded disasters are found.
+# The model misses 208 of 637 recorded positives (32.65%). Its accuracy represents
+# 1,181 matching labels out of 1,497, not an equally strong result for both classes.
+#
+# Scores count disagreements but do not explain them. Inspect at most three examples
+# per error type, taking the lowest source indices so the selection is reproducible.
+# These are illustrative examples, not a representative error sample or evidence of prevalence.
+#
+# Keep recorded labels, predictions, visible wording, and hypotheses separate.
+# An annotation is the evaluation reference, not proof of what happened; do not relabel
+# an example or alter the pipeline after reading these errors.
+#
+# Selection uses DataCamp's [Subsetting rows](https://campus.datacamp.com/courses/data-manipulation-with-pandas/transforming-dataframes?ex=7)
+# (including available official solutions) and [Sorting by index values](https://campus.datacamp.com/courses/data-manipulation-with-pandas/slicing-and-indexing-dataframes?ex=5)
+# (instructions and starter code). Adapt their filtering/sorting patterns to source-row indices.
+
+# %%
+# Copy original text and recorded target in the SAME holdout order used for prediction.
+# The separate table preserves source indices; none of the eight preparation objects is changed.
+holdout_results = holdout_rows[["text", "target"]].copy()
+
+# An unlabeled array is assigned by position: prediction i belongs to input row i.
+# This new column now has holdout_results' source indices, not an invented 0..1496 index.
+# Attach predictions before sorting; a default-index Series could silently misalign them.
+holdout_results["prediction"] = holdout_predictions
+
+# Each comparison returns one Boolean per source row; & requires both conditions to hold.
+# FP selects recorded 0 / predicted 1; FN selects recorded 1 / predicted 0.
+false_positive_mask = (holdout_results["target"] == 0) & (holdout_results["prediction"] == 1)
+false_negative_mask = (holdout_results["target"] == 1) & (holdout_results["prediction"] == 0)
+
+# .loc keeps matching records; sort_index orders their source-row keys, not model scores.
+# head(3) caps each illustrative table at three records without changing the evaluation set.
+false_positives = holdout_results.loc[false_positive_mask].sort_index().head(3)
+false_negatives = holdout_results.loc[false_negative_mask].sort_index().head(3)
+print("False positives: first three source indices (recorded 0, predicted 1):")
+print(false_positives.to_string())
+print("False negatives: first three source indices (recorded 1, predicted 0):")
+print(false_negatives.to_string())
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation — selected disagreements
+# Source indices below identify the printed records. The last column contains
+# possible explanations, not measured feature contributions or verified causes.
+#
+# | Source row | Recorded / predicted | Visible text evidence | Hypothesis, not established cause |
+# | --- | --- | --- | --- |
+# | 26 | 0 / 1 (FP) | A short statement about being in NYC last week; no explicit disaster claim. | Learned associations with location or other tokens may outweigh the lack of an event description. |
+# | 61 | 0 / 1 (FP) | Students' pens are described as ablaze in a publication announcement. | A single-word representation may confuse figurative fire language with an event. |
+# | 71 | 0 / 1 (FP) | Accident-related hashtags, a general teen-accident headline, and links appear together. | Topic vocabulary may dominate the difference between general discussion and reporting a specific event. |
+# | 12 | 1 / 0 (FN) | Rain/flooding and location hashtags describe many days of weather. | Sparse local wording or learned token associations may be insufficient for a positive decision. |
+# | 51 | 1 / 0 (FN) | A headline describes imprisonment for setting a relative ablaze. | Brief crime-report wording may receive associations different from disaster reporting. |
+# | 56 | 1 / 0 (FN) | A truck-fire report includes an address, abbreviations, and a link. | Abbreviations and fragmented location context may contribute to a missed report. |
+#
+# The fire-related wording appears in both error directions. These examples challenge
+# a simple assumption that disaster keywords alone settle the label. They do not
+# establish which feature caused a prediction, which annotation is correct, or how
+# common any proposed error pattern is. No example was relabeled or used to tune settings.
+#
+# ### 🧠 Learning → Better Questions
+# We moved from knowing the evaluation population to measuring one model's agreement
+# with its labels. Precision exceeds recall for class 1: predicted positives often
+# match the annotations, but almost one-third of recorded positives are missed.
+# F1 summarizes that tradeoff; the matrix and examples reveal what the summary hides.
+#
+# The retained population excludes conflicting recorded labels, not all ambiguous or
+# incorrectly labeled texts. Zero matching strings across partitions does not prove
+# that reports concern independent events. A single holdout provides neither a
+# deployment-readiness judgment nor evidence of emergency-response benefit.
+#
+# **Better question:** What independent evidence about event overlap and annotation
+# context would be needed before extending this result beyond the retained tweets?
+# Those relationships are not established by the supplied text-only table.
+# Keep the claim bounded to this holdout; further investigation requires a separate decision.
+#
+# The written reasoning is a learning resource. Data's independent Learning PASS
+# remains **UNASSESSED**; successful execution does not demonstrate understanding.
