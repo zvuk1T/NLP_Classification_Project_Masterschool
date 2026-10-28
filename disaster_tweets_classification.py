@@ -5,14 +5,14 @@
 # examples, and what would make evidence of that ability trustworthy?
 #
 # ### 📋 Context, Source & Task
-# MasterSchool DA112 Sprint 3 asks us to classify disaster tweets. The supplied
-# `DATA/train.csv` records text and a target: `1` for disaster, `0` for non-disaster.
-# These are recorded annotations, not independently verified facts about events.
-# The Project Map documents this teaching copy and its unknown transformation history.
+# MasterSchool DA112 Sprint 3 asks us to classify disaster tweets using the supplied
+# `DATA/train.csv`: text and target (`1` disaster, `0` non-disaster).
+# These recorded annotations are not independently verified facts about events.
+# The Project Map documents this teaching copy; its exact transformation history is unknown.
 #
-# This assistant-authored analysis retrospectively explains the completed dataset
-# investigation, preparation, and baseline evaluation. The questions organize its reasoning; they do not
-# claim to reconstruct a learner's past thoughts or demonstrate understanding.
+# This assistant-authored reconstruction retrospectively explains the dataset investigation,
+# preparation, and baseline evaluation. Its questions organize the reasoning without
+# claiming a learner's past thoughts or independent understanding.
 #
 # The local Sprint 2 `guided.ipynb` supplies the school reference for sequential
 # text preparation and keeping text paired with labels. We adapt those principles
@@ -123,20 +123,22 @@ print(target_summary.to_string())
 # **🔎 Guiding Questions:** How many groups repeat, and how many rows do they contain?
 # Do all observations with the same exact text carry the same label?
 #
-# **🗺️ Mental Model:** Row counts and group counts answer different questions.
-#
-# ```text
-# Source rows:     A/0     A/0     A/1
-#                   \      |      /
-#                    +-----+-----+
-#                          |
-#                          v
-# One exact-text group: 3 rows, 2 extra occurrences
-#                       2 distinct labels -> disagreement
-# ```
-#
 # Optional reference: DataCamp's [Daily marketing reach by channel](https://campus.datacamp.com/courses/analyzing-marketing-campaigns-with-pandas/pandas-1?ex=9)
 # uses grouping and `nunique()` to count distinct values within groups.
+#
+# %% [markdown]
+# ### 🗺️ Mental Model — Rows become a group
+#
+# ```text
+# A/0   A/0   A/1
+#  \     |     /
+#   +----+----+
+#        |
+#        v
+# One text group
+# 3 rows; 2 extra
+# 2 labels -> disagreement
+# ```
 
 # %%
 # text_counts maps each exact string (its index) to the number of source rows using it.
@@ -172,8 +174,8 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
-# There are 7,503 distinct exact texts. The 69 repeated groups contain 179 rows,
-# including 110 occurrences beyond the first. Only 92 extra rows also repeat the label.
+# Of 7,503 distinct exact texts, 69 repeated groups contain 179 rows, including 110
+# occurrences beyond the first. Only 92 extra rows also repeat the label.
 # Eighteen text groups have both labels, involving 55 observations.
 #
 # Repetition and conflict are different: repeating one label adds no disagreement;
@@ -200,10 +202,10 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # **🔎 Guiding Questions:** Do distinct original strings merge? Does that change
 # which source rows belong to conflicting groups?
 #
-# This fixed rule learns no vocabulary or statistics from the corpus. It keeps
-# words, punctuation, hashtags, mentions, and URLs, though their case may change.
-# Lowercasing loses emphasis and case distinctions; retaining original text makes
-# those losses inspectable. No stemming, stop-word removal, or encoding repair is used.
+# This fixed rule learns no corpus statistics and keeps words, punctuation,
+# hashtags, mentions, and URLs, though their case may change.
+# Lowercasing loses emphasis and case distinctions; preserved original text makes those losses inspectable.
+# No stemming, stop-word removal, or encoding repair is used.
 #
 # The school example motivates visible preparation steps; its broader movie-review
 # cleaning is not adopted. DataCamp's [Normalizing reviews](https://campus.datacamp.com/courses/regular-expressions-in-python/basic-concepts-of-string-manipulation?ex=6)
@@ -336,11 +338,10 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # other ambiguous or incorrectly labeled texts may remain.
 #
 # ### 🧠 Learning → Better Questions
-# A group-level decision must be mapped back to all its source rows. Otherwise,
-# removing only a disputed occurrence could silently retain an arbitrary answer.
-# Preparation therefore defines the population a future score describes, not just
-# the input format. **How can we separate this population while preserving label
-# alignment, and what kind of independence can we actually verify?**
+# Mapping group decisions back to every source row avoids retaining an arbitrary
+# label from a disputed group. Preparation defines the population a score describes,
+# not just the input format. **Which tweets will our result describe, and which
+# were excluded before evaluation?**
 #
 # **⚖️ Ethical Takeaway:** Disclose exclusions so readers do not mistake results
 # on retained tweets for evidence covering every original example.
@@ -358,10 +359,9 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # **🔎 Guiding Questions:** Are class proportions similar in both partitions?
 # Do they share any identical original or prepared text?
 #
-# Stratification keeps label proportions close, subject to whole-row rounding.
-# The seed makes selection reproducible for the same inputs, order, and environment.
-# It cannot establish representativeness; changing inputs or order can change the split.
-# Neither mechanism prevents repeated texts or related events from crossing partitions.
+# Stratification keeps label proportions close, subject to whole-row rounding;
+# the seed makes selection reproducible for the same inputs, order, and environment.
+# Neither establishes representativeness or prevents related events from crossing partitions.
 # The preceding retention policy addresses matching prepared text before this split.
 #
 # DataCamp's [Train/test split + computing accuracy](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/classification-1?ex=8)
@@ -442,10 +442,10 @@ print("Shared prepared texts:", len(prepared_overlap))
 #
 # <details><summary>💡 Show answer</summary>
 #
-# No. Label balance and exact-string separation answer only two specific questions.
-# Text normalization could merge variants, and different wording can describe the
-# same event. Independence needs evidence about those relationships; balanced class
-# counts do not supply it. This prepared answer does not assess a learner's understanding.
+# No: label balance and exact-string separation alone do not establish independence.
+# Normalization can merge variants, while different wording can describe the same event;
+# independence needs evidence about those relationships.
+# This prepared answer supports reasoning without assessing a learner's understanding.
 #
 # </details>
 
@@ -453,7 +453,7 @@ print("Shared prepared texts:", len(prepared_overlap))
 # ## Work block 2 — Baseline model and evaluation
 #
 # ### ❓ Main Question
-# How well does a TF-IDF + Logistic Regression baseline classify the held-out
+# How well does the TF-IDF + Logistic Regression baseline classify the held-out
 # tweets, and where does it fail?
 #
 # **📋 Context, Source & Task:** Use the unchanged prepared training and holdout
@@ -486,30 +486,31 @@ print("Shared prepared texts:", len(prepared_overlap))
 # **🔎 Guiding Questions:** What occupies a matrix row or column? Which information
 # becomes a feature, and which information is lost?
 #
-# A document is one tweet. A token is a text unit selected by the vectorizer's
-# rule; the vocabulary is the set of selected terms found during training.
-# Each matrix row represents a document, each column one vocabulary term.
+# Each matrix row represents one document (a tweet); each column represents one
+# vocabulary term. The vectorizer's rule selects text units called tokens;
+# the vocabulary contains the terms found during training.
 #
-# Term frequency counts a term within a document. Inverse document frequency
-# gives more weight to terms appearing in fewer training documents. Defaults
-# multiply counts by smoothed IDF, then scale each nonzero row to unit L2 length.
-# That scaling makes total squared weights equal one; a weight is not a probability.
-# Most vocabulary terms are absent from any one tweet, so their weights are zero.
-# A sparse matrix stores nonzero entries efficiently instead of a large dense table.
+# Term frequency counts occurrences within a document; inverse document frequency
+# gives more weight to terms appearing in fewer training documents.
+# Defaults multiply counts by smoothed IDF, then scale each nonzero row so its
+# squared weights sum to one. These weights are not probabilities.
 #
-# **⚠️ Watch Out:** Preserving symbols in `prepared_text` does not preserve them
-# as features. The default `(?u)\b\w\w+\b` rule selects runs of at least two
-# Unicode word characters: letters, digits, and underscores. Punctuation separates
-# tokens; `#fire` becomes `fire`, while the one-character `t` in a URL is dropped.
-# Mentions and URLs can contribute text fragments, not intact structured objects.
-# Only single tokens are features: word order and phrases are not represented.
-# No stop-word list is used, but retaining `not` does not teach phrase-level negation.
+# Most vocabulary terms are absent from a particular tweet, giving that row many
+# zero weights. A sparse matrix stores nonzero entries efficiently instead of a
+# large dense table.
 #
-# Defaults are fixed before inspecting holdout scores: word unigrams, no vocabulary
-# cap or stop-word removal, smoothed IDF and L2 row normalization. Logistic Regression
-# uses `lbfgs`, L2 regularization with `C=1`, an intercept, equal class weights,
-# and at most 100 solver iterations. Regularization discourages large coefficients;
-# these are baseline choices, not settings selected for a favorable score.
+# **⚠️ Watch Out:** The default `(?u)\b\w\w+\b` rule selects runs of at least two
+# Unicode word characters: letters, digits, and underscores.
+# Punctuation separates tokens: `#fire` becomes `fire`, while the one-character `t`
+# in a URL is dropped. URLs and mentions contribute fragments; single-token features
+# lose word order and the context needed to interpret negation, even when `not` remains.
+#
+# Fixed TF-IDF defaults use word unigrams, no vocabulary cap or stop-word removal,
+# smoothed IDF, and L2 row normalization.
+# Logistic Regression uses `lbfgs`, L2 regularization (`C=1`), an intercept,
+# equal class weights, and at most 100 solver iterations.
+# Regularization discourages large coefficients; these baseline settings were fixed
+# before inspecting holdout scores.
 #
 # API checks: [TfidfVectorizer](https://scikit-learn.org/1.5/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
 # and [LogisticRegression](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.LogisticRegression.html).
@@ -545,32 +546,51 @@ baseline_pipeline = Pipeline(baseline_steps)
 # **🔎 Guiding Questions:** Which step uses text alone, which uses labels,
 # and what changes between `fit` and `predict`?
 #
-# **🗺️ Mental Model:** Pipeline runs different operations at the two stages.
+# %% [markdown]
+# ### 🗺️ Mental Model — Learn once, reuse for prediction
 #
 # ```text
-# FIT: training text -> learn vocabulary + IDF -> training feature matrix
-#                                                        |
-#      training labels ----------------------------------+
-#                                                        v
-#                                      learn coefficients + intercept
+# FIT
+# Training text
+#       |
+#       v
+# Learn vocabulary + IDF
+#       |
+#       v
+# Features + training labels
+#       |
+#       v
+# Learn coefficients + intercept
 #
-# PREDICT: holdout text -> reuse vocabulary + IDF -> holdout feature matrix
-#                                                        |
-#                                                        v
-#                                      reuse classifier -> predicted labels
+# PREDICT
+# Holdout text
+#       |
+#       v
+# Reuse vocabulary + IDF
+#       |
+#       v
+# Features -> reuse classifier
+#       |
+#       v
+# Predicted labels
 # ```
 #
-# Logistic Regression receives numerical weights, not original text. Fitting learns
-# one coefficient per term and an intercept from features and recorded labels.
+# %% [markdown]
+# Logistic Regression learns one coefficient per term and an intercept from
+# numerical features and recorded labels.
 # Their weighted combination becomes a class-1 probability estimate; `predict`
-# returns class 1 above 0.5 and class 0 otherwise for this binary model.
+# returns class 1 above 0.5 and class 0 otherwise.
 # These learned associations do not explain what caused a real event.
 #
-# A holdout word absent from training has no vocabulary column and is ignored.
-# Prediction neither adds columns nor recalculates IDF. An input containing no known
-# tokens has a zero feature row, leaving only the classifier's intercept.
-# A Pipeline prevents inconsistent step order; it cannot rescue passing the wrong
-# observations to `fit`. The training-only arguments below are essential.
+# Prediction ignores words absent from the learned vocabulary, without adding
+# columns or recalculating IDF. With no known tokens, the feature row is zero,
+# leaving only the classifier's intercept.
+#
+# **What does Pipeline guarantee about fit/predict ordering, and what remains unknown
+# about label quality or event independence?** It applies configured steps consistently,
+# reusing learned transformations before prediction.
+# Correct training inputs, annotation quality, and event independence still require
+# separate evidence.
 # See the installed-version [Pipeline contract](https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html).
 
 # %%
@@ -589,10 +609,10 @@ print("One training document's feature-matrix shape:", training_example_features
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
-# The fitted representation has 18,494 term columns. The inspected training document
-# occupies one row on that axis; the training matrix used by the classifier has 5,986 rows.
-# Training converged within the default iteration limit without a convergence warning.
-# No parameter adjustment was needed before moving to the held-out observations.
+# The fitted representation has 18,494 term columns; the inspected training document
+# occupies one row on that axis.
+# The classifier's training matrix has 5,986 rows, one per training observation.
+# Training converged within the default limit without warnings or parameter adjustments.
 #
 # ### 🧠 Learning → Better Questions
 # Fitting has established a representation and model, not their performance on unseen
@@ -615,8 +635,8 @@ print("Holdout predictions:", len(holdout_predictions))
 # **🔎 Guiding Questions:** How precise and complete are predictions of class 1?
 # Which disagreements are hidden by the overall score, and what can examples explain?
 #
-# Treat `target=1` as positive. A true positive (TP) agrees with a recorded disaster
-# label; a false positive (FP) predicts disaster for a recorded non-disaster tweet.
+# With `target=1` positive, a true positive (TP) agrees with that label;
+# a false positive (FP) predicts disaster for label 0.
 # A false negative (FN) misses a recorded disaster; a true negative (TN) agrees on class 0.
 # These names describe agreement with annotations, not independently checked events.
 #
@@ -666,10 +686,14 @@ print(confusion_table.to_string())
 # recall **0.6735**, and overall accuracy **0.7889**. Support is 860 for class 0 and
 # 637 for class 1. These values describe this retained population and fixed experiment.
 #
-# The matrix contains 752 TN, 108 FP, 208 FN, and 429 TP. Thus 429 of 537 predicted
-# disasters match label 1, while 429 of 637 recorded disasters are found.
-# The model misses 208 of 637 recorded positives (32.65%). Its accuracy represents
-# 1,181 matching labels out of 1,497, not an equally strong result for both classes.
+# The matrix contains 752 TN, 108 FP, 208 FN, and 429 TP.
+# Thus 429 of 537 predicted disasters match label 1, while 429 of 637 recorded
+# disasters are found.
+#
+# **What do the 208 missed examples among 637 recorded positives reveal that
+# overall accuracy does not?** The model misses 32.65% of recorded positives,
+# despite matching 1,181 of 1,497 labels overall.
+# Accuracy combines both classes and hides this uneven recognition.
 #
 # Scores count disagreements but do not explain them. Inspect at most three examples
 # per error type, taking the lowest source indices so the selection is reproducible.
@@ -721,15 +745,16 @@ print(false_negatives.to_string())
 # | 51 | 1 / 0 (FN) | A headline describes imprisonment for setting a relative ablaze. | Brief crime-report wording may receive associations different from disaster reporting. |
 # | 56 | 1 / 0 (FN) | A truck-fire report includes an address, abbreviations, and a link. | Abbreviations and fragmented location context may contribute to a missed report. |
 #
-# The fire-related wording appears in both error directions. These examples challenge
-# a simple assumption that disaster keywords alone settle the label. They do not
-# establish which feature caused a prediction, which annotation is correct, or how
-# common any proposed error pattern is. No example was relabeled or used to tune settings.
+# Fire-related wording appears in both error directions, challenging the assumption
+# that disaster keywords alone settle the label.
+# These examples establish neither feature contributions, correct annotations, nor
+# the prevalence of a proposed error pattern.
+# No example was relabeled or used to tune settings.
 #
 # ### 🧠 Learning → Better Questions
-# We moved from knowing the evaluation population to measuring one model's agreement
-# with its labels. Precision exceeds recall for class 1: predicted positives often
-# match the annotations, but almost one-third of recorded positives are missed.
+# The analysis now measures one model's agreement with labels in a defined evaluation
+# population. Precision exceeds recall for class 1: predicted positives often match
+# annotations, but almost one-third of recorded positives are missed.
 # F1 summarizes that tradeoff; the matrix and examples reveal what the summary hides.
 #
 # The retained population excludes conflicting recorded labels, not all ambiguous or
