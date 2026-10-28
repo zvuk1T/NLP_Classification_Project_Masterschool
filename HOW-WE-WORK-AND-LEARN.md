@@ -38,7 +38,7 @@ LEARNING -> WHAT CHANGED IN OUR UNDERSTANDING?
                           `--> BETTER QUESTION / DECISION / PAUSE
 ```
 
-This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question may narrow a claim, expose missing context, or justify not acting yet; it need not be harder or broader. In our DIKW learning lens, Wisdom asks which better, evidence-answerable question follows from supported Knowledge. A justified decision or pause also closes the loop, and a question never authorizes another work block.
+This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question should emerge from evidence that changed our understanding, not simply announce the next Python operation. Wisdom considers whether that understanding, its limits, and its consequences justify another question, an action, a narrower claim, or a deliberate pause. More questions alone do not demonstrate wisdom, and no new question authorizes another work block.
 
 ### Keep three question levels connected
 
@@ -128,7 +128,7 @@ The mechanism is the movement from source rows to group-level evidence and back 
 
 ### Optional aids: ASCII maps and ethics
 
-Use **🗺️ Mental Model**, **⚠️ Watch Out**, and **✅ Notes for Students** near a real conceptual dependency, misconception, or practical need. They are optional aids, not quotas or decoration.
+Use **🗺️ Mental Model**, **⚠️ Watch Out**, and **✅ Notes for Students** near a real conceptual dependency, misconception, or practical need. They are optional aids, not quotas or decoration. Mental maps make relationships visible; warnings challenge misleading assumptions; ethical takeaways connect evidence to responsibility. Preserve genuinely useful aids during simplification instead of deleting them just to shorten prose.
 
 **🗺️ Mental Model:** Use plain ASCII diagrams inside fenced `text` blocks, with characters such as `|`, `-`, `+`, `>` and `v`. Keep emoji headings outside the diagram; do not use Mermaid or Unicode box-drawing characters. Keep all diagram content ASCII, including arrow symbols and labels; English labels fit our documentation language. This restriction applies to diagrams, not prose, emoji headings, or the name **Learning → Better Questions**.
 
@@ -225,27 +225,34 @@ Before any separately approved preprocessing change, consider URLs, hashtags, me
 
 ## 6. DIKW, Data Literacy, and storytelling
 
-Use DIKW as our question-driven learning lens, not as mandatory headings or a universal one-to-one definition:
+Use DIKW to connect observations with context, supported understanding, and responsible judgment. This question-driven interpretation is our learning synthesis, not a mandatory heading scheme:
 
 ```text
-DATA: WHAT did we record? (observations, provenance)
+DATA: What was recorded? (observations, provenance)
     |
     v
-INFORMATION: WHAT does it show? (counts, rates, comparisons)
+INFORMATION: Who / what / where / when?
+             (known context, definitions, comparisons)
     |
     v
-KNOWLEDGE: WHY does it matter? (supported explanation, limits)
+KNOWLEDGE: How do patterns relate?
+           Which explanations are supported?
     |
     v
-WISDOM: WHAT BETTER QUESTION should we ask next?
+INSIGHT (bridge): What changed in understanding?
     |
-    +--> Reframe / investigate (when evidence justifies it)
-    `--> Decide / narrow the claim / pause
+    v
+WISDOM: What judgment is justified?
+    |
+    +--> BETTER QUESTION / INVESTIGATE
+    `--> DECIDE / ACT / NARROW CLAIM / PAUSE
 ```
 
-Knowledge's **WHY** explains meaning or mechanisms only as far as evidence allows; it does not automatically establish causality. Wisdom makes the next question more relevant and answerable, while recognizing when the responsible outcome is a decision, narrower claim, or pause.
+DataCamp's [Introduction to Data Literacy](https://www.datacamp.com/courses/introduction-to-data-literacy) presents context and patterns as steps toward applying knowledge in decisions and action; insight is a practical bridge toward wisdom, not a fifth DIKW level. Information must distinguish known context from missing details: our text-only tweets do not verify event time or location. Knowledge may explain how results relate and why they matter, but cannot infer causes without evidence.
 
-In our holdout, recorded and predicted tweet labels are Data; the 208 false negatives among 637 recorded positives (32.65% missed) are Information. Knowledge explains why 78.89% overall accuracy hides this miss rate: accuracy combines both classes, whereas class-1 recall isolates recorded positives. Wisdom asks what independent label and event-overlap evidence would justify claims beyond this holdout, rather than pretending we know why individual tweets were missed.
+**Better Questions is our inquiry practice, not DataCamp's definition of Wisdom.** Questions can arise at every DIKW level; Wisdom judges whether a more relevant, answerable question, decision, action, narrowed claim, or pause is justified by understanding, uncertainty, and consequences. A better question arises from a meaningful insight rather than the next Python operation.
+
+In our holdout, tweet text, recorded labels, and predictions are Data. Information shows 208 of 637 recorded positives were missed (32.65%), despite 78.89% overall accuracy. Knowledge explains how accuracy aggregates both classes but cannot establish the causes of particular errors. The insight limits our claim to this retained holdout; Wisdom asks what independent evidence about annotations and event overlap could justify generalization, or pauses that claim until evidence exists.
 
 Aggregation alone does not establish an explanation, causality, or a recommendation. Before relying on a result, consider missingness, errors, representation, collection bias, and whether the evidence fits the question. Verified provenance and fitness for a purpose are separate judgments; cleaning does not automatically establish representativeness.
 

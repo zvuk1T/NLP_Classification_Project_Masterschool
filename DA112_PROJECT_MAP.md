@@ -2,7 +2,7 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.4 — 2026-10-28
+> **Version:** 1.5 — 2026-10-28
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
@@ -313,18 +313,20 @@ These are **not prerequisites for blocks 3 or 4**. After the baseline, Data deci
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
-All narrative claims follow this project-specific DIKW → Better Questions lens, without compulsory headings for every operation:
+Our narrative uses DIKW to develop evidence into understanding and justified judgment, without compulsory headings for each operation:
 
-1. **Data — What did we record?** Observations and provenance: tweet text, recorded labels, and predictions.
-2. **Information — What does it show?** Organized facts, comparisons, and metrics: counts, false negatives, class-1 recall, and F1.
-3. **Knowledge — Why does it matter?** Explain a result or mechanism only where evidence supports it, including assumptions and limits. For example, overall accuracy combines classes and can hide missed positives; the text-only data cannot establish why specific tweets were misclassified.
-4. **Wisdom — What better question should we ask next?** Form a more useful, evidence-answerable question from that Knowledge. A narrower claim, justified decision, or pause is also valid; a new question is not automatic authorization for more analysis.
+1. **Data — What was recorded?** Tweet text, recorded labels, predictions, source indices, and provenance.
+2. **Information — Who, what, where, when, and under which definitions?** Organize counts and metrics within the known population and denominator. Do not infer absent event times or locations from this text-only dataset.
+3. **Knowledge — How do patterns relate, and why does it matter?** Explain supported relationships and mechanisms, including assumptions and limits. Accuracy mixes classes and can hide missed positives; this does not reveal why an individual tweet was misclassified.
+4. **Wisdom — What judgment is justified?** Use knowledge, limitations, and consequences to choose a better evidence-answerable question, justified decision or action, narrower claim, or deliberate pause.
 
-This is our educational use of DIKW, not a universal claim that every observation yields a causal explanation. The published analysis already connects its learning reflections to Better Questions; Data's independent Learning PASS remains UNASSESSED.
+**Insight connects Knowledge to Wisdom; it is not a fifth DIKW level.** Better Questions is our inquiry method, not an official DataCamp definition of Wisdom. A better question should follow evidence that changed our understanding, not merely announce the next Python operation; it never authorizes a new block by itself.
+
+The published analysis already follows this cycle in its learning reflections. These canonical clarifications do not change the baseline, its fixed holdout, or Data's **UNASSESSED** independent Learning PASS.
 
 **Narrative question:** “Can a simple, interpretable text model distinguish disaster-related tweets from non-disaster usage — and where does it fail?”
 
-Do not convert correlation, a held-out metric, or a small notebook demonstration into operational, safety, or business-impact claims. Follow the learning guide for ASCII mental maps and optional contextual ethical takeaways; those aids do not introduce new analytical work.
+Do not convert correlation, a held-out metric, or a small notebook demonstration into operational, safety, or business-impact claims. Preserve meaningful **🗺️ Mental Model** diagrams in separate `# %% [markdown]` cells, contextual **⚠️ Watch Out** warnings, and evidence-grounded **⚖️ Ethical Takeaway** reflections under the learning guide. They are reasoning aids, not disposable decoration or new analytical work.
 
 ## 8. Spock operating protocol and authorization
 
@@ -362,7 +364,7 @@ During an approved block:
 | Repeated/conflicting labels | **Approved and implemented:** lowercase/whitespace comparison, exclude conflicting groups, keep first consistent occurrence | Preserve §4.1; do not reopen policy during educational edits |
 | Split and seed | **Approved and implemented:** stratified 80/20, `random_state=42`; 5,986 training / 1,497 holdout | Preserve exact membership, order, labels, and source indices |
 | Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
-| DIKW → Better Questions | **Agreed:** Data asks what was recorded; Information what it shows; Knowledge why it matters within evidence; Wisdom frames the next better question | Keep explanations bounded, with decision/pause allowed; no automatic next block |
+| DIKW → Better Questions | **Agreed:** Information contextualizes Data; Knowledge explains supported patterns; insight bridges understanding and judgment; Wisdom may justify a better question, action, decision, or pause | Questions must arise from changed understanding, not the next code operation; no automatic next block |
 | Colab workflow | **Deferred; unresolved** | Separately authorize export, execution, and sharing |
 | CV/tuning | **Optional, not approved** | Separate post-baseline decision; not required before portfolio preparation |
 | Teaching-material publication | `guided.ipynb` publication explicitly authorized; independent rights verification not established here | Both reference files remain unchanged; no broader reuse or publication permission |
