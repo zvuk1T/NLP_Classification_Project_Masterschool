@@ -2,11 +2,11 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.3 — 2026-10-28
+> **Version:** 1.4 — 2026-10-28
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
-> **Progress:** Slice 0, Slice 1, Slice 2A, and Work block 1 are published. Preparation was implemented in `34c61b6` and educationally refactored in `f8e166c`. The approved duplicate policy and split remain fixed. Next: targeted teaching alignment before separately authorized modeling.
+> **Progress:** Foundation slices and Work blocks 1–3 are complete and published. Preparation was established in `34c61b6`/`f8e166c`, the explained TF-IDF + Logistic Regression baseline in `b106c98`, and the portfolio case study in `7a4007b`. The approved preparation, split, baseline results, and evidence limits remain fixed. **Next planned block: Work block 4 — homepage integration.**
 >
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
@@ -18,7 +18,7 @@
 
 **Primary task:** Build an understandable, independently developed **binary classifier** that predicts whether a tweet describes a **real disaster** (`target = 1`) or **not a real disaster** (`target = 0`).
 
-- **Current phase — Data's decision, 2026-10-27:** Data reports having already worked through this project at school and broadly understanding its methods. This reconstruction now emphasizes effective Data–Troi–Spock collaboration and a clear portfolio case study, followed by homepage integration. It is not a first-time replay of the entire course or evidence of a new school submission.
+- **Current phase — reconciled 2026-10-28:** The data preparation, baseline evaluation, and portfolio case study are published. The next planned phase is homepage integration, after read-only inspection of the real portfolio repository, structure, featured/favorites placement, design, navigation, and build workflow. This reconstruction is not evidence of a new school submission.
 - **Understanding remains a quality requirement.** Briefly recap familiar material; explain unfamiliar concepts, consequential choices, and actual errors in more depth. Faster pacing does not mean skipping evidence or correctness checks.
 - **WHY before HOW.** Keep the question, method, evidence, and limitations understandable without explaining every familiar operation again.
 - **Minimum sound approach:** tweet-aware text preprocessing → TF-IDF → Logistic Regression → honest evaluation.
@@ -124,7 +124,7 @@ The supplied closing lessons include:
 
 **Later checkpoint, 2026-10-27:** The question-driven learning update was published in `247251e25a37b7acec0fb7fb3f69879d2d08afea`, changing only `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`. Spock's subsequent read-only report placed local `main` at `3d71400…`, one commit behind that remote checkpoint. Recheck live local and remote state before the next authorized synchronization; this roadmap edit does not synchronize the Mac.
 
-**Published implementation checkpoint:** Work block 1 was published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`. Its educational refactor and the explicitly authorized school-reference notebook publication followed in `f8e166ca1e285773dd381f3853aef9cc094e99b3`. The reference notebook is now tracked, not merely local/ignored. Current local status still requires separate inspection; remote publication does not establish it.
+**Published implementation checkpoints:** Work block 1 was published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`; its educational refactor and authorized school-reference publication followed in `f8e166ca1e285773dd381f3853aef9cc094e99b3`. The canonical contract was streamlined in `5c859f13e07208ceee50d79cb6023b2280f3ed73`. Work block 2 — the explained TF-IDF + Logistic Regression baseline and holdout evaluation — was published in `b106c9833d76942b4fc02ee0109c35c0d4af2edb`. The concise-explanation and standalone-ASCII-map rules were clarified in `6f427574e4cc25f19278320c57d215cb354d0a48`. Work block 3 — the portfolio-facing README and final case-study presentation — was published in `7a4007b4137e4a845769bd24e96e00be89a26157`. Current local status still requires separate inspection; remote publication does not establish it.
 
 ### 4.1 Dataset audit facts (exact-text analysis of the tracked CSV)
 
@@ -172,7 +172,7 @@ Use selectively for understanding `Pipeline`, cross-validation, and tuning conce
 
 ## 5. Methodology contract for the first reliable baseline
 
-These are **project design constraints**. Preparation exists; no Disaster Tweets model has been fitted at the published checkpoint.
+These are **project design constraints** that produced the published baseline. Preparation and the first Disaster Tweets model now exist; preserve these constraints when interpreting the result or considering optional post-baseline work.
 
 ### 5.1 Data and leakage
 
@@ -212,7 +212,7 @@ These are **project design constraints**. Preparation exists; no Disaster Tweets
 
 **Rule:** Data approves a complete, bounded block, not every routine operation inside it. Spock implements and verifies that block, then Data and Troi review its decisions, evidence, and explanations. Stop inside a block only for a material unresolved decision, scope change, missing essential evidence, or correctness/safety problem; continue unaffected approved work where practical. Completing a block does not authorize the next or Git transport.
 
-**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four work blocks group the school's analytical stages without changing the safeguards in §5 or the learning method. Block 1 is published; the current teaching alignment is a bounded follow-up, not a new analytical phase.
+**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four work blocks group the school's analytical stages without changing the safeguards in §5 or the learning method. **Work blocks 1–3 are complete and published; Work block 4 is the next planned block.**
 
 ### Completed foundation — Slice 0: Local and remote repository preflight
 
@@ -253,49 +253,55 @@ These are **project design constraints**. Preparation exists; no Disaster Tweets
 - **Teaching history:** The initial review accepted the question-led structure, but Data later identified insufficient code-cell explanation and excessive verification in the extended analysis. That acceptance did not settle the educational quality; the later refactor addressed those gaps.
 - **Data's Learning PASS: UNASSESSED.** Colab export and execution have not been attempted.
 
-### Work block 1 — Prepare the data for modeling (**PUBLISHED; targeted teaching alignment next**)
+### Work block 1 — Prepare the data for modeling (**COMPLETE AND PUBLISHED**)
 
 **Main Question:** How can we prepare these tweets for a fair, reproducible model evaluation?
 
-The approved preparation and split were published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`; §4.1 records their policy and results. No vectorizer or model was fitted.
+The approved preparation and split were published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`; §4.1 records their policy and results. The educational refactor in `f8e166ca1e285773dd381f3853aef9cc094e99b3` established the question-led structure, first-use code explanations, visible transformations, readable checks, and evidence-linked learning.
 
-**Educational refactor:** `f8e166ca1e285773dd381f3853aef9cc094e99b3` improved the entire assistant-authored analysis: meaningful question-led units, code-cell explanations, visible normalization steps, readable stage counts, and evidence-linked learning. Assertions, hashing, repeated splitting, and obsolete PASS messages were removed from the permanent teaching flow; essential input safeguards and analytical checks remain. The historical notebook and raw CSV were not rewritten.
+The current `.py` also reflects the later teaching standard: standalone ASCII mental maps, a contextual ethical takeaway, and the precise claim that conflicting recorded labels are excluded while other ambiguous or incorrectly labeled texts may remain. The approved eight preparation interfaces and exact split remain the basis for the published baseline.
 
-**Evidence status:** Spock reported seven executable cells running in a fresh VS Code project kernel, script execution from two directories, and exact equality of the eight output objects against the preceding implementation. Those are reported runtime results, not independently rerun by Troi. Troi's source/teaching review was **PASS WITH MINOR ADJUSTMENTS**; Data's independent Learning PASS remains **UNASSESSED**.
+**Acceptance status:** Complete. Technical evidence for preparation and preservation was reported during implementation; Troi reviewed the source/teaching design. Data's independent Learning PASS remains **UNASSESSED**.
 
-**Next bounded follow-up:** Apply the updated guide to the existing `.py`, preserving the successful refactor rather than starting over. Convert relevant mental models to ASCII, add one contextual ethical takeaway where warranted, retain first-use inline explanations, and correct the claim that all ambiguous examples are absent. The supported wording is: “Examples with conflicting recorded labels are excluded; other ambiguous or incorrectly labeled texts may remain.” Preserve the approved preparation, all eight output interfaces, and exact split membership/order.
+### Work block 2 — Baseline model and evaluation (**COMPLETE AND PUBLISHED**)
 
-**Acceptance:** A readable, source-faithful analysis with these targeted teaching adjustments and proportionate verification; no new method, model, policy, or test framework. The map records the next task but does not authorize its execution or transport.
+**Main Question:** How well does the TF-IDF + Logistic Regression baseline classify the held-out tweets, and where does it fail?
 
-### Work block 2 — Baseline model and evaluation (**not started; requires separate approval**)
+Published in `b106c9833d76942b4fc02ee0109c35c0d4af2edb`. The single scikit-learn Pipeline learns TF-IDF and Logistic Regression from the 5,986 training observations only, then predicts the unchanged 1,497-row holdout.
 
-**Main Question:** How well does the simple text classifier perform on held-out tweets, and where does it fail?
+**Published holdout evidence:**
+- Positive-class F1: **0.7308**
+- Precision, class 1: **0.7989**
+- Recall, class 1: **0.6735**
+- Accuracy: **0.7889**
+- Confusion matrix: **752 TN, 108 FP, 208 FN, 429 TP**
+- The model misses **208 of 637 recorded positives (32.65%)**.
 
-- Implement TF-IDF + Logistic Regression together, fit on training data only, predict on the holdout, and report F1, precision, recall, accuracy, class support, and a confusion matrix.
-- Inspect a few false positives and false negatives, explain limitations, and connect the verified results to the question. Do not use this holdout error review to tune the model against the same test set.
-- Verify reproducibility with the actual environment and inputs. Keep familiar mechanics concise; explain new concepts and material decisions where used.
+The analysis inspects a small reproducible set of false positives and false negatives without using them to tune the baseline. Results describe the retained fixed holdout; they do not establish annotation truth, event independence, deployment readiness, or real-world emergency benefit.
 
-**Acceptance:** One executed, explainable baseline with genuine evaluation results and bounded interpretation. No automatic tuning, alternative models, or next-block implementation.
+**Acceptance status:** Complete. One explainable baseline and bounded error analysis are published. CV, tuning, and alternative models remain optional post-baseline decisions, not missing requirements.
 
-### Work block 3 — Portfolio case study (**requires approval**)
+### Work block 3 — Portfolio case study (**COMPLETE AND PUBLISHED**)
 
 **Main Question:** How can a reader understand the problem, decisions, evidence, and limitations without reading our conversations?
 
-- Refine the analytical narrative, README, and a small set of useful visuals in the approved file scope. Present the work honestly as a MasterSchool educational reconstruction.
-- Explain what was classified, why the approach was chosen, what the model achieved on the defined holdout, where it failed, and what follows from the evidence.
-- Preserve the authoritative `.py` and historical notebook. A derived Colab export or retrospective recording remains separately authorized; neither is an automatic prerequisite for this portfolio adaptation.
+Published in `7a4007b4137e4a845769bd24e96e00be89a26157`. The README now presents the project as an explainable MasterSchool educational case study: problem, preparation decisions, baseline mechanism, holdout evidence, error patterns, limitations, reproducibility, and source provenance.
 
-**Acceptance:** A clear, evidence-backed case study and reproducibility instructions are ready for website presentation. No invented business impact, historical submission, recording, or learning-assessment claims.
+The authoritative `.py` remains the executable analysis and learning resource; the historical learner notebook remains separate. No new school submission, presentation recording, independent Learning PASS, business impact, deployment readiness, or emergency-response benefit is claimed.
 
-### Work block 4 — Homepage integration (**planned; requires specific authorization**)
+**Acceptance status:** Complete. The case study and reproducibility instructions are ready to be represented on the portfolio website.
+
+### Work block 4 — Homepage integration (**NEXT PLANNED BLOCK**)
 
 **Main Question:** How should this project appear coherently within the existing portfolio website?
 
-- Inspect the actual website repository and existing layout before choosing files or implementation details; do not assume the website lives in this NLP repository.
-- Within approved scope, add the case study to the appropriate project section and the featured/favorites area, matching the existing design and navigation.
-- Verify content, links, relevant builds, and page behavior. Publishing or deployment requires explicit authorization; a local preview is not a published page.
+**Preparation gate:** Before implementation, inspect the real portfolio repository and its current project structure, featured/favorites section, design system, navigation, and build workflow. Do not assume file locations, component names, hosting, or deployment behavior.
 
-**Acceptance:** The agreed project placements and links are verified. Report separately whether the website changes are prepared, committed, or actually published.
+**Authorized scope after that inspection:** Prepare the bounded homepage integration needed to place this case study in the appropriate projects area and featured/favorites area, matching the site's existing visual and navigation patterns. Verify content, links, relevant builds, and page behavior within the approved repository scope.
+
+**Publication boundary:** Homepage publication/deployment remains a separate explicit authorization. A prepared or locally verified website change is not automatically published.
+
+**Acceptance:** The agreed project placements and links are verified against the actual site. Report separately whether changes are prepared, committed, pushed, or deployed.
 
 ### Optional follow-ups — CV, tuning, and Hugging Face
 
@@ -349,17 +355,17 @@ During an approved block:
 |---|---|---|
 | Current focus and pacing | **Agreed:** familiar school reconstruction, sound understanding, collaboration, then portfolio; four coherent work blocks | Larger blocks do not remove explanations of new objects or transformations |
 | Canonical maintenance | **Data + Troi:** contract, guide, and project map | Spock reports evidence and proposes corrections; no silent canonical edits |
-| Publication and synchronization | Preparation published in `34c61b6`; refactor and school reference in `f8e166c` | Historical remote checkpoints, not a current local-state claim; inspect before authorized synchronization |
+| Publication and synchronization | Work blocks 1–3 published through `7a4007b` | Latest verified GitHub `main` for this reconciliation; local Mac state remains a separate fact |
 | Primary implementation format | **Decided:** root `disaster_tweets_classification.py`, VS Code percent cells | Preserve the historical notebook; derived Colab export needs separate authorization |
 | Repeated/conflicting labels | **Approved and implemented:** lowercase/whitespace comparison, exclude conflicting groups, keep first consistent occurrence | Preserve §4.1; do not reopen policy during educational edits |
 | Split and seed | **Approved and implemented:** stratified 80/20, `random_state=42`; 5,986 training / 1,497 holdout | Preserve exact membership, order, labels, and source indices |
-| Educational follow-up | **Next:** targeted alignment of existing `.py` with the updated guide | ASCII maps, relevant ethical takeaway, precise conflict wording, preserved inline reasoning; no model work |
+| Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
 | Colab workflow | **Deferred; unresolved** | Separately authorize export, execution, and sharing |
 | CV/tuning | **Optional, not approved** | Separate post-baseline decision; not required before portfolio preparation |
 | Teaching-material publication | `guided.ipynb` publication explicitly authorized; independent rights verification not established here | Both reference files remain unchanged; no broader reuse or publication permission |
 | Retrospective presentation/recording | **Not created** | Do not infer a recording from prior coursework |
 | Hugging Face mini-lab | **Desired optional follow-up, not implemented** | Separate post-baseline approval |
-| Website/homepage | **Planned:** project section plus featured/favorites placement | Inspect the actual site and approve changes and publication in block 4 |
+| Website/homepage | **Next planned block:** project section plus featured/favorites placement | Inspect the real site first; implementation is bounded to the approved site scope; publication/deployment remains separately authorized |
 
 ## 10. Project completion criteria
 
@@ -371,19 +377,19 @@ The preparation checkmarks record the published implementation and Spock's repor
 - [x] Source data audited; duplicate/label conflicts handled under the approved §4.1 policy.
 - [x] Reproducible train/holdout separation reported and documented.
 - [x] Minimal tweet-aware preprocessing implemented with original text preserved.
-- [ ] Targeted educational follow-up completed and reviewed under the current guide.
-- [ ] TF-IDF and Logistic Regression fitted without holdout or CV-fold leakage.
-- [ ] Real, reproducible holdout F1/precision/recall/accuracy/confusion matrix.
-- [ ] Model errors, limitations, and DIKW-driven conclusions documented after evaluation.
+- [x] Current teaching standards reflected in the published analysis, including first-use explanations, standalone ASCII maps, precise claim boundaries, and contextual ethics.
+- [x] TF-IDF and Logistic Regression fitted without holdout or CV-fold leakage in the published baseline.
+- [x] Holdout F1/precision/recall/accuracy/support/confusion matrix published from the fixed 1,497-row evaluation set.
+- [x] Model errors, limitations, and DIKW-driven conclusions documented after evaluation.
 
 ### Portfolio communication and integration (separate from model correctness)
 
-- [ ] Full authoritative `.py` analysis readable end to end, with reproducible execution instructions.
-- [ ] Case study, README, and selected visuals communicate the question, decisions, evidence, errors, and limits.
+- [x] Full authoritative `.py` analysis readable end to end, with reproducible execution instructions.
+- [x] Case study and README communicate the question, decisions, evidence, errors, and limits.
 - [ ] Approved website project and featured/favorites placements verified; publication status reported truthfully.
 - [x] Original school deliverable expectations identified without claiming unperformed historical submission.
 - [ ] Any separately approved Colab export or presentation/recording truthfully labeled and verified; neither is implied by case-study completion.
-- [ ] Optional extensions marked optional, with separate evidence and approval; they do not block a sound baseline.
+- [x] Optional CV/tuning and Hugging Face work remain explicitly optional and separate; they do not block homepage integration.
 
 **Not required for core analytical completion:** Kaggle leaderboard rank, deep learning, Transformer fine-tuning, model deployment, or guaranteed real-world impact. Homepage integration is a separate planned portfolio block, not evidence of model quality.
 
@@ -416,10 +422,10 @@ The preparation checkmarks record the published implementation and Spock's repor
 
 ## 12. Current execution instruction
 
-**Work block 1 and its educational refactor are published. The next proposed task is targeted teaching alignment of the existing Python analysis, not new data preparation or Block 2.**
+**Work blocks 1–3 are complete and published through `7a4007b4137e4a845769bd24e96e00be89a26157`. Do not restart data preparation, baseline modeling, educational refactoring, or portfolio README work.**
 
-Continue from `f8e166ca1e285773dd381f3853aef9cc094e99b3` and any later verified, authorized work; preserve its improvements. Apply the current guide's code-cell explanation, ASCII-map, optional ethical-takeaway, and precise-claim standards within an explicit task. The eight stable interfaces are `tweets`, `model_tweets`, `train_rows`, `holdout_rows`, `X_train`, `y_train`, `X_holdout`, and `y_holdout`; preserve their values, labels, indices, membership, and order.
+**Next planned task: Work block 4 — Homepage integration.** First inspect the real portfolio repository, current project structure, featured/favorites section, design, navigation, and build workflow. Do not assume file locations or deployment behavior. After that grounding, implement only the bounded website changes authorized for this block and verify them proportionately.
 
-This canonical-document update does not itself edit or execute Python, synchronize the Mac, authorize model training, or publish implementation changes. The earlier model-building prompt was superseded by the educational work; Block 2 needs a new explicit task after this review. Local synchronization and later Git transport require their own stated scope.
+Homepage publication/deployment remains a separate explicit authorization. Optional CV/tuning and Hugging Face work remain post-baseline choices and are not prerequisites for homepage integration. Data's independent Learning PASS remains **UNASSESSED**.
 
-**Spock: read the current canonical documents, complete only the explicitly approved bounded task, report evidence and limits, and STOP.**
+**Spock: read the current canonical documents, inspect the actual site before implementation, complete only the explicitly approved bounded website task, report evidence and limits, and STOP before publication unless separately authorized.**
