@@ -2,11 +2,11 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.2 — 2026-10-27
+> **Version:** 1.3 — 2026-10-28
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
-> **Progress:** Slice 0, Slice 1, and Slice 2A completed; Slice 2A published in `3d71400181eb86e865293104e4daa3a91889ace9`. Remaining work follows four larger blocks below. Duplicate handling remains unresolved.
+> **Progress:** Slice 0, Slice 1, Slice 2A, and Work block 1 are published. Preparation was implemented in `34c61b6` and educationally refactored in `f8e166c`. The approved duplicate policy and split remain fixed. Next: targeted teaching alignment before separately authorized modeling.
 >
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
@@ -29,7 +29,7 @@
 
 **Approved implementation format:** As established by `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`, the sole authoritative analysis is repository-root `disaster_tweets_classification.py`. Develop it in VS Code Python Interactive Window with `# %% [markdown]` explanations and `# %%` code cells. Preserve `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged as historical learner work. A derived Colab `.ipynb` export is a later, separately authorized deliverable, never a second independent implementation.
 
-**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep the established Main Question → Learning → Better Questions method, but do not turn routine checks into standalone tasks or reteach familiar material.
+**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep the established Main Question → Learning → Better Questions method, but do not turn routine checks into standalone tasks or reteach familiar material. Larger blocks do not excuse missing explanations inside code; apply the learning guide's inline walkthrough, ASCII-map, and optional ethical-takeaway standards.
 
 ## 2. Source authority, scope, and conflict resolution
 
@@ -38,11 +38,12 @@ Sources have different purposes. Do not flatten them into a single set of compul
 | Role | Source | What it governs |
 |---|---|---|
 | **A — School requirements** | User-provided MasterSchool **DA112 Sprint 3 — Self-paced** “Introduction & Key Takeaways” screenshots (2026-10-26) | The original assignment, required deliverables, and what was optional |
-| **B — Guided methodology** | User-provided MasterSchool **DA112 Sprint 2 — Guided** lesson screenshots | Beginner/intermediate workflow and pedagogical reference; not reusable tweet-model results |
-| **C — Mentor learning material** | `learning_materials/mentor_live_sessions/untitled41.py` | Concepts taught in live lessons, where relevant and technically appropriate; not a school rubric |
+| **B — Guided methodology** | User-provided MasterSchool **DA112 Sprint 2 — Guided** lessons and `learning_materials/mentor_live_sessions/guided.ipynb` | Actual NLP teaching code and methodology; reference only, not reusable tweet-model results |
+| **C — Mentor learning material** | `learning_materials/mentor_live_sessions/untitled41.py` | Mainly time-series teaching; use only relevant verified concepts, not as an NLP implementation |
 | **D — Dataset and competition facts** | Kaggle official Disaster Tweets competition | Dataset semantics, competition data schema/rules, and F1 evaluation |
 | **E — Actual project state** | Live inspection of this GitHub repository plus a separate local Git preflight | What files/code really exist; never infer local status from GitHub |
 | **F — Optional post-core learning** | MasterSchool Hugging Face and GPT/Llama closing lessons; Hugging Face official documentation | Small practical learning experiment **after** the baseline, not a Sprint 3 requirement |
+| **G — Teaching references** | Relevant official DataCamp lessons and available code, selected through `HOW-WE-WORK-AND-LEARN.md` | Accessible implementation patterns, analytical questions, Data Literacy, storytelling, and ethics; not additional compulsory courses |
 
 **Conflict procedure:**
 1. Platform/tool safety rules and Data's latest explicit authorization constrain all actions.
@@ -123,6 +124,8 @@ The supplied closing lessons include:
 
 **Later checkpoint, 2026-10-27:** The question-driven learning update was published in `247251e25a37b7acec0fb7fb3f69879d2d08afea`, changing only `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`. Spock's subsequent read-only report placed local `main` at `3d71400…`, one commit behind that remote checkpoint. Recheck live local and remote state before the next authorized synchronization; this roadmap edit does not synchronize the Mac.
 
+**Published implementation checkpoint:** Work block 1 was published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`. Its educational refactor and the explicitly authorized school-reference notebook publication followed in `f8e166ca1e285773dd381f3853aef9cc094e99b3`. The reference notebook is now tracked, not merely local/ignored. Current local status still requires separate inspection; remote publication does not establish it.
+
 ### 4.1 Dataset audit facts (exact-text analysis of the tracked CSV)
 
 Reproduced by the new Python analysis during Slice 2A on 2026-10-27, without altering the original table or CSV.
@@ -140,7 +143,20 @@ Reproduced by the new Python analysis during Slice 2A on 2026-10-27, without alt
 | Distinct text strings carrying **both labels** | 18 |
 | Original rows belonging to conflicting-label groups | 55 |
 
-**Data-quality decision gate:** Duplicate handling is **not decided**. Never automatically delete or relabel these observations. Before splitting, propose and justify a transparent policy for identical texts (including contradictory labels), report how many observations it affects, and obtain Data's approval. Ensure identical text does not silently appear in both train and test, artificially improving results. Check collisions introduced by any normalization as well.
+**Approved preparation policy:** Compare text after lowercasing, collapsing consecutive whitespace to one space, and trimming its ends. Preserve original text and source-row indices. Exclude every row in a normalized-text group containing both labels; keep the first source occurrence of each remaining consistent group. Apply the same prepared string as the later model input. Do not infer correct labels, overwrite the CSV, or change this policy without Data's decision.
+
+**Reported execution and published analysis:** Normalization merges two pairs of distinct exact strings; 18 conflicting normalized groups contain 56 rows. Removing those rows and 74 redundant consistent occurrences retains 7,483 rows. Original exact-text audit counts above remain valid for their different comparison rule.
+
+| Population | Rows | Label 0 | Label 1 |
+|---|---:|---:|---:|
+| Original | 7,613 | 4,342 | 3,271 |
+| Prepared | 7,483 | 4,297 | 3,186 |
+| Training | 5,986 | 3,437 | 2,549 |
+| Holdout | 1,497 | 860 | 637 |
+
+The approved split is stratified 80/20 with `random_state=42`. Spock reported zero original/prepared text overlap and exact preservation of the eight output objects through the refactor, including values, types, indices, membership, and order. Troi reviewed source and teaching, not a fresh runtime reproduction. Future authorized refactors must preserve that behavior and verify it proportionately.
+
+**Interpretation limit:** Excluded groups have conflicting recorded labels. This does not establish that every excluded text is linguistically ambiguous, that all ambiguous texts were removed, or that retained labels are true. Exclusion changes the evaluated population; related events and near-duplicates may remain across partitions.
 
 **Dataset provenance:** The public Kaggle competition provides more fields (`id`, `keyword`, `location`, `text`, and `target` for training); this repository contains only `text` and `target`. The exact transformation history is not documented. Use the supplied text-only CSV for the school-level baseline unless Data authorizes restoring other columns. Kaggle `test.csv` is unlabeled; never invent test labels or report a labeled holdout F1 for that file.
 
@@ -150,24 +166,25 @@ Reproduced by the new Python analysis during Slice 2A on 2026-10-27, without alt
 
 Use selectively for understanding `Pipeline`, cross-validation, and tuning concepts. Do **not** reuse `XGBRegressor`, `TimeSeriesSplit`, time lags, R², or time-series preprocessing for this binary tweet-classification problem.
 
-**Publication issue:** Earlier setup instructions intended mentor materials to remain local-only, but the currently inspected `untitled41.py` is committed in a **public** repository. Do not claim it is private. Do not republish, expand, remove, or rewrite mentor-owned material without checking redistribution permission and obtaining Data's approval. Local Git ignore settings do not hide already committed public history.
+`learning_materials/mentor_live_sessions/guided.ipynb` was added in `f8e166c` under Data's explicit publication authorization, recorded in the supplied review handoff. It is an NLP school reference for sequential preparation, paired text/labels, splitting, and baseline methods, not a second Disaster Tweets implementation. Read relevant actual cells critically; do not execute, rewrite, or reuse saved scores as new project evidence.
+
+**Publication boundary:** Both reference files are tracked in this public repository. Data's publication authorization is not independent proof of redistribution rights. Do not expand, republish, remove, or rewrite protected teaching material without the required scope and rights review. Local ignore rules do not hide public Git history; this documentation update changes neither reference file nor publication visibility.
 
 ## 5. Methodology contract for the first reliable baseline
 
-These are **project design constraints**, not claims that any model has been implemented.
+These are **project design constraints**. Preparation exists; no Disaster Tweets model has been fitted at the published checkpoint.
 
 ### 5.1 Data and leakage
 
-- `X = text`; `y = target`. Preserve the original tracked CSV untouched.
-- Validate labels, missing/empty text, class distribution, exact duplicates, conflicting labels, and potential tweet-specific artifacts.
-- Decide the duplicate policy **before** train/test construction. Do not tune that policy to maximize test score.
-- After approval, use a documented, reproducible holdout design (the guided course uses **80/20**; stratification and a fixed `random_state` such as `42` are reasonable defaults). Confirm no overlapping examples remain across partitions under the approved duplicate policy.
+- Inputs are the approved prepared text; the original `text` and `target` remain intact. Preserve the tracked CSV.
+- Keep the audit and approved policy in §4.1. Do not retune retention to maximize evaluation scores.
+- Preserve the approved stratified **80/20**, `random_state=42` split, its source indices, membership, and order. Verify no text overlap under the agreed comparisons.
 - Keep the holdout isolated from vocabulary learning, feature selection, hyperparameter decisions, and model fitting.
 - Do not use the school's example `predict(X_train)` pattern to report generalization performance.
 
 ### 5.2 Text handling
 
-- Start with a **minimal, understandable** preprocessing policy: handle missing/blank input, normalize selected noise, and explain the choice.
+- The approved minimal preparation is lowercasing and whitespace normalization, described in §4.1; do not silently add further cleaning.
 - Tweets include hashtags, mentions, URLs, punctuation, informal spelling, and meaningful negation. **Do not blindly remove all hashtags, stop words, “not”, or disaster-specific tokens.**
 - Stemming, lemmatization, complex regex pipelines, external linguistic datasets, and special tokenizers are **not baseline requirements**.
 - Show a few representative before/after examples and any information that preprocessing may discard.
@@ -180,7 +197,7 @@ These are **project design constraints**, not claims that any model has been imp
 - Fit TF-IDF and Logistic Regression on training examples **only**.
 - Evaluate on untouched, labeled holdout examples. Primary metric: **binary F1 for `target=1`** (real disaster), matching Kaggle's positive-class framing.
 - Report at least precision, recall, F1, accuracy, class support, and confusion matrix, with labels `[0, 1]` in an unambiguous order.
-- Explain false positives vs. false negatives in **tweet-classification** terms. Modest class imbalance (**4,342 vs. 3,271**) makes accuracy alone insufficient.
+- Explain false positives vs. false negatives in **tweet-classification** terms. Modest class imbalance (**4,342 vs. 3,271** in the raw data) makes accuracy alone insufficient; use actual prepared/partition counts when interpreting evaluation.
 - No made-up score thresholds, claims of real emergency-response impact, or assertions that an educational classifier is deployable.
 
 ### 5.4 Optional robustness improvements — only after a valid baseline
@@ -195,7 +212,7 @@ These are **project design constraints**, not claims that any model has been imp
 
 **Rule:** Data approves a complete, bounded block, not every routine operation inside it. Spock implements and verifies that block, then Data and Troi review its decisions, evidence, and explanations. Stop inside a block only for a material unresolved decision, scope change, missing essential evidence, or correctness/safety problem; continue unaffected approved work where practical. Completing a block does not authorize the next or Git transport.
 
-**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four remaining blocks replace the former fine-grained future-slice sequence. They group the school's analytical stages without changing the safeguards in §5 or the learning method.
+**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four work blocks group the school's analytical stages without changing the safeguards in §5 or the learning method. Block 1 is published; the current teaching alignment is a bounded follow-up, not a new analytical phase.
 
 ### Completed foundation — Slice 0: Local and remote repository preflight
 
@@ -216,7 +233,7 @@ These are **project design constraints**, not claims that any model has been imp
 5. Propose **one** minimal duplicate/holdout policy, with alternatives only if material.
 6. Summarize exactly which files would change in the next slice.
 
-**Completed:** The source and dataset review is complete; a duplicate/holdout policy was proposed but not approved. **No split/model training yet.** The unresolved decision gates data alteration and splitting, not the separately authorized descriptive analysis in Slice 2A.
+**Historical outcome:** Source and dataset review completed; at that checkpoint the duplicate/holdout policy was proposed but not yet approved. The later approval and implementation are recorded in §4.1 and Block 1; do not reopen them from this history.
 
 ### Completed foundation — Slice 2A: First working Python analysis (2026-10-27)
 
@@ -228,25 +245,29 @@ These are **project design constraints**, not claims that any model has been imp
 4. Distinguish observed counts from interpretations, uncertainty, and the next proposed decision.
 5. Execute code, compare with Slice 1 findings, and verify cells in a fresh Interactive Window kernel where available. Report any unverified GUI behavior separately.
 
-**Completed and published:** Commit `3d71400181eb86e865293104e4daa3a91889ace9` contains only the new `.py`, this map, and the `.venv/` addition to `.gitignore`. Original data and historical materials remain unchanged. No deduplication, preprocessing, split, vectorization, or model is implemented.
+**Completed and published:** Commit `3d71400181eb86e865293104e4daa3a91889ace9` contains only the new `.py`, this map, and the `.venv/` addition to `.gitignore`. Original data and historical materials were unchanged. At this checkpoint no deduplication, preprocessing, split, vectorization, or model was implemented.
 
-**Verified outcome:** Six code cells and eight Markdown cells are present. Python **3.11.11**, pandas **2.2.3**, NumPy **1.26.4**, and ipykernel **7.4.0** run in the ignored project `.venv`. Only pandas and ipykernel were requested directly; existing `requirements.txt` pins were used as constraints on their dependencies, without installing the full file. Dependency consistency passed.
+**Historical verified outcome:** Six code cells and eight Markdown cells were present. Python **3.11.11**, pandas **2.2.3**, NumPy **1.26.4**, and ipykernel **7.4.0** ran in the ignored project `.venv`. Only pandas and ipykernel were requested directly; existing `requirements.txt` pins constrained dependencies without installing the full file. Dependency consistency passed. This is not a fresh environment inspection.
 
-- **Technical PASS:** The script ran successfully from the repository root and from a different working directory using its absolute script path. VS Code Interactive Window ran the six cells in order as executions 1–6 in a fresh project kernel; interpreter and CSV paths were checked. In this observed Interactive Window, `__file__` existed and the working directory was the repository root. The resulting DataFrame equaled a fresh read of the original CSV. Counts matched Slice 1: 7,613 rows, classes 4,342/3,271, 7,503 exact texts, 69 repeated groups/179 rows/110 additional occurrences, 92 additional identical `(text, target)` rows, and 18 conflicting groups/55 rows. Missing, blank, and invalid-label counts were zero.
-- **Teaching PASS:** The source-backed question precedes concise explanations and direct code. Duplicate counts have distinct meanings; observations, interpretations, uncertainty, and a transfer question are separate. A verified DataCamp lesson supports `groupby`/`nunique` at first use. This assesses the artifact, not Data's understanding.
-- **Data's Learning PASS: UNASSESSED.** No deduplication decision or model result is implied. Colab export and execution have not been attempted.
+- **Technical PASS reported for Slice 2A:** Script execution from two working directories and all six cells in a fresh VS Code project kernel succeeded. The DataFrame equaled a fresh CSV read. Counts matched Slice 1: 7,613 rows, classes 4,342/3,271, 7,503 exact texts, 69 repeated groups/179 rows/110 additional occurrences, 92 additional identical `(text, target)` rows, and 18 conflicting groups/55 rows. Missing, blank, and invalid-label counts were zero.
+- **Teaching history:** The initial review accepted the question-led structure, but Data later identified insufficient code-cell explanation and excessive verification in the extended analysis. That acceptance did not settle the educational quality; the later refactor addressed those gaps.
+- **Data's Learning PASS: UNASSESSED.** Colab export and execution have not been attempted.
 
-### Work block 1 — Prepare the data for modeling (**NEXT; implementation not yet authorized**)
+### Work block 1 — Prepare the data for modeling (**PUBLISHED; targeted teaching alignment next**)
 
 **Main Question:** How can we prepare these tweets for a fair, reproducible model evaluation?
 
-- Resolve the duplicate policy with Data: a concise recommendation, affected counts, trade-offs, and any examples needed for the decision. Keep this within preparation, not a separate research sprint by default.
-- After approval, implement that policy, minimal tweet-aware preprocessing, and the agreed train/holdout split in the authoritative `.py`. Preserve the raw CSV and report before/after counts, class proportions, and any normalization-induced collisions.
-- Verify no prohibited overlap between partitions and no fitting of learned features on the holdout. Explain consequential choices and show a few before/after text examples.
+The approved preparation and split were published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`; §4.1 records their policy and results. No vectorizer or model was fitted.
 
-**Acceptance:** Prepared training/holdout data, reproducible checks, and concise question-led explanations exist. No vectorizer or model has been fitted. Review the whole block once; do not request approval after every routine cell.
+**Educational refactor:** `f8e166ca1e285773dd381f3853aef9cc094e99b3` improved the entire assistant-authored analysis: meaningful question-led units, code-cell explanations, visible normalization steps, readable stage counts, and evidence-linked learning. Assertions, hashing, repeated splitting, and obsolete PASS messages were removed from the permanent teaching flow; essential input safeguards and analytical checks remain. The historical notebook and raw CSV were not rewritten.
 
-### Work block 2 — Baseline model and evaluation (**requires approval**)
+**Evidence status:** Spock reported seven executable cells running in a fresh VS Code project kernel, script execution from two directories, and exact equality of the eight output objects against the preceding implementation. Those are reported runtime results, not independently rerun by Troi. Troi's source/teaching review was **PASS WITH MINOR ADJUSTMENTS**; Data's independent Learning PASS remains **UNASSESSED**.
+
+**Next bounded follow-up:** Apply the updated guide to the existing `.py`, preserving the successful refactor rather than starting over. Convert relevant mental models to ASCII, add one contextual ethical takeaway where warranted, retain first-use inline explanations, and correct the claim that all ambiguous examples are absent. The supported wording is: “Examples with conflicting recorded labels are excluded; other ambiguous or incorrectly labeled texts may remain.” Preserve the approved preparation, all eight output interfaces, and exact split membership/order.
+
+**Acceptance:** A readable, source-faithful analysis with these targeted teaching adjustments and proportionate verification; no new method, model, policy, or test framework. The map records the next task but does not authorize its execution or transport.
+
+### Work block 2 — Baseline model and evaluation (**not started; requires separate approval**)
 
 **Main Question:** How well does the simple text classifier perform on held-out tweets, and where does it fail?
 
@@ -286,24 +307,24 @@ These are **not prerequisites for blocks 3 or 4**. After the baseline, Data deci
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
-All narrative claims must follow this ladder:
+All narrative claims must follow this reasoning, without compulsory headings for every operation:
 
 1. **Data:** What was observed? (rows, class balance, example text, duplicate counts, raw predictions)
 2. **Information:** What did our transformations/metrics quantify? (F1, precision/recall, confusion matrix, error counts)
-3. **Knowledge:** What cautiously explains these results? (language ambiguity, tokenization, class mix, mislabeled duplicates, model assumptions)
-4. **Wisdom:** What justified next step follows, given the evidence and limitations? (e.g., inspect false negatives, try a justified CV experiment — **not** “improves emergency response by X%”)
+3. **Knowledge:** What interpretation is supported, under which assumptions and limits? Do not treat a possible cause of label disagreement as established.
+4. **Wisdom:** What justified next step follows, given evidence and consequences? It may be further investigation or a narrower claim, not an invented operational impact.
 
 **Narrative question:** “Can a simple, interpretable text model distinguish disaster-related tweets from non-disaster usage — and where does it fail?”
 
-Do not convert correlation, a held-out metric, or a small notebook demonstration into operational, safety, or business-impact claims.
+Do not convert correlation, a held-out metric, or a small notebook demonstration into operational, safety, or business-impact claims. Follow the learning guide for ASCII mental maps and optional contextual ethical takeaways; those aids do not introduce new analytical work.
 
 ## 8. Spock operating protocol and authorization
 
-**Plan ownership — Data's explicit reassignment, 2026-10-27:** Data and Troi maintain this canonical project roadmap, using the reassignment allowed by `AGENTS.md`. Spock supplies implementation evidence and proposed status corrections; edits to this map require a specific reassignment from Data. This does not change the authority of `AGENTS.md` or authorize Git transport.
+**Plan ownership — Data's explicit reassignment, 2026-10-27:** Data and Troi maintain this canonical project roadmap. `AGENTS.md` now states ownership of all three canonical documents explicitly. Spock supplies implementation evidence and proposed corrections; authoring changes requires Data's specific reassignment.
 
 Before an approved work block:
 
-1. Read `AGENTS.md` and the relevant current parts of this map and the learning guide. Identify the approved block; do not restart completed reviews solely because a new chat begins.
+1. Read the current contract and learning guide under `AGENTS.md`'s reading requirements, plus the relevant current map. Identify the approved work; do not restart completed reviews solely because a new chat begins.
 2. Check current repository/files before describing implementation state; do not treat historical checkpoints as live. Synchronize only when explicitly authorized.
 3. State **WHY**, then the bounded **HOW**, expected files, checks, and a clear end-of-block review point.
 4. If required source material or a material choice is missing, name the gap rather than fabricate a lesson, score, file, or requirement.
@@ -326,37 +347,43 @@ During an approved block:
 
 | Decision | Current state | Required handling |
 |---|---|---|
-| Current focus and pacing | **Agreed 2026-10-27:** reconstruct familiar school work for a portfolio case study; use four larger work blocks | Keep question-led reasoning and correctness; one implementation and one joint review per approved block |
-| Plan maintenance | **Reassigned by Data to Data + Troi** | Spock reports evidence and proposes corrections; no silent roadmap edits |
-| Publication and local synchronization | Slice 2A published in `3d71400…`; learning-loop documents published in `247251e…`. Spock last reported local `main` at `3d71400…` | These are historical checkpoints. Recheck live state before authorized synchronization; preserve untracked/ignored materials |
-| Primary implementation format | **Decided:** root `disaster_tweets_classification.py`, VS Code percent cells | Preserve the historical notebook; export a derived Colab notebook only with separate authorization |
-| Exact handling of repeated/conflicting tweet labels | **Unresolved** | Agree a justified policy as part of block 1 before data alteration or splitting; no automatic deletion |
-| Colab data-loading and sharing workflow | **Deferred; unresolved** | Decide during a separately authorized derived-export/delivery step |
-| Final split counts and random seed | **Proposed:** 80/20, stratified, fixed `42` | Confirm in block 1 after duplicate policy; report actual counts |
-| CV/tuning | **Optional, not approved** | Separate decision after baseline; not required before portfolio preparation |
-| Mentor file redistribution permissions | **Not verified; file currently public** | Do not assume permission; Data decides corrective action |
-| Retrospective presentation/recording | **Not created** | Discuss only in an authorized communication task; do not infer a historical recording from Data's prior coursework |
-| Hugging Face mini-lab | **Desired optional follow-up, not implemented** | Separate post-baseline approval; not required for the portfolio |
-| Website/homepage | **Planned later objective:** project section plus featured/favorites placement | Inspect the actual site and approve specific changes and publication in block 4 |
+| Current focus and pacing | **Agreed:** familiar school reconstruction, sound understanding, collaboration, then portfolio; four coherent work blocks | Larger blocks do not remove explanations of new objects or transformations |
+| Canonical maintenance | **Data + Troi:** contract, guide, and project map | Spock reports evidence and proposes corrections; no silent canonical edits |
+| Publication and synchronization | Preparation published in `34c61b6`; refactor and school reference in `f8e166c` | Historical remote checkpoints, not a current local-state claim; inspect before authorized synchronization |
+| Primary implementation format | **Decided:** root `disaster_tweets_classification.py`, VS Code percent cells | Preserve the historical notebook; derived Colab export needs separate authorization |
+| Repeated/conflicting labels | **Approved and implemented:** lowercase/whitespace comparison, exclude conflicting groups, keep first consistent occurrence | Preserve §4.1; do not reopen policy during educational edits |
+| Split and seed | **Approved and implemented:** stratified 80/20, `random_state=42`; 5,986 training / 1,497 holdout | Preserve exact membership, order, labels, and source indices |
+| Educational follow-up | **Next:** targeted alignment of existing `.py` with the updated guide | ASCII maps, relevant ethical takeaway, precise conflict wording, preserved inline reasoning; no model work |
+| Colab workflow | **Deferred; unresolved** | Separately authorize export, execution, and sharing |
+| CV/tuning | **Optional, not approved** | Separate post-baseline decision; not required before portfolio preparation |
+| Teaching-material publication | `guided.ipynb` publication explicitly authorized; independent rights verification not established here | Both reference files remain unchanged; no broader reuse or publication permission |
+| Retrospective presentation/recording | **Not created** | Do not infer a recording from prior coursework |
+| Hugging Face mini-lab | **Desired optional follow-up, not implemented** | Separate post-baseline approval |
+| Website/homepage | **Planned:** project section plus featured/favorites placement | Inspect the actual site and approve changes and publication in block 4 |
 
 ## 10. Project completion criteria
 
 ### Core analytical completion
-- [x] Repo path and Git identity verified; source provenance and its limits documented (recheck live Git state before future work).
-- [ ] Source data audited; duplicate and label conflicts handled under an approved, documented policy.
-- [ ] Reproducible and defensible train/holdout separation.
-- [ ] Preprocessing is tweet-aware and explainable.
-- [ ] TF-IDF and Logistic Regression fit without holdout or CV-fold leakage.
+
+The preparation checkmarks record the published implementation and Spock's reported runtime verification, not a fresh execution by Troi.
+
+- [x] Repo identity and historical local path verified; recheck live Git state before work.
+- [x] Source data audited; duplicate/label conflicts handled under the approved §4.1 policy.
+- [x] Reproducible train/holdout separation reported and documented.
+- [x] Minimal tweet-aware preprocessing implemented with original text preserved.
+- [ ] Targeted educational follow-up completed and reviewed under the current guide.
+- [ ] TF-IDF and Logistic Regression fitted without holdout or CV-fold leakage.
 - [ ] Real, reproducible holdout F1/precision/recall/accuracy/confusion matrix.
-- [ ] Explicit limitations, model errors, and DIKW-driven conclusions.
+- [ ] Model errors, limitations, and DIKW-driven conclusions documented after evaluation.
 
 ### Portfolio communication and integration (separate from model correctness)
+
 - [ ] Full authoritative `.py` analysis readable end to end, with reproducible execution instructions.
 - [ ] Case study, README, and selected visuals communicate the question, decisions, evidence, errors, and limits.
-- [ ] Approved website project and featured/favorites placements are verified; publication status is reported truthfully.
+- [ ] Approved website project and featured/favorites placements verified; publication status reported truthfully.
 - [x] Original school deliverable expectations identified without claiming unperformed historical submission.
-- [ ] Any separately approved Colab export or presentation/recording is truthfully labeled and actually verified; neither is implied by case-study completion.
-- [ ] Optional extensions are marked optional, with separate evidence and approval; they do not block a sound portfolio baseline.
+- [ ] Any separately approved Colab export or presentation/recording truthfully labeled and verified; neither is implied by case-study completion.
+- [ ] Optional extensions marked optional, with separate evidence and approval; they do not block a sound baseline.
 
 **Not required for core analytical completion:** Kaggle leaderboard rank, deep learning, Transformer fine-tuning, model deployment, or guaranteed real-world impact. Homepage integration is a separate planned portfolio block, not evidence of model quality.
 
@@ -366,6 +393,8 @@ During an approved block:
 - Sprint 3 “Introduction & Key Takeaways” and deliverables: `SCR-20261026-snhr.png` (also a second capture `SCR-20261026-skzi.png`).
 - Sprint 2 overview and guided lessons: `SCR-20261026-slux.png`, `SCR-20261026-slyo.png`, `SCR-20261026-smbw.png`, `SCR-20261026-smgd.png`, `SCR-20261026-smix.png`, `SCR-20261026-smpm.png`, `SCR-20261026-sndx.png`.
 - Closing Hugging Face and GPT/Llama lessons: `SCR-20261026-sobc.png`, `SCR-20261026-snrc.png`.
+
+**Published school reference:** `learning_materials/mentor_live_sessions/guided.ipynb` at `f8e166ca1e285773dd381f3853aef9cc094e99b3`. Data's publication approval and Spock's execution/equivalence report were supplied in the independent-review handoff; source review does not independently reproduce that runtime evidence.
 
 **Online references:**
 - MasterSchool Sprint 3 course context (access may require login):
@@ -380,15 +409,17 @@ During an approved block:
   https://huggingface.co/docs/transformers/main_classes/pipelines
 - Verified project files:
   https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
+- Relevant official DataCamp teaching and conceptual references:
+  See `HOW-WE-WORK-AND-LEARN.md`, sections 4 and 6.
 
 ---
 
 ## 12. Current execution instruction
 
-**Slice 0, Slice 1, and Slice 2A are completed. The next proposed implementation is work block 1 — Prepare the data for modeling.**
+**Work block 1 and its educational refactor are published. The next proposed task is targeted teaching alignment of the existing Python analysis, not new data preparation or Block 2.**
 
-Slice 2A was published in `3d71400181eb86e865293104e4daa3a91889ace9`; its work is not pending commit. The later learning-loop update is in `247251e25a37b7acec0fb7fb3f69879d2d08afea`. Local synchronization must be independently checked and explicitly authorized.
+Continue from `f8e166ca1e285773dd381f3853aef9cc094e99b3` and any later verified, authorized work; preserve its improvements. Apply the current guide's code-cell explanation, ASCII-map, optional ethical-takeaway, and precise-claim standards within an explicit task. The eight stable interfaces are `tweets`, `model_tweets`, `train_rows`, `holdout_rows`, `X_train`, `y_train`, `X_holdout`, and `y_holdout`; preserve their values, labels, indices, membership, and order.
 
-Data has approved the larger-block roadmap and assigned this plan revision to Data and Troi. This documentation change does **not** approve a duplicate policy, local synchronization, data alteration, preprocessing, splitting, modeling, website changes, or their publication. Resolve the duplicate-policy decision concisely before dependent preparation work; do not create another standalone research sprint by default.
+This canonical-document update does not itself edit or execute Python, synchronize the Mac, authorize model training, or publish implementation changes. The earlier model-building prompt was superseded by the educational work; Block 2 needs a new explicit task after this review. Local synchronization and later Git transport require their own stated scope.
 
-**Spock: apply the current canonical method, finish only the explicitly approved work block, report its evidence once, and STOP at the block boundary.**
+**Spock: read the current canonical documents, complete only the explicitly approved bounded task, report evidence and limits, and STOP.**
