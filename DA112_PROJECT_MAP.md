@@ -2,11 +2,11 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.7 — 2026-10-28
+> **Version:** 1.8 — 2026-10-28
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
-> **Progress:** Foundation slices and Work blocks 1–3 are complete and published. Preparation was established in `34c61b6`/`f8e166c`, the explained TF-IDF + Logistic Regression baseline in `b106c98`, and the portfolio case study in `7a4007b`. The approved preparation, split, baseline results, and evidence limits remain fixed. **Question-answer review and the guided-method CV comparison were published in `53d473e`. Data has paused homepage integration; next priority is a bounded Naive Bayes learning comparison, then the separate Hugging Face mini-lab. LSTM is explicitly excluded from this project's scope.**
+> **Progress:** Foundation slices and Work blocks 1–3 are complete and published. Preparation was established in `34c61b6`/`f8e166c`, the explained TF-IDF + Logistic Regression baseline in `b106c98`, and the portfolio case study in `7a4007b`. The approved preparation, split, baseline results, and evidence limits remain fixed. **Question-answer review and guided CV comparison were published in `53d473e`; Naive Bayes was added and published in `ece01b8`, then reviewed by Troi. Six training-only CV configurations are now documented. Next learning focus: a separate Hugging Face mini-lab; no verified Hugging Face execution is recorded here. Homepage integration remains paused, and LSTM is explicitly excluded.**
 >
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
@@ -18,7 +18,7 @@
 
 **Primary task:** Build an understandable, independently developed **binary classifier** that predicts whether a tweet describes a **real disaster** (`target = 1`) or **not a real disaster** (`target = 0`).
 
-- **Current phase — updated 2026-10-28:** Data has deferred homepage integration. The required Sprint 3 analytical baseline and the follow-up guided CV/model comparison are complete. Naive Bayes is the next approved post-baseline educational comparator; Hugging Face follows as a separate mini-lab. LSTM was demonstrated in wider mentoring but is not a required Sprint 3 method, and Data deliberately excludes it here to preserve focus. This reconstruction is not evidence of a new school submission.
+- **Current phase — updated 2026-10-28:** The required Sprint 3 analytical baseline and training-only CV extension are complete. Naive Bayes has been implemented in the follow-up comparison, not retroactively required for the school baseline. Data and Spock are proceeding with the separate Hugging Face learning task; its setup, inference, and results remain to be verified. Homepage integration remains deferred. LSTM was shown in wider mentoring but is deliberately excluded here. This reconstruction is not evidence of a new school submission.
 - **Understanding remains a quality requirement.** Briefly recap familiar material; explain unfamiliar concepts, consequential choices, and actual errors in more depth. Faster pacing does not mean skipping evidence or correctness checks.
 - **WHY before HOW.** Keep the question, method, evidence, and limitations understandable without explaining every familiar operation again.
 - **Minimum sound approach:** tweet-aware text preprocessing → TF-IDF → Logistic Regression → honest evaluation.
@@ -86,7 +86,7 @@ The supplied assignment's high-level steps are:
 1. **Data loading:** Load `train.csv` with pandas and use the `text` and `target` columns.
 2. **Text preprocessing:** Remove genuinely unnecessary characters; normalize as appropriate (lowercasing, stop-word handling, optional stemming or lemmatization). Do **not** assume movie-review cleaning suits tweets unchanged.
 3. **Vectorization:** Bag of Words or TF-IDF. **Our approved design direction is TF-IDF.**
-4. **Model selection/training:** Logistic Regression or Naive Bayes are suggested simple models. **Our published baseline is Logistic Regression.** Naive Bayes is now approved only as a small post-baseline learning comparison. Random Forest/Neural Networks are possibilities, not required methods; LSTM is expressly outside this reconstruction's scope.
+4. **Model selection/training:** Logistic Regression or Naive Bayes are suggested simple models. **Our published baseline is Logistic Regression.** Naive Bayes was added only as a post-baseline learning comparison in `ece01b8`. Random Forest/Neural Networks are possibilities, not required methods; LSTM is expressly outside this reconstruction's scope.
 5. **Model evaluation:** Accuracy, precision, recall, F1, and a confusion matrix; evaluate predictions on **unseen labeled holdout data**.
 6. **Hyperparameter tuning: OPTIONAL**, including trials with solver/`C` and cross-validation in the school guidance. Do not make this a prerequisite for the first valid model.
 
@@ -104,7 +104,7 @@ The supplied closing lessons include:
 - **Practical Session on Using Hugging Face Transformers for Multiple NLP Tasks:** Hugging Face `pipeline` demonstrations for sentiment analysis, summarization, question answering, and translation.
 - **Overview of Popular LLMs (GPT, Llama) and Their Applications:** conceptual overview and examples, not a requirement to fine-tune or deploy an LLM.
 
-**Decision updated 2026-10-28:** Data confirms that Hugging Face should be studied after the Naive Bayes comparison and before returning to homepage integration. Start with one small, explainable pretrained-model inference exercise, inspect the actual model card and task, and explain why generic sentiment labels are not disaster annotations. This remains separate from required Sprint 3 work; installations, model downloads, and execution need an approved bounded task.
+**Decision updated 2026-10-28:** The Naive Bayes comparison is complete; Hugging Face is the next separate learning task before returning to homepage integration. Inspect the actual model card, task and labels, resource/dependency needs, and demonstrate one small explainable pretrained-model inference only within an approved bounded setup. Sentiment is not a verified disaster annotation. This is not required Sprint 3 work; no Hugging Face runtime result has yet been verified in this project map.
 
 ## 4. Repository baseline — verified 2026-10-26, before this map was added
 
@@ -203,8 +203,8 @@ These are **project design constraints** that produced the published baseline. P
 ### 5.4 Post-baseline learning comparisons — not mandatory Sprint 3 requirements
 
 - **Completed in `53d473e`:** ten-fold stratified cross-validation on the original 5,986 training rows, with full TF-IDF + classifier Pipelines independently fitted within each fold. Logistic Regression and LinearSVC were compared at `ngram_range=(1, 1)` and `(1, 2)`. The published baseline and original holdout metrics were preserved.
-- **Next approved comparator:** `MultinomialNB` using the existing `StratifiedKFold` splitter and the same two n-gram settings. Each candidate uses its own complete Pipeline; `X_holdout`/`y_holdout` remain outside the experiment. Do not silently retune alpha, expand the grid, or replace the existing models.
-- TF-IDF must be refitted inside **every training fold**, not on all training text before CV. Compare the same fold-level F1, means, standard deviations, and limits; explain the assumptions of Naive Bayes and why TF-IDF nonnegative weights are usable, without claiming count-based likelihood assumptions literally hold.
+- **Completed in `ece01b8`:** `MultinomialNB` added at the same two n-gram settings and the same ten `StratifiedKFold` partitions. The code now compares six TF-IDF + classifier Pipelines (60 fold fits). Spock reported successful execution without warnings; Troi reviewed the source and checked the recorded Naive Bayes fold summaries. The original baseline and holdout stay unchanged.
+- Each Pipeline refits TF-IDF inside **each training fold**, not before CV. In the published results, `MultinomialNB` has mean class-1 F1 **0.7219** for `(1, 1)` (std **0.0147**) and **0.7113** for `(1, 2)` (std **0.0156**), below the two existing classifiers' corresponding means. Nonnegative TF-IDF weights are usable but are not literal token counts; neither small spread nor class scores validate independence assumptions or generalization.
 - The holdout has already been inspected. Neither ranking candidates nor adding Naive Bayes turns that holdout into a fresh independent final test. No new deployment or real-world reliability claim follows.
 - **LSTM deliberately excluded:** its sequence/embedding/deep-learning workflow would broaden this school-level reconstruction. No neural-network model training is planned in DA112. Other model families require a new Data decision.
 
@@ -279,7 +279,7 @@ Published in `b106c9833d76942b4fc02ee0109c35c0d4af2edb`. The single scikit-learn
 
 The analysis inspects a small reproducible set of false positives and false negatives without using them to tune the baseline. Results describe the retained fixed holdout; they do not establish annotation truth, event independence, deployment readiness, or real-world emergency benefit.
 
-**Acceptance status:** Complete. One explainable baseline and bounded error analysis are published. A separate training-only CV comparison was subsequently published in `53d473e`; Naive Bayes remains a pending approved educational addition, not a missing baseline requirement.
+**Acceptance status:** Complete. The original baseline and bounded error analysis were published, followed by the training-only CV comparison in `53d473e` and the Naive Bayes extension in `ece01b8`. All six candidates remain retrospective educational comparisons, not replacements for the fixed holdout baseline.
 
 ### Work block 3 — Portfolio case study (**COMPLETE AND PUBLISHED**)
 
@@ -303,15 +303,17 @@ The authoritative `.py` remains the executable analysis and learning resource; t
 
 **Acceptance:** The agreed project placements and links are verified against the actual site. Report separately whether changes are prepared, committed, pushed, or deployed.
 
-### Prioritized educational follow-ups — Naive Bayes, then Hugging Face
+### Educational follow-ups — completed model comparison; Hugging Face next
 
-**Completed 2026-10-28:** The question-answer learning review, guided manual-steps-to-Pipeline explanation, and training-only CV comparison were published in [`53d473e`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/53d473e22ff48ad5f32e43da514e24cd5015217e). The four configurations were Logistic Regression / LinearSVC × unigrams / unigrams+bigrams. Their reported mean class-1 F1 scores were 0.7506, 0.7293, 0.7554, and 0.7529 respectively. This retrospective practice is separate from the unchanged published baseline. Data and Troi reviewed the learning design; independent Learning PASS is still UNASSESSED.
+**Completed 2026-10-28:** The question-answer review, guided manual-steps-to-Pipeline explanation, and four-candidate training-only CV were published in [`53d473e`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/53d473e22ff48ad5f32e43da514e24cd5015217e). Logistic Regression and LinearSVC were each compared using unigrams and unigrams+bigrams. Their mean class-1 F1 scores were 0.7506, 0.7293, 0.7554, and 0.7529 respectively.
 
-1. **Next: one bounded Naive Bayes extension.** In the existing `disaster_tweets_classification.py`, introduce `MultinomialNB` to the existing training-only CV comparison at both approved n-gram settings, with the same folds. Explain what it assumes, how it differs from Logistic Regression and LinearSVC, and answer every learner-facing question using evidence and limits. Preserve the original baseline, its fixed holdout results, current CV evidence, source materials, standalone ASCII maps, warnings, and ethical reflections. No new grid or candidate families.
-2. **Then: a separate Hugging Face mini-lab.** Inspect the real model card and task labels, current API, dependencies, and resource implications before any separately authorized inference. Explain the difference between a pretrained Transformer `pipeline` and our trained scikit-learn `Pipeline`. Sentiment is not verified disaster detection.
-3. **Excluded: LSTM.** Although demonstrated in mentoring, it was not mandated in guided/Sprint 3 work. Data intentionally excludes it to keep the project focused on sound classical NLP and the planned Hugging Face introduction; it belongs in a separate deep-learning learning project if chosen later.
+**Naive Bayes completed:** Commit [`ece01b8`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/ece01b8cb4184b6b5ed6bd0d7a75136dbd71a22a) added `MultinomialNB` with the same ten training-only folds and two n-gram choices, producing means of 0.7219 and 0.7113. Spock reported 60 successful fits overall; Troi reviewed the code, confirmed that the existing executable baseline was unchanged, and recalculated the Naive Bayes summaries from recorded fold results. This is **not** a claim of independent full runtime re-execution by Troi. The original holdout F1 remains **0.7308**. Learning PASS is still **UNASSESSED**.
 
-These additions are educational choices, **not missing required Sprint 3 steps**. Homepage integration remains paused. Planning does not itself authorize local implementation, Git transport, new dependencies, model downloads, or deployment.
+**Next: Hugging Face mini-lab.** Data and Spock are preparing this separately: inspect a real model card, task labels, current API, dependencies, and resource implications before any bounded inference. Explain how pretrained Transformer `pipeline` differs from fitted scikit-learn `Pipeline`; do not equate sentiment with verified disaster classification. No Hugging Face execution or model download is established by the present repository evidence.
+
+**Excluded: LSTM.** Data deliberately excluded sequence/embedding/neural-network training from DA112; it may be revisited as a separate deep-learning project, not here.
+
+These extensions are learning choices, **not missing required Sprint 3 steps**. Homepage integration is paused. This status update does not authorize new dependencies, downloads, Git transport, deployment, or publication.
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
@@ -368,10 +370,12 @@ During an approved block:
 | Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
 | DIKW → Better Questions | **Agreed:** Information contextualizes Data; Knowledge explains supported patterns; insight bridges understanding and judgment; Wisdom may justify a better question, action, decision, or pause | Questions must arise from changed understanding, not the next code operation; no automatic next block |
 | Colab workflow | **Deferred; unresolved** | Separately authorize export, execution, and sharing |
-| CV/model comparison | **Completed and published in `53d473e`** | Four configurations, same ten training-only folds; original holdout remains unchanged |
+| CV/model comparison | **Completed in `53d473e` and `ece01b8`** | Six configurations, same ten training-only folds; original holdout remains unchanged |
 | Teaching-material publication | `guided.ipynb` publication explicitly authorized; independent rights verification not established here | Both reference files remain unchanged; no broader reuse or publication permission |
 | Retrospective presentation/recording | **Not created** | Do not infer a recording from prior coursework |
-| Naive Bayes | **Approved as the next bounded educational comparator; not yet implemented** | Add only `MultinomialNB` to the same training-only folds and n-gram settings, without holdout reuse |\n| LSTM | **Deliberately excluded by Data on 2026-10-28** | Not required by Sprint 3; no LSTM or other neural-network training in DA112 |\n| Hugging Face mini-lab | **Reconfirmed by Data; not implemented** | Separate bounded follow-up after Naive Bayes; model card and setup verified before execution |
+| Naive Bayes | **Completed and published in `ece01b8`** | Same folds and n-gram settings; F1 0.7219 / 0.7113; no holdout reuse |
+| LSTM | **Deliberately excluded by Data on 2026-10-28** | Not required by Sprint 3; no LSTM or other neural-network training in DA112 |
+| Hugging Face mini-lab | **Next learning task, preparation with Data and Spock; execution not yet verified** | Separate bounded inference; verify model card, task, dependencies, and setup before claims |
 | Website/homepage | **Deferred by Data pending educational review** | Existing Work block 4 remains the future site integration; no website implementation or publication is authorized by this revision |
 
 ## 10. Project completion criteria
@@ -396,7 +400,7 @@ The preparation checkmarks record the published implementation and Spock's repor
 - [ ] Approved website project and featured/favorites placements verified; publication status reported truthfully.
 - [x] Original school deliverable expectations identified without claiming unperformed historical submission.
 - [ ] Any separately approved Colab export or presentation/recording truthfully labeled and verified; neither is implied by case-study completion.
-- [x] Optional CV/tuning and Hugging Face work remain explicitly optional and separate; they do not block homepage integration.
+- [x] Training-only CV and Naive Bayes educational comparisons are completed separately from the baseline; Hugging Face remains a separate follow-up and does not change the original Sprint 3 completion criteria.
 
 **Not required for core analytical completion:** Kaggle leaderboard rank, deep learning, Transformer fine-tuning, model deployment, or guaranteed real-world impact. Homepage integration is a separate planned portfolio block, not evidence of model quality.
 
@@ -431,8 +435,8 @@ The preparation checkmarks record the published implementation and Spock's repor
 
 **Work blocks 1–3 are complete and published through `7a4007b4137e4a845769bd24e96e00be89a26157`. Do not restart data preparation, baseline modeling, educational refactoring, or portfolio README work.**
 
-**Completed latest educational block:** The question-answer and Pipeline explanations plus training-only CV are published in `53d473e22ff48ad5f32e43da514e24cd5015217e`. Do not repeat them or alter the original holdout baseline.
+**Completed educational methods:** The question-answer and Pipeline explanation plus training-only CV were published in `53d473e22ff48ad5f32e43da514e24cd5015217e`; the `MultinomialNB` addition followed in `ece01b8cb4184b6b5ed6bd0d7a75136dbd71a22a`. Six candidate configurations are now documented. Do not repeat this comparison or change the published baseline/holdout.
 
-**Next approved learning goal:** Extend only the existing training-only comparison with `MultinomialNB` using the same ten folds and the existing `(1, 1)` / `(1, 2)` n-gram options. Evaluate and interpret new fold-level class-1 F1 evidence without choosing a new model against the already inspected holdout. LSTM and other neural-network training are excluded. Hugging Face follows as a separately bounded mini-lab.
+**Current learning priority:** A separate, bounded Hugging Face pretrained-Transformer mini-lab with Data and Spock. Verify the model card, task alignment, labels, API, and resource/dependency requirements before execution. Explain results only after actual inference; sentiment is not verified disaster detection. LSTM and other neural-network training are excluded from DA112.
 
-**Homepage Work block 4 remains deferred.** This document records decisions but does not authorize unbounded implementation, Git transport, dependencies, model downloads, or publication. Data's independent Learning PASS remains **UNASSESSED**. Spock must read current canonical documents, verify repository state, perform only the explicitly scoped task, report evidence and limitations, and stop before unauthorized actions.
+**Homepage Work block 4 remains deferred.** This document records status, not automatic authorization for Git transport, dependencies, downloads, model inference beyond the agreed scope, or publication. Data's independent Learning PASS remains **UNASSESSED**. Spock must read current canonical documents, verify the local state, report evidence and limitations, and stop at authorization boundaries.
