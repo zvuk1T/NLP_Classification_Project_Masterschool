@@ -826,13 +826,14 @@ print(false_negatives.to_string())
 # It uses only the existing 5,986 training strings and labels; the 1,497-row holdout
 # and its original baseline results remain separate.
 #
-# **🎯 Goal & Approach — What & Why:** Compare four configurations on the same
+# **🎯 Goal & Approach — What & Why:** Compare six configurations on the same
 # ten validation folds to separate classifier choice from adding short token sequences.
 # Keep all learned text transformations inside each fold so its validation text
 # cannot influence vocabulary or IDF.
 #
 # **🔎 Guiding Questions:** What does one fold score describe?
-# Do bigrams improve both classifiers, and does the highest mean establish a final winner?
+# Do bigrams improve all three classifiers, and does the highest mean establish a final winner?
+# What does Naive Bayes assume, and why can we use it with these TF-IDF features?
 #
 # ### 9. What we transfer from the actual guided notebook
 # Guided cell 14 computes ten F1 scores, their mean, and their standard deviation.
@@ -860,6 +861,12 @@ print(false_negatives.to_string())
 #
 # These are inspected teaching examples, not official tweet solutions or imported scores.
 # The following code is our adaptation; the source notebooks remain unchanged.
+#
+# Sprint 3 suggests Logistic Regression or Naive Bayes; adding the latter here is
+# a post-baseline learning choice, not a missing required baseline step.
+# DataCamp's [Predicting the sentiment of a movie review](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/n-gram-models?ex=8)
+# supplies inspected instructions and starter code for fitting MultinomialNB to bag-of-words features.
+# Our adaptation uses tweet TF-IDF, class-1 F1, and training-only CV instead of review accuracy; no course solution or score is copied.
 
 # %% [markdown]
 # ### 🗺️ Mental Model — One of ten training-only folds
@@ -908,7 +915,58 @@ print(false_negatives.to_string())
 # Logistic Regression keeps `lbfgs`; LinearSVC uses its default squared-hinge loss,
 # L2 penalty, and `dual="auto"` optimizer selection, with seed 42 for reproducibility.
 #
-# Ten folds times four configurations means 40 fresh Pipeline fits.
+# ### Why add Multinomial Naive Bayes?
+# It offers a different learning assumption while keeping the representation and evaluation fixed.
+# Logistic Regression directly learns class probabilities through its loss; LinearSVC learns a margin-based boundary.
+# Naive Bayes instead estimates class prevalence and term distributions within each class, then combines them using Bayes' rule.
+#
+# "Naive" means treating feature evidence as conditionally independent given the class.
+# Related words and overlapping unigrams/bigrams violate that simplification; neither existing classifier requires this independence assumption.
+# A useful classification score would not prove the assumption true or establish calibrated probabilities.
+#
+# The multinomial model describes token counts distributed across a vocabulary within each class.
+# Our TF-IDF values are nonnegative fractional weights, which scikit-learn accepts as feature mass.
+# They are neither literal counts nor probabilities, so this practical application does not establish that the count model holds literally.
+#
+# During fitting, MultinomialNB sums each feature's weight over training documents belonging to each class.
+# Default `alpha=1.0` adds one to every class-feature total before normalization across that class's vocabulary.
+# This Laplace smoothing prevents zero term probabilities for vocabulary terms absent from one class; alpha stays fixed, without tuning.
+#
+# Default `fit_prior=True` estimates class priors from that fold's label proportions.
+# Prediction adds the log prior to the sum of feature weights times log smoothed term probabilities, choosing the higher-scoring class.
+# Logs turn multiplication into addition; unknown tokens remain ignored by that fold's fitted vectorizer.
+#
+# **⚠️ Watch Out — compatible inputs are not validated assumptions:** Nonnegative TF-IDF permits this calculation;
+# it does not prove independent language features, correct labels, or trustworthy probability estimates.
+# We compare predicted labels through F1, without interpreting probabilities as certainty about a real disaster.
+#
+# See the installed-version [Naive Bayes explanation](https://scikit-learn.org/1.5/modules/naive_bayes.html#multinomial-naive-bayes)
+# and [MultinomialNB API](https://scikit-learn.org/1.5/modules/generated/sklearn.naive_bayes.MultinomialNB.html).
+
+# %% [markdown]
+# ### 🗺️ Mental Model — Naive Bayes inside one fold
+#
+# ```text
+# Fold training TF-IDF + labels
+#              |
+#       +------+------+
+#       |             |
+# Class proportions   Term weight totals
+#       |             | per class
+#       v             v
+# Class priors     Add alpha, normalize
+#       |             |
+#       +------+------+
+#              |
+# Validation TF-IDF -> class log scores
+#              |
+#      Choose class 0 or 1
+#              |
+# Compare with validation labels -> F1
+# ```
+
+# %% [markdown]
+# Ten folds times six configurations means 60 fresh Pipeline fits: the original 40 plus 20 Naive Bayes fits.
 # The unigram Logistic Regression configuration is evaluated once in this comparison;
 # we do not add a duplicate standalone CV run or refit the selected candidate afterwards.
 #
@@ -919,17 +977,21 @@ print(false_negatives.to_string())
 
 # %%
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 
 # cv_splitter defines ten training/validation partitions within X_train and y_train.
 # The integer seed recreates identical memberships for each candidate; no holdout enters it.
 cv_splitter = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
-# Each tuple names an unfitted classifier option; neither is the fitted baseline object.
+# Each tuple names an unfitted classifier option; none is the fitted baseline object.
 # ngram_options lists the smallest and largest token-sequence lengths included as features.
 cv_classifier_options = [
     ("Logistic Regression", LogisticRegression()),
     ("LinearSVC", LinearSVC(random_state=42)),
+    # NB sums nonnegative feature weights per class, smooths with alpha=1.0, then normalizes.
+    # Each fold's label shares supply priors; prediction combines these with term evidence to choose 0 or 1.
+    ("MultinomialNB", MultinomialNB()),
 ]
 ngram_options = [(1, 1), (1, 2)]
 
@@ -985,8 +1047,9 @@ print(cv_summary.round(4).to_string())
 # ### 11. Read the fold results without overstating them
 # ### ✅ Evidence & Interpretation
 # The existing Python 3.11.11 / scikit-learn 1.5.2 environment produced the results
-# below with the fixed ten-fold splitter; all 40 fits completed without warnings.
-# These are newly measured training-fold results, not school scores or replacements for the baseline holdout evidence.
+# below with the fixed ten-fold splitter; all 60 fits completed without warnings.
+# The original four configurations reproduce their published means, standard deviations, minima, and maxima at four decimals.
+# Their 40 printed fold scores also match the pre-extension rerun; the added 20 scores measure Naive Bayes on those same folds.
 #
 # | Classifier | N-grams | Mean class-1 F1 | Fold standard deviation | Minimum | Maximum |
 # | --- | --- | ---: | ---: | ---: | ---: |
@@ -994,6 +1057,24 @@ print(cv_summary.round(4).to_string())
 # | Logistic Regression | `(1, 2)` | 0.7293 | 0.0181 | 0.6931 | 0.7667 |
 # | LinearSVC | `(1, 1)` | 0.7554 | 0.0246 | 0.7184 | 0.7895 |
 # | LinearSVC | `(1, 2)` | 0.7529 | 0.0170 | 0.7265 | 0.7821 |
+# | MultinomialNB | `(1, 1)` | 0.7219 | 0.0147 | 0.6991 | 0.7414 |
+# | MultinomialNB | `(1, 2)` | 0.7113 | 0.0156 | 0.6905 | 0.7465 |
+#
+# The executable table prints every candidate's ten fold scores; these are the newly added Naive Bayes observations, rounded only for display.
+# Matching fold numbers identify the same validation rows across configurations.
+#
+# | Fold | MultinomialNB `(1, 1)` | MultinomialNB `(1, 2)` |
+# | ---: | ---: | ---: |
+# | 1 | 0.7414 | 0.7000 |
+# | 2 | 0.7040 | 0.7017 |
+# | 3 | 0.7172 | 0.7031 |
+# | 4 | 0.6991 | 0.6981 |
+# | 5 | 0.7051 | 0.6905 |
+# | 6 | 0.7390 | 0.7119 |
+# | 7 | 0.7349 | 0.7465 |
+# | 8 | 0.7339 | 0.7181 |
+# | 9 | 0.7252 | 0.7264 |
+# | 10 | 0.7189 | 0.7166 |
 #
 # Unigram LinearSVC has the highest mean, about 0.0048 above unigram Logistic Regression,
 # but exceeds it in only four of ten matching folds.
@@ -1003,7 +1084,14 @@ print(cv_summary.round(4).to_string())
 # Adding bigrams lowers Logistic Regression's mean from 0.7506 to 0.7293;
 # all ten of its fold scores decrease.
 # LinearSVC's mean also falls, from 0.7554 to 0.7529, although individual folds move in both directions.
-# Bigrams therefore improve neither average here; these scores alone do not establish the cause or predict another dataset's outcome.
+# These scores alone do not establish the cause or predict another dataset's outcome.
+#
+# Naive Bayes has lower means than both existing classifiers at each matching n-gram setting.
+# Its unigram scores exceed unigram Logistic Regression in two folds and unigram LinearSVC in one, so the ordering is not universal.
+# Adding bigrams lowers its mean from 0.7219 to 0.7113, with decreases in eight folds; bigrams improve none of the three averages.
+#
+# Naive Bayes supplies a valid contrasting calculation, but these results do not establish why its F1 is lower.
+# Feature dependence, weighting, and smoothing could affect performance; this comparison does not isolate their effects or validate the model's assumptions.
 #
 # Each score measures agreement with recorded class-1 labels in one withheld part
 # of the original training set, after fitting on the other nine parts.
@@ -1012,13 +1100,15 @@ print(cv_summary.round(4).to_string())
 # Standard deviation describes variation among these ten scores, using divisor ten (`ddof=0`).
 # It is neither a confidence interval nor a significance test, and overlapping fitting
 # subsets prevent treating the scores as independent experiments.
-# LinearSVC with bigrams has the smallest observed spread (0.0170), but that does not
-# establish robustness to other partitions, new events, or different annotations.
+#
+# Unigram Naive Bayes has the smallest observed spread (0.0147), despite its lower mean than either existing unigram classifier.
+# LinearSVC with bigrams still has the smallest spread among the original four (0.0170); neither observation establishes external robustness.
+#
 # The original 0.7308 holdout F1 evaluates a different set and training size;
 # subtracting it from a CV average would not measure an improvement on the same evaluation.
 #
 # **⚠️ Watch Out — retrospective selection:** The highest CV mean identifies only
-# the highest observed average among these four configurations on this partition.
+# the highest observed average among these six configurations on this partition.
 # Using the same results to choose a configuration and advertise its performance introduces selection optimism.
 # Our already inspected holdout cannot become a new independent final evaluation.
 #
@@ -1027,6 +1117,9 @@ print(cv_summary.round(4).to_string())
 # predictions, and published holdout metrics unchanged.
 #
 # ### 🧠 Learning → Better Questions
+# Naive Bayes illustrates that a smaller fold spread can accompany lower agreement with recorded positive labels.
+# Spread describes consistency across these folds; it cannot by itself justify preferring a classifier or trusting its probabilities.
+#
 # Cross-validation checks sensitivity to training/validation membership within the retained
 # training population; it does not repair annotation quality or establish event independence.
 # **What evidence would justify treating a preferred configuration as more reliable outside these folds?**
