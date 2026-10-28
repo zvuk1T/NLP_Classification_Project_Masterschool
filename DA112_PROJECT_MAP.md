@@ -313,12 +313,14 @@ These are **not prerequisites for blocks 3 or 4**. After the baseline, Data deci
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
-All narrative claims must follow this reasoning, without compulsory headings for every operation:
+All narrative claims follow this project-specific DIKW → Better Questions lens, without compulsory headings for every operation:
 
-1. **Data:** What was observed? (rows, class balance, example text, duplicate counts, raw predictions)
-2. **Information:** What did our transformations/metrics quantify? (F1, precision/recall, confusion matrix, error counts)
-3. **Knowledge:** What interpretation is supported, under which assumptions and limits? Do not treat a possible cause of label disagreement as established.
-4. **Wisdom:** What justified next step follows, given evidence and consequences? It may be further investigation or a narrower claim, not an invented operational impact.
+1. **Data — What did we record?** Observations and provenance: tweet text, recorded labels, and predictions.
+2. **Information — What does it show?** Organized facts, comparisons, and metrics: counts, false negatives, class-1 recall, and F1.
+3. **Knowledge — Why does it matter?** Explain a result or mechanism only where evidence supports it, including assumptions and limits. For example, overall accuracy combines classes and can hide missed positives; the text-only data cannot establish why specific tweets were misclassified.
+4. **Wisdom — What better question should we ask next?** Form a more useful, evidence-answerable question from that Knowledge. A narrower claim, justified decision, or pause is also valid; a new question is not automatic authorization for more analysis.
+
+This is our educational use of DIKW, not a universal claim that every observation yields a causal explanation. The published analysis already connects its learning reflections to Better Questions; Data's independent Learning PASS remains UNASSESSED.
 
 **Narrative question:** “Can a simple, interpretable text model distinguish disaster-related tweets from non-disaster usage — and where does it fail?”
 
@@ -360,6 +362,7 @@ During an approved block:
 | Repeated/conflicting labels | **Approved and implemented:** lowercase/whitespace comparison, exclude conflicting groups, keep first consistent occurrence | Preserve §4.1; do not reopen policy during educational edits |
 | Split and seed | **Approved and implemented:** stratified 80/20, `random_state=42`; 5,986 training / 1,497 holdout | Preserve exact membership, order, labels, and source indices |
 | Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
+| DIKW → Better Questions | **Agreed:** Data asks what was recorded; Information what it shows; Knowledge why it matters within evidence; Wisdom frames the next better question | Keep explanations bounded, with decision/pause allowed; no automatic next block |
 | Colab workflow | **Deferred; unresolved** | Separately authorize export, execution, and sharing |
 | CV/tuning | **Optional, not approved** | Separate post-baseline decision; not required before portfolio preparation |
 | Teaching-material publication | `guided.ipynb` publication explicitly authorized; independent rights verification not established here | Both reference files remain unchanged; no broader reuse or publication permission |

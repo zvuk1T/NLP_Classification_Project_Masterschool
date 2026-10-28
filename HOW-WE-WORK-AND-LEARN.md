@@ -38,7 +38,7 @@ LEARNING -> WHAT CHANGED IN OUR UNDERSTANDING?
                           `--> BETTER QUESTION / DECISION / PAUSE
 ```
 
-This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question may narrow a claim, expose missing context, or justify not acting yet. It need not be harder or broader.
+This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question may narrow a claim, expose missing context, or justify not acting yet; it need not be harder or broader. In our DIKW learning lens, Wisdom asks which better, evidence-answerable question follows from supported Knowledge. A justified decision or pause also closes the loop, and a question never authorizes another work block.
 
 ### Keep three question levels connected
 
@@ -225,22 +225,27 @@ Before any separately approved preprocessing change, consider URLs, hashtags, me
 
 ## 6. DIKW, Data Literacy, and storytelling
 
-Use DIKW to explain what reasoning adds, not as labels required in every cell:
+Use DIKW as our question-driven learning lens, not as mandatory headings or a universal one-to-one definition:
 
 ```text
-DATA: recorded observations and provenance
+DATA: WHAT did we record? (observations, provenance)
     |
     v
-INFORMATION: organization, context, counts, and comparisons
+INFORMATION: WHAT does it show? (counts, rates, comparisons)
     |
     v
-KNOWLEDGE: supported interpretation, assumptions, and limits
+KNOWLEDGE: WHY does it matter? (supported explanation, limits)
     |
     v
-WISDOM: responsible judgment in context
+WISDOM: WHAT BETTER QUESTION should we ask next?
     |
-    `--> Act / investigate / narrow the claim / pause
+    +--> Reframe / investigate (when evidence justifies it)
+    `--> Decide / narrow the claim / pause
 ```
+
+Knowledge's **WHY** explains meaning or mechanisms only as far as evidence allows; it does not automatically establish causality. Wisdom makes the next question more relevant and answerable, while recognizing when the responsible outcome is a decision, narrower claim, or pause.
+
+In our holdout, recorded and predicted tweet labels are Data; the 208 false negatives among 637 recorded positives (32.65% missed) are Information. Knowledge explains why 78.89% overall accuracy hides this miss rate: accuracy combines both classes, whereas class-1 recall isolates recorded positives. Wisdom asks what independent label and event-overlap evidence would justify claims beyond this holdout, rather than pretending we know why individual tweets were missed.
 
 Aggregation alone does not establish an explanation, causality, or a recommendation. Before relying on a result, consider missingness, errors, representation, collection bias, and whether the evidence fits the question. Verified provenance and fitness for a purpose are separate judgments; cleaning does not automatically establish representativeness.
 
