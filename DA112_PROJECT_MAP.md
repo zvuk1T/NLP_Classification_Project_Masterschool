@@ -2,7 +2,7 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.9 — 2026-10-29
+> **Version:** 1.10 — 2026-10-29
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
@@ -28,6 +28,8 @@
 - **Cross-project boundary:** `zvuk1T/zarko-vukovic-homepage` exclusively owns its public project catalog, Featured placement, Overview/page architecture, visual export/integration, routing, builds, Git transport and deployment under its own canon. DA112 provides evidence only; it does not execute website tasks.
 
 **Python roles:** `disaster_tweets_classification.py` is authoritative for the original school Sprint 3, TF-IDF baseline and fixed holdout. `disaster_tweets_huggingface.py` is a separate **frozen-MiniLM study**, not another implementation of that baseline. Both use VS Code percent cells. Preserve the historic learner notebook unchanged; separately approved Colab export cannot become a parallel implementation.
+
+**Agreed source structure:** Support meaningful `##` chapters and `###` sections inside the Python files' Markdown percent cells. These levels should identify substantial analytical units; every question, warning or teaching aid does not need a navigation entry. Any later source reorganization must preserve the educational explanations, code, analytical results and baseline-versus-**Beyond the Baseline** distinction. Final website outline selection, navigation and responsive behavior belong to the Homepage repository; this direction does not change either Python file now.
 
 **Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep **Main Question → evidence → explicit answer → Learning → Better Questions** at meaningful-unit level. Preserve first-use explanations, **Mermaid mental maps in separate Markdown cells**, consequential **⚠️ Watch Out** warnings, and evidence-grounded **⚖️ Ethical Takeaways** as defined by the current learning guide.
 
@@ -169,6 +171,30 @@ Use selectively for understanding `Pipeline`, cross-validation, and tuning conce
 `learning_materials/mentor_live_sessions/guided.ipynb` was added in `f8e166c` under Data's explicit publication authorization, recorded in the supplied review handoff. It is an NLP school reference for sequential preparation, paired text/labels, splitting, and baseline methods, not a second Disaster Tweets implementation. Read relevant actual cells critically; do not execute, rewrite, or reuse saved scores as new project evidence.
 
 **Publication boundary:** Both reference files are tracked in this public repository. Data's publication authorization is not independent proof of redistribution rights. Do not expand, republish, remove, or rewrite protected teaching material without the required scope and rights review. Local ignore rules do not hide public Git history; this documentation update changes neither reference file nor publication visibility.
+
+### 4.3 Environment audit and planned resource isolation — 2026-10-29
+
+The completed read-only audit verified the existing project-local **Python 3.11.11 `.venv`** and its isolation: system site-packages are excluded, user site-packages are disabled, and inspected imports resolve inside the project environment. The active VS Code/Jupyter Interactive Window kernel used that interpreter. **Preserve this environment; no rebuild is necessary.**
+
+Verified within that audit:
+
+- Runtime import checks for both Python files succeeded, and `pip check` reported **no broken requirements**.
+- The local `DATA/train.csv` was readable with **7,613 rows and two columns** (`text`, `target`).
+- NLTK tokenization, tagging, lemmatization and stop-word resource checks succeeded using the existing `~/nltk_data/` resources.
+- Tokenizers and models loaded **offline** from the existing `~/.cache/huggingface/hub/` cache for both pinned checkpoints: DistilBERT SST-2 sentiment and the separate frozen-MiniLM study.
+
+**Evidence limits:** This was an interpreter, dependency, input and cached-resource audit, **not a fresh full-script run or clean-install reproduction**. No inference, training or new analytical scores were produced by the audit. Successful imports and `pip check` do not establish that `requirements.txt` reproduces the installed environment. This documentation update does not repeat those runtime checks.
+
+**Agreed plan; separate implementation approval required:** Use project-local, Git-ignored `.cache/nltk_data/` and `.cache/huggingface/`. The future migration must add appropriate ignore rules before placing resources there, direct resource lookup in both scripts to the intended locations, and retain the existing model revisions:
+
+| Model | Revision to preserve |
+|---|---|
+| `distilbert/distilbert-base-uncased-finetuned-sst-2-english` | `714eb0fa89d2f80546fda750413ed43d93601a13` |
+| `sentence-transformers/all-MiniLM-L6-v2` | `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` |
+
+Existing global resources must remain untouched until the later migration is verified. Verify NLTK lookup and offline model/tokenizer loading from the project-local locations before declaring the migration complete; this plan does not authorize subsequent deletion of the global resources.
+
+The same separately authorized implementation step must reconcile **`requirements.txt`, `README.md` and DistilBERT cache behavior** with both authoritative Python files. The audit found missing Hugging Face/kernel dependency declarations and Plotly/nbformat version differences; README reproduction guidance still describes the original baseline. The main script's DistilBERT loader can contact the Hub or download missing files, whereas the MiniLM script already requires cached files. Make the intended cache-only behavior and setup instructions consistent without changing model revisions, analytical methods or measured results. No dependency installation, cache migration, environment change or Python/README edit is part of this documentation task.
 
 ## 5. Methodology contract for the first reliable baseline
 
@@ -359,6 +385,8 @@ During an approved block:
 | Canonical maintenance | **Data + Troi:** contract, guide, and project map | Spock reports evidence and proposes corrections; no silent canonical edits |
 | Publication and synchronization | Both Python files exist at NLP checkpoint `8524cb7` | Remote GitHub does not establish Mac or deployed Homepage state |
 | Python file roles | **Decided:** primary Sprint 3/baseline `disaster_tweets_classification.py`; supplementary MiniLM `disaster_tweets_huggingface.py` | No second school baseline or parallel notebook |
+| Environment and resource locations | **Audit passed; migration planned (§4.3)** | Preserve Python 3.11.11 `.venv`; separately authorize project-local caches and dependency/README/cache-behavior reconciliation |
+| Source outline and website navigation | **Agreed:** meaningful `##` chapters / `###` sections in source | Preserve source content and results; Homepage owns final outline selection and responsive navigation |
 | Repeated/conflicting labels | **Approved and implemented:** lowercase/whitespace comparison, exclude conflicting groups, keep first consistent occurrence | Preserve §4.1; do not reopen policy during educational edits |
 | Split and seed | **Approved and implemented:** stratified 80/20, `random_state=42`; 5,986 training / 1,497 holdout | Preserve exact membership, order, labels, and source indices |
 | Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
@@ -389,7 +417,7 @@ The preparation checkmarks record the published implementation and Spock's repor
 
 ### Portfolio communication and integration (separate from model correctness)
 
-- [x] Full authoritative `.py` analysis readable end to end, with reproducible execution instructions.
+- [x] Full authoritative `.py` analysis readable end to end, with existing-environment execution instructions; setup guidance for both files still needs the §4.3 reconciliation.
 - [x] Baseline README covers its original question, data, evidence, errors and limits, but does not yet list every later lab.
 - [x] Both Python sources identify evidence for a Homepage handoff, with the school baseline and extensions distinguishable.
 - [ ] Homepage project separately approves and verifies presentation, visual assets, destinations and publication. **Not an NLP completion criterion.**
@@ -432,6 +460,8 @@ The preparation checkmarks record the published implementation and Spock's repor
 
 **Public presentation hierarchy:** **MasterSchool Sprint 3 → data preparation → TF-IDF + Logistic Regression baseline (fixed holdout F1 0.7308) → false positives, missed labels and limits** is the primary story. Classical CV, sentiment inference, and frozen MiniLM are **Beyond the baseline**, with their own denominators, task labels, pretrained information and retrospective evidence limits. README remains baseline-oriented; any NLP documentation revision needs distinct approval.
 
-**Next location:** All decisions and work for the Homepage's cards, featured/project placements, Overview, assets, links, rendering, local builds, Git, deployment and publication occur **only in `zvuk1T/zarko-vukovic-homepage`**, governed by its own canon and Data's authorization. No website changes are authorized in this NLP repo. This documentation reconciliation is not a fresh Python run, clean-environment reproducibility check, local Git synchronization, or publication approval.
+**Proposed NLP implementation:** The bounded environment/resource work in §4.3 requires separate authorization. Preserve the verified `.venv`, both authoritative Python files' roles, baseline, six classical CV configurations, split, measured results and existing model revisions. Chapter/section organization is a source-presentation direction, not authorization to rewrite the analysis.
+
+**Website boundary:** All decisions and work for the Homepage's cards, featured/project placements, Overview, assets, links, rendering, local builds, Git, deployment and publication occur **only in `zvuk1T/zarko-vukovic-homepage`**, governed by its own canon and Data's authorization. No website changes are authorized in this NLP repo. Updating this plan does not establish a fresh Python run or clean-install reproduction and does not authorize website publication. Report any explicitly authorized Git transport and local synchronization separately from analytical verification.
 
 **Learning PASS: UNASSESSED.** STOP at the authorized repository and task boundary.
