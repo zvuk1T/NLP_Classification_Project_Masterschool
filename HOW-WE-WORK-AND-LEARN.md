@@ -18,24 +18,14 @@ The authoritative Python file is both the real analysis and a learning resource.
 
 Better Questions is our philosophy of inquiry, drawing on Data's DataCamp Gym work; Main Question is its entry point for a particular analytical unit. This is our synthesis, not a verbatim DataCamp framework. [Forming Analytical Questions](https://www.datacamp.com/courses/forming-analytical-questions) supports clarifying purpose, refining relevant questions, selecting fitting methods, and returning findings to the original need.
 
-```text
-PURPOSE AND CONTEXT -> PROJECT QUESTION
-                          |
-                          v
-MAIN QUESTION -> GOAL + RELEVANT GUIDING QUESTIONS
-                          |
-                          v
-RELEVANT DATA -> METHOD + EXPLAINED PYTHON
-                          |
-                          v
-VERIFIED EVIDENCE -> EXPLICIT ANSWER + LIMITS
-                          |
-                          v
-LEARNING -> WHAT CHANGED IN OUR UNDERSTANDING?
-                          |
-                          +--> ETHICAL TAKEAWAY (when relevant)
-                          |
-                          `--> BETTER QUESTION / DECISION / PAUSE
+```mermaid
+flowchart LR
+    P["Purpose + context<br/>Project Question"] --> Q["Main Question<br/>Goal + relevant<br/>Guiding Questions"]
+    Q --> M["Relevant data<br/>Method +<br/>explained Python"]
+    M --> E["Verified evidence<br/>Explicit answer<br/>+ limits"]
+    E --> L["Learning<br/>What changed in<br/>our understanding?"]
+    L --> T["Ethical takeaway<br/>when relevant"]
+    L --> B["Better question<br/>Decision / pause"]
 ```
 
 This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question should emerge from evidence that changed our understanding, not simply announce the next Python operation. Wisdom considers whether that understanding, its limits, and its consequences justify another question, an action, a narrower claim, or a deliberate pause. More questions alone do not demonstrate wisdom, and no new question authorizes another work block.
@@ -128,15 +118,17 @@ consistent_rows = prepared.loc[~conflict_mask]
 
 The mechanism is the movement from source rows to group-level evidence and back to row selection. "Create a mask" or "use groupby" alone does not explain that movement. Introduce the meaning of `.index`, `isin()`, `.loc`, and `~` at the relevant first use, without repeating the explanation mechanically later.
 
-### Optional aids: ASCII maps and ethics
+### Optional aids: Mermaid maps and ethics
 
 Use **🗺️ Mental Model**, **⚠️ Watch Out**, and **✅ Notes for Students** near a real conceptual dependency, misconception, or practical need. They are optional aids, not quotas or decoration. Mental maps make relationships visible; warnings challenge misleading assumptions; ethical takeaways connect evidence to responsibility. Preserve genuinely useful aids during simplification instead of deleting them just to shorten prose.
 
-**🗺️ Mental Model:** Use plain ASCII diagrams inside fenced `text` blocks, with characters such as `|`, `-`, `+`, `>` and `v`. Keep emoji headings outside the diagram; do not use Mermaid or Unicode box-drawing characters. Keep all diagram content ASCII, including arrow symbols and labels; English labels fit our documentation language. This restriction applies to diagrams, not prose, emoji headings, or the name **Learning → Better Questions**.
+**🗺️ Mental Model:** Use Mermaid diagrams inside fenced `mermaid` blocks, with short English labels and arrows that show the relevant relationships. Keep emoji headings outside the diagram. Prefer simple flowcharts over manually aligned ASCII or Unicode box-drawing diagrams.
 
-In the `.py`, place each mental map in its **own `# %% [markdown]` cell**, immediately beside the explanation it supports. Include only the **🗺️ Mental Model** heading, the fenced ASCII diagram, and at most one short caption when necessary. Prefix all Markdown lines with `#`, including the fences. Do not combine a map with Goal, Evidence, Learning, source lists, or executable Python in that cell.
+In the `.py`, place each mental map in its **own `# %% [markdown]` cell**, immediately beside the explanation it supports. Include only the **🗺️ Mental Model** heading, the fenced Mermaid diagram, and at most one short caption when necessary. Prefix all Markdown lines with `#`, including the fences. Do not combine a map with Goal, Evidence, Learning, source lists, or executable Python in that cell.
 
-Keep each map focused on one relationship, with short labels and a narrow, preferably vertical layout readable on a phone. Put supporting prose in adjacent cells; simplify an oversized map instead of merely moving it unchanged. Separate genuinely different concepts only when useful; do not add a map or approval gate for every operation. In ordinary Markdown documents, use a standalone fenced block rather than Python cell markers.
+Keep each map focused on one relationship, with a compact layout that minimizes scrolling. Prefer left-to-right flows for short sequences; use stacked branches or a vertical flow when that improves readability. Check the rendered diagram at the intended viewing width, including narrower windows; avoid tiny labels or clipped nodes. Put supporting prose in adjacent cells; simplify an oversized map instead of merely moving it unchanged. Separate genuinely different concepts only when useful; do not add a map or approval gate for every operation. In ordinary Markdown documents, use a standalone fenced block rather than Python cell markers.
+
+Verify Mermaid rendering in the actual Markdown preview or Interactive Window; a fenced source block alone does not establish a graphical result. Use an available Mermaid renderer, with any new installation subject to the existing authorization rules. Previously executed Interactive Window cells retain their old content after source edits; rerun the relevant Markdown cell to inspect its current diagram.
 
 **⚖️ Ethical Takeaway — optional**
 
@@ -229,25 +221,14 @@ Before any separately approved preprocessing change, consider URLs, hashtags, me
 
 Use DIKW to connect observations with context, supported understanding, and responsible judgment. This question-driven interpretation is our learning synthesis, not a mandatory heading scheme:
 
-```text
-DATA: What was recorded? (observations, provenance)
-    |
-    v
-INFORMATION: Who / what / where / when?
-             (known context, definitions, comparisons)
-    |
-    v
-KNOWLEDGE: How do patterns relate?
-           Which explanations are supported?
-    |
-    v
-INSIGHT (bridge): What changed in understanding?
-    |
-    v
-WISDOM: What judgment is justified?
-    |
-    +--> BETTER QUESTION / INVESTIGATE
-    `--> DECIDE / ACT / NARROW CLAIM / PAUSE
+```mermaid
+flowchart LR
+    D["DATA<br/>What was recorded?<br/>Observations + provenance"] --> I["INFORMATION<br/>Who / what / where / when?<br/>Context + definitions + comparisons"]
+    I --> K["KNOWLEDGE<br/>How do patterns relate?<br/>Which explanations are supported?"]
+    K --> S["INSIGHT - bridge<br/>What changed<br/>in understanding?"]
+    S --> W["WISDOM<br/>What judgment<br/>is justified?"]
+    W --> Q["Better question<br/>Investigate"]
+    W --> A["Decide / act<br/>Narrow claim / pause"]
 ```
 
 DataCamp's [Introduction to Data Literacy](https://www.datacamp.com/courses/introduction-to-data-literacy) presents context and patterns as steps toward applying knowledge in decisions and action; insight is a practical bridge toward wisdom, not a fifth DIKW level. Information must distinguish known context from missing details: our text-only tweets do not verify event time or location. Knowledge may explain how results relate and why they matter, but cannot infer causes without evidence.

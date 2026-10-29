@@ -1,5 +1,94 @@
 # %% [markdown]
-# # Disaster Tweets — From Recorded Rows to a Measured Baseline
+# # Disaster Tweets — Project Overview
+#
+# **Problem:** Can tweet text distinguish recorded disaster and non-disaster examples?
+# **Goal:** Build an understandable classifier and evaluate how trustworthy its predictions are.
+# **Context:** MasterSchool DA112; an educational analysis of labeled tweets, not an emergency-response system.
+#
+# ## Explore the five project phases
+# Open any summary for the question, approach, evidence, and limitations.
+# These summaries describe previously verified results; they do not execute the analysis.
+# Detailed teaching cells follow in the same phase order.
+# Look for **⚠️ Watch Out** blocks beside the evidence: they highlight consequential interpretation traps.
+#
+# <details>
+# <summary><strong>1. Data Understanding, Quality & Preparation</strong></summary>
+#
+# **Question:** Which observations can support a fair evaluation?
+#
+# **Approach:** Audit labels and repeated texts, apply the agreed retention policy, then create the fixed stratified split.
+#
+# **Evidence:** 7,613 source rows become 7,483 retained rows: 5,986 training and 1,497 holdout.
+#
+# **Limit / next step:** No shared original or prepared strings across the split does not prove independence between events.
+#
+# </details>
+#
+# <details>
+# <summary><strong>2. Exploratory Data Analysis & Visualization</strong></summary>
+#
+# **Question:** What patterns appear before modeling?
+#
+# **Approach:** Compare training-text distributions, then inspect tokenization, lemmatization, and information loss in five training examples.
+#
+# **Evidence:** Median character lengths are 101 and 114 for classes 0 and 1; both have median 15 whitespace-separated parts.
+# The separate language lab changes 15 of 97 tokens; its results do not change the classifier inputs.
+#
+# **Limit / next step:** Distributions overlap. These descriptive differences establish neither causes nor predictive performance.
+#
+# </details>
+#
+# <details>
+# <summary><strong>3. Predictive Modeling, Comparison & Evaluation</strong></summary>
+#
+# **Question:** How well does the classifier agree with unseen recorded labels?
+#
+# **Approach:** Evaluate the TF-IDF + Logistic Regression baseline; separately compare six full Pipelines in ten training-only CV folds.
+#
+# **Evidence:** Baseline holdout F1 is 0.7308, precision 0.7989, and recall 0.6735; 208 recorded positives are missed.
+#
+# **Limit / next step:** CV is a post-baseline learning comparison. It provides no new independent holdout test or deployment guarantee.
+#
+# </details>
+#
+# <details>
+# <summary><strong>4. Hugging Face: Pretrained Transformer Mini-Lab</strong></summary>
+#
+# **Question:** What does a pretrained Transformer inference demonstrate?
+#
+# **Approach:** Run one local English sentiment prediction and contrast Hugging Face pipeline with scikit-learn Pipeline.
+#
+# **Evidence:** The movie-review example returns POSITIVE with a score of 0.999887.
+#
+# **Limit / next step:** This score is not measured accuracy. Sentiment inference supplies no evidence of disaster-classification performance.
+#
+# </details>
+#
+# <details>
+# <summary><strong>5. Key Insights, Limitations & Recommendations</strong></summary>
+#
+# **Question:** What conclusions and next steps does the evidence justify?
+#
+# **Approach:** Connect observed scores, error examples, population limits, and the separate sentiment demonstration.
+#
+# **Evidence:** Text supports measured agreement with retained annotations; real-world disaster-detection reliability remains unestablished.
+#
+# **Limit / next step:** Review annotations and event relationships, then obtain fresh representative evaluation data before making broader claims.
+#
+# </details>
+#
+# **Reading and running:** Opening a summary does not hide or run the detailed cells below.
+# In the Python editor, use **Fold Marker Regions** to fold the five complete phases; the overview stays visible.
+# For execution, run cells from top to bottom: later phases depend on objects created earlier.
+#
+# <!--
+# region 1. Data Understanding, Quality & Preparation
+# -->
+
+# %% [markdown]
+# ## 1. Data Understanding, Quality & Preparation
+#
+# ### Context and source notes
 #
 # **Project Question:** Can tweet text help distinguish disaster from non-disaster
 # examples, and what would make evidence of that ability trustworthy?
@@ -22,7 +111,7 @@
 # DataCamp links support particular operations, using original explanations here.
 
 # %% [markdown]
-# ## 1. Understand the observations and labels
+# ### 1.1 Understand the observations and labels
 #
 # ### ❓ Main Question
 # What do the dataset structure and target distribution tell us before modeling?
@@ -36,7 +125,10 @@
 #
 # **✅ Notes for Students:** Open this repository in VS Code, select its existing
 # `.venv/bin/python` kernel, restart it, and run cells from top to bottom.
-# This file uses pandas and scikit-learn; ipykernel supports the Interactive Window.
+# This file uses pandas, scikit-learn, Plotly, and NLTK; ipykernel supports the Interactive Window.
+# Graph setup: `plotly==7.1.0` and `nbformat==5.11.1` in the existing environment.
+# nbformat supports inline display; no Matplotlib, Seaborn, Dash, or web account is needed.
+# The training-text lab below documents its separate, one-time NLTK resource setup.
 # A terminal alternative from the root is `.venv/bin/python disaster_tweets_classification.py`.
 
 # %%
@@ -102,6 +194,31 @@ print("Original label distribution:")
 print(target_summary.to_string())
 
 # %% [markdown]
+# ### Visual evidence — recorded class balance
+# A bar chart makes the count difference visible; printed percentages keep its size explicit.
+# These are annotations in this supplied table, not disaster prevalence in the world.
+# DataCamp's [categorical bar-chart exercise](https://campus.datacamp.com/courses/data-manipulation-with-pandas/creating-and-visualizing-dataframes?ex=2)
+# motivates aggregation before plotting; the implementation below is our Plotly adaptation.
+
+# %%
+import plotly.express as px
+
+# reset_index makes the label index a plotting column; the source table stays unchanged.
+eda_class_counts = target_summary.reset_index()
+eda_class_counts["class"] = eda_class_counts["target"].map({0: "0 — Non-disaster", 1: "1 — Disaster"})
+eda_class_figure = px.bar(
+    eda_class_counts, x="class", y="rows", text="rows",
+    hover_data={"percent": ":.2f", "target": False},
+    labels={"class": "Recorded class", "rows": "Source rows", "percent": "Percent of 7,613 rows"},
+    title="Recorded labels in the original dataset (n = 7,613)",
+    height=360, template="plotly_white",
+)
+eda_class_figure.update_traces(marker_color=["#0072B2", "#D55E00"], textposition="outside")
+eda_class_figure.update_layout(yaxis_range=[0, 5000], margin=dict(t=65, b=55))
+# show renders an interactive figure; it does not publish or upload the dataset.
+eda_class_figure.show()
+
+# %% [markdown]
 # ### ✅ Evidence & Interpretation
 # The supplied table has 7,613 rows and two columns, with no missing values,
 # blank texts, or invalid labels. Class `0` contains 4,342 rows (57.03%);
@@ -113,7 +230,7 @@ print(target_summary.to_string())
 # **What changes when we count texts rather than rows, and inspect label agreement?**
 
 # %% [markdown]
-# ## 2. Distinguish repeated texts from conflicting annotations
+# ### 1.2 Distinguish repeated texts from conflicting annotations
 #
 # ### ❓ Main Question
 # How much repetition and label disagreement does exact text equality reveal?
@@ -131,16 +248,18 @@ print(target_summary.to_string())
 # %% [markdown]
 # ### 🗺️ Mental Model — Rows become a group
 #
-# ```text
-# A/0   A/0   A/1
-#  \     |     /
-#   +----+----+
-#        |
-#        v
-# One text group
-# 3 rows; 2 extra
-# 2 labels -> disagreement
+# <!-- Reserve diagram space before Mermaid finishes rendering in the Interactive Window. -->
+# <div style="height: 300px; overflow: auto;">
+#
+# ```mermaid
+# flowchart LR
+#     R1["A / 0"] --> G["One text group<br/>3 rows; 2 extra"]
+#     R2["A / 0"] --> G
+#     R3["A / 1"] --> G
+#     G --> L["2 labels<br/>Disagreement"]
 # ```
+#
+# </div>
 
 # %%
 # text_counts maps each exact string (its index) to the number of source rows using it.
@@ -191,7 +310,7 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # previously different strings count as the same input?**
 
 # %% [markdown]
-# ## 3. Understand what normalization changes
+# ### 1.3 Understand what normalization changes
 #
 # ### ❓ Main Question
 # Which observations become equivalent under our chosen text preparation?
@@ -259,7 +378,7 @@ print(prepared.loc[collision_mask].to_string())
 # population we will evaluate?**
 
 # %% [markdown]
-# ## 4. Apply the retention policy and account for the population
+# ### 1.4 Apply the retention policy and account for the population
 #
 # ### ❓ Main Question
 # Which observations remain under the agreed policy, and what does exclusion cost?
@@ -330,16 +449,45 @@ print("Unaccounted source rows:", unaccounted_rows)
 print("Remaining extra occurrences / conflicting groups:", remaining_duplicates, remaining_conflicts)
 
 # %% [markdown]
+# ### Visual evidence — what the retention policy removes
+# Compare retained and excluded counts in separate panels because their scales differ greatly.
+# Exclusion reasons are disjoint; stacked colors show each reason's recorded label composition.
+# Compare counts using each panel's axis, not bar heights across panels.
+
+# %%
+# melt turns the two label columns into rows so Plotly can color the stacked bars.
+eda_retention = preparation_counts.loc[["prepared", "conflicts excluded", "repeats excluded"], ["label_0", "label_1"]]
+eda_retention = eda_retention.reset_index().melt(id_vars="stage", var_name="class", value_name="rows")
+eda_retention["class"] = eda_retention["class"].map({"label_0": "0 — Non-disaster", "label_1": "1 — Disaster"})
+eda_retention["panel"] = eda_retention["stage"].map({
+    "prepared": "Retained", "conflicts excluded": "Excluded", "repeats excluded": "Excluded",
+})
+eda_retention_figure = px.bar(
+    eda_retention, x="stage", y="rows", color="class", text="rows", facet_col="panel",
+    color_discrete_sequence=["#0072B2", "#D55E00"],
+    labels={"stage": "Policy outcome", "rows": "Source rows", "class": "Recorded class"},
+    title="Retention accounting: 7,483 retained + 56 conflicts + 74 repeats = 7,613",
+    height=400, template="plotly_white",
+)
+# Independent axes prevent the small exclusion counts from disappearing beside retained rows.
+eda_retention_figure.update_yaxes(matches=None, showticklabels=True, rangemode="tozero")
+eda_retention_figure.update_xaxes(matches=None)
+eda_retention_figure.update_layout(legend=dict(orientation="h", y=-0.3), margin=dict(b=100))
+eda_retention_figure.show()
+
+# %% [markdown]
 # ### ✅ Evidence & Interpretation
 # The 18 conflicting normalized groups contain 56 rows: 29 labeled `0`, 27 labeled `1`.
 # Removing them, then 74 redundant consistent occurrences (16 / 58 by label),
 # leaves 7,483 rows: 4,297 labeled `0`, 3,186 labeled `1`.
 # The accounting difference, remaining duplicates, and remaining conflicts are all zero.
 #
-# Class `1` now represents 42.58%, compared with 42.97% originally. A small shift
-# in class proportions does not make the exclusions neutral.
-# Examples with conflicting recorded labels are excluded;
-# other ambiguous or incorrectly labeled texts may remain.
+# Class `1` now represents 42.58%, compared with 42.97% originally.
+#
+# > **⚠️ Watch Out — Excluding conflicts changes who the score describes**
+# >
+# > The policy removes 56 conflicting rows and 74 repeats before evaluation; a small change in class balance does not make exclusions neutral.
+# > Agreement among retained labels does not establish that those labels are correct or that excluded cases would be classified reliably.
 #
 # ### 🧠 Learning → Better Questions
 # Mapping group decisions back to every source row avoids retaining an arbitrary
@@ -354,7 +502,7 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # on retained tweets for evidence covering every original example.
 
 # %% [markdown]
-# ## 5. Separate training and holdout observations
+# ### 1.5 Separate training and holdout observations
 #
 # ### ❓ Main Question
 # What does our training/holdout separation preserve, and what remains uncertain?
@@ -431,9 +579,10 @@ print("Shared prepared texts:", len(prepared_overlap))
 # normalization showed why distinct inputs, consistent labels, and retained rows
 # are different quantities. Filtering then changed which population can be evaluated.
 #
-# Stratification controls the class mix; removing repeated inputs addresses a
-# different risk. Zero shared strings still cannot establish independence between
-# reports about the same event or the truth of retained annotations.
+# > **⚠️ Watch Out — Different texts can describe the same event**
+# >
+# > Zero shared strings rules out exact overlap under our comparisons; it does not establish event independence or annotation accuracy.
+# > Stratification preserves class proportions but cannot prevent related reports from crossing partitions.
 #
 # **Better question:** What additional evidence would justify extending a future
 # score on these retained tweets to other events or ambiguous original examples?
@@ -458,8 +607,325 @@ print("Shared prepared texts:", len(prepared_overlap))
 #
 # </details>
 
+# <!--
+# endregion
+# region 2. Exploratory Data Analysis & Visualization
+# -->
+
 # %% [markdown]
-# ## Work block 2 — Baseline model and evaluation
+# ## 2. Exploratory Data Analysis & Visualization
+#
+# Earlier data-audit cells show class balance and retention accounting where those decisions occur.
+# This phase explores text lengths and language transformations after the split, using training rows only.
+#
+# ### Training-text distributions
+#
+# ### ❓ Main Question
+# How do text-length distributions compare between recorded classes in the training subset?
+#
+# **🎯 Goal & Approach — What & Why:** Compare characters and whitespace-separated parts to distinguish two meanings of length.
+# Use the existing training rows only; this retrospective exploration changes no model features or preparation decisions.
+# **🔎 Guiding Questions:** Do typical lengths differ, and would a difference alone establish useful classification?
+#
+# **HOW:** Count characters in original text, including spaces and punctuation; split on whitespace for a simple second measure.
+# These parts are not linguistic words or the tokens used by either TF-IDF or the Transformer.
+# DataCamp's [grouped histograms](https://campus.datacamp.com/courses/data-manipulation-with-pandas/creating-and-visualizing-dataframes?ex=5)
+# and [EDA histograms](https://campus.datacamp.com/courses/exploratory-data-analysis-in-python/getting-to-know-a-dataset?ex=4)
+# motivate distribution comparisons; this is an original adaptation to our training tweets.
+
+# %%
+# Work on a separate table: train_rows, model inputs, and source indices remain unchanged.
+eda_lengths = train_rows[["target"]].copy()
+eda_lengths["class"] = eda_lengths["target"].map({0: "0 — Non-disaster", 1: "1 — Disaster"})
+eda_lengths["characters"] = train_rows["text"].str.len()
+eda_lengths["whitespace_parts"] = train_rows["text"].str.split().str.len()
+eda_length_summary = eda_lengths.groupby("class")[["characters", "whitespace_parts"]].agg(["count", "min", "median", "max"])
+print("Training-only original-text lengths:")
+print(eda_length_summary.to_string())
+
+# %% [markdown]
+# ### Character length — shape and overlap
+# Both classes use the same 10-character intervals and axes, covering every observed length.
+# Percentages use each class's own row count, preventing the larger class from dominating through sample size alone.
+# Bins summarize a distribution; their boundaries affect its appearance and are not learned classification thresholds.
+
+# %%
+eda_character_figure = px.histogram(
+    eda_lengths, x="characters", color="class", facet_col="class", histnorm="percent",
+    category_orders={"class": ["0 — Non-disaster", "1 — Disaster"]},
+    color_discrete_sequence=["#0072B2", "#D55E00"],
+    labels={"characters": "Original-text characters", "class": "Recorded class"},
+    title="Training-text character lengths (n = 3,437 / 2,549)",
+    height=370, template="plotly_white",
+)
+# Explicit bin edges make the comparison reproducible; no observed values are clipped.
+eda_character_figure.update_traces(xbins=dict(start=0, end=160, size=10))
+eda_character_figure.update_yaxes(title_text="Percent within class")
+eda_character_figure.update_layout(showlegend=False, bargap=0.05)
+eda_character_figure.show()
+
+# %% [markdown]
+# ### Whitespace-separated parts — a complementary distribution
+# A box plot shows the median and middle half of observations, with unusual values beyond its whiskers.
+# Whiskers reach observed values within 1.5 times the interquartile range beyond each box edge.
+# The interquartile range is the width of the middle half; points beyond whiskers are not automatically errors.
+# This plot removes no rows.
+# We use the linear quartile convention explicitly so the displayed summary has a defined calculation.
+
+# %%
+eda_parts_figure = px.box(
+    eda_lengths, x="class", y="whitespace_parts", color="class", points="outliers",
+    category_orders={"class": ["0 — Non-disaster", "1 — Disaster"]},
+    color_discrete_sequence=["#0072B2", "#D55E00"],
+    labels={"class": "Recorded class", "whitespace_parts": "Whitespace-separated parts per tweet"},
+    title="Training-text length measured in whitespace-separated parts",
+    height=360, template="plotly_white",
+)
+eda_parts_figure.update_traces(quartilemethod="linear")
+eda_parts_figure.update_layout(showlegend=False)
+eda_parts_figure.show()
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# Class 0 has 3,437 training rows: median 101 characters, range 7–157; class 1 has 2,549: median 114, range 14–150.
+# Both classes have median 15 whitespace-separated parts; their ranges are 1–31 and 2–30, respectively.
+# Typical character length differs, while typical part count does not; the distributions overlap and neither observation establishes classification performance.
+#
+# > **⚠️ Watch Out — Different distributions do not establish predictive value**
+# >
+# > The distributions overlap; their descriptive differences alone establish neither classification performance nor the causes of those differences.
+# > Recorded labels also remain annotations, not independently verified events.
+#
+# The original table has no missing fields, so a missingness chart would add little beyond the existing zero-count check.
+#
+# ### 🧠 Learning → Better Questions
+# Length depends on its definition; inspecting only an average or median would hide variation within each class.
+# **Better question:** What accounts for the character-length difference when the median part count is identical?
+# **Current answer:** Not established; examining part lengths, URLs, and annotation context in training data could investigate it, without assuming a cause.
+# **⚖️ Ethical Takeaway:** Longer text is not evidence that a report describes a real emergency.
+
+# %% [markdown]
+# ### Text Preprocessing: Tokenization & Lemmatization
+#
+# ### ❓ Main Question
+# How do tokenization and lemmatization change selected training tweets, and what information could cleaning erase?
+#
+# **🎯 Goal & Approach — What & Why:** Make language transformations visible before deciding whether they belong in a classifier.
+# Inspect five reproducibly sampled training tweets in a separate table; keep the established model inputs and evaluation unchanged.
+# **🔎 Guiding Questions:** Which units become tokens, which forms change, and does a smaller vocabulary establish better predictions?
+#
+# **📋 Context, Source & Task:** This is an original retrospective adaptation of school methods and DataCamp teaching examples.
+# Source locations below use one-based notebook cell numbers and PDF page numbers; saved school outputs are not our results.
+#
+# | Teaching reference | What we transfer or adapt |
+# | --- | --- |
+# | MasterSchool `GMT20250210-Introduction to NLP.pdf`, pp. 20–29 | Tokenization, stemming, and lemmatization; cleaning choices depend on the task. |
+# | MasterSchool `3.2 Campus Project Preparation.pptx.pdf`, pp. 11–15 | Inspect tokens, grammatical tags, lemmas, and reconstructed text. Its code examples use 20 Newsgroups. |
+# | MasterSchool `GMT20250212-fetch_20newsgroups.ipynb`, cells 10–22 | WordNet with POS tags; here tag whole sequences before filtering, rather than each word in isolation. |
+# | MasterSchool `guided_campus.ipynb`, cell 4 | An explicit preparation sequence; its source matches our local `guided.ipynb`. |
+# | DataCamp [tokenization](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=2), [stemming](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=9), and [lemmatization](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=10) | Inspect intermediate representations, using our own examples and NLTK. |
+# | DataCamp [before/after lemmas](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/text-preprocessing-pos-tagging-and-ner?ex=4) and [POS tagging](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/text-preprocessing-pos-tagging-and-ner?ex=9) | Transfer the comparison and grammatical context; those exercises use spaCy, which this lab does not require. |
+#
+# ### WHY → HOW: distinguish the operations
+# Tokenization chooses text units; it does not yet assign TF-IDF weights or learn disaster labels.
+# Stemming uses shortening rules, while lemmatization looks up possible base forms using a dictionary and a specified part of speech.
+# POS tagging estimates grammatical roles from a token sequence; WordNet itself does not read the surrounding sentence.
+#
+# School and DataCamp examples use `word_tokenize`; we compare it with NLTK's `TweetTokenizer` on one sampled tweet.
+# The latter preserves hashtags and the URL in this example, making the adaptation to social text inspectable.
+# This is a representation comparison, not evidence that either tokenizer improves classification.
+#
+# **Setup used:** `nltk==3.10.4`, with `punkt_tab`, `wordnet`, `averaged_perceptron_tagger_eng`, and `stopwords` under `~/nltk_data`.
+# One-time setup in an approved environment:
+# `.venv/bin/python -m pip install --only-binary=:all: "nltk==3.10.4"`
+# then `.venv/bin/python -m nltk.downloader -d ~/nltk_data punkt_tab wordnet averaged_perceptron_tagger_eng stopwords`.
+# These commands are documentation, not automatic downloads during analysis; restart the kernel after installation.
+# See [NLTK data setup](https://www.nltk.org/data.html), [TweetTokenizer](https://www.nltk.org/api/nltk.tokenize.casual.html),
+# [POS tagging](https://www.nltk.org/api/nltk.tag.html), and [WordNet lemmatization](https://www.nltk.org/api/nltk.stem.wordnet.html).
+
+# %% [markdown]
+# ### 🗺️ Mental Model — Inspect language transformations
+#
+# <div style="height: 180px; overflow: auto;">
+#
+# ```mermaid
+# flowchart LR
+#     T["Five training<br/>tweets"] --> K["Tokenize<br/>Keep context"]
+#     K --> P["Estimate POS<br/>Look up lemmas"]
+#     P --> E["Inspect changes<br/>and information loss"]
+# ```
+#
+# </div>
+# This teaching branch does not replace the baseline inputs.
+
+# %%
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.tokenize import TweetTokenizer, word_tokenize
+
+# Sample without looking at labels or model errors; retain CSV source indices for traceability.
+# Five observations illustrate behavior but cannot estimate its prevalence across the dataset.
+nlp_examples = train_rows[["text", "prepared_text"]].sample(n=5, random_state=42).sort_index()
+print("\nLanguage lab: NLTK", nltk.__version__)
+print("Five training examples, indexed by source row:")
+print(nlp_examples[["text"]].to_string())
+
+# Preserve case for grammatical tagging and keep handles/repeated characters as configured.
+# The example is the second sampled row in source-index order, not a chosen model error.
+nlp_tokenizer = TweetTokenizer(preserve_case=True, reduce_len=False, strip_handles=False)
+nlp_example_text = nlp_examples["text"].iloc[1]
+print("\nTokenization example, source row:", nlp_examples.index[1])
+print("School word_tokenize:", word_tokenize(nlp_example_text))
+print("TweetTokenizer:", nlp_tokenizer.tokenize(nlp_example_text))
+
+# A short original illustration supplies known grammatical roles: noun, verb, and adjective.
+# The default WordNet call assumes a noun; the explicit POS call can produce a different lemma.
+nlp_lemmatizer = WordNetLemmatizer()
+nlp_stemmer = PorterStemmer()
+nlp_method_records = []
+for word, wordnet_pos in [("floods", "n"), ("running", "v"), ("better", "a")]:
+    nlp_method_records.append({
+        "word": word, "Porter stem": nlp_stemmer.stem(word),
+        "noun-default lemma": nlp_lemmatizer.lemmatize(word),
+        "specified POS": wordnet_pos, "POS lemma": nlp_lemmatizer.lemmatize(word, pos=wordnet_pos),
+    })
+print("\nIllustrative words, not dataset measurements:")
+print(pd.DataFrame(nlp_method_records).to_string(index=False))
+
+# %% [markdown]
+# ### Apply dictionary lookup with grammatical context
+# Tag each complete token sequence before considering removal, retaining surrounding words as context.
+# Map Treebank tag prefixes to WordNet roles: adjective, noun, verb, and adverb.
+# Lemmatize alphabetic tokens with those roles, while leaving estimated proper names and other token types unchanged apart from lowercasing.
+#
+# > **⚠️ Watch Out — Grammatical tags are estimates**
+# >
+# > POS tags can be unreliable for abbreviations, informal text, and names; inspect the token/tag/lemma pairs before accepting changes.
+# > Preserving negation and special tokens does not make this demonstration a validated cleaning policy or a lossless reconstruction.
+
+# %%
+# This dictionary translates two tag conventions; it does not learn anything from our labels.
+# Each record below represents one token position in one sampled training tweet.
+nlp_pos_map = {"J": "a", "N": "n", "V": "v", "R": "r"}
+nlp_token_records = []
+for source_row, original_text in nlp_examples["text"].items():
+    nlp_tokens = nlp_tokenizer.tokenize(original_text)
+    nlp_tagged_tokens = nltk.pos_tag(nlp_tokens)
+    for position, (token, tag) in enumerate(nlp_tagged_tokens):
+        # Lowercase only after tagging; compare lemmas with this same lowercased form.
+        # NNP/NNPS denote estimated proper names; unknown tag prefixes return None.
+        lower_token = token.lower()
+        wordnet_pos = nlp_pos_map.get(tag[0])
+        eligible = token.isalpha() and not tag.startswith("NNP") and wordnet_pos is not None
+        lemma = nlp_lemmatizer.lemmatize(lower_token, pos=wordnet_pos) if eligible else lower_token
+        nlp_token_records.append({
+            "source_row": source_row, "position": position, "token": token,
+            "lowercase": lower_token, "POS": tag, "lemma": lemma,
+            "changed": lemma != lower_token,
+        })
+
+# Token-table indices are record positions; source_row and position retain the original mapping.
+# The changed-only view excludes case changes, so it isolates the dictionary-lookup effect.
+nlp_token_table = pd.DataFrame(nlp_token_records)
+nlp_changed_tokens = nlp_token_table.loc[nlp_token_table["changed"], ["source_row", "token", "POS", "lemma"]]
+print("\nAll changed tokens in the five-example lab:")
+print(nlp_changed_tokens.to_string(index=False))
+print("Token occurrences / changed occurrences:", len(nlp_token_table), len(nlp_changed_tokens))
+print("Distinct lowercased forms / lemmas:", nlp_token_table["lowercase"].nunique(), nlp_token_table["lemma"].nunique())
+
+# Grouping preserves token order within each tweet; joining is for inspection, not model input.
+# These strings may contain new spaces around punctuation and are not exact original text.
+nlp_reconstructed = nlp_token_table.groupby("source_row", sort=False)["lemma"].agg(" ".join)
+print("\nReconstructed lemma strings (teaching output only):")
+print(nlp_reconstructed.to_string())
+
+# %% [markdown]
+# ### Visual evidence — count changes within each sampled tweet
+# Stack changed and unchanged token occurrences so each bar totals that tweet's token count.
+# The denominator includes punctuation, URLs, and hashtags retained by this tokenizer; this is not a count of linguistic words.
+
+# %%
+# A status describes each token occurrence; grouping counts occurrences, not distinct vocabulary entries.
+# Source-row numbers become strings so the chart treats them as five categories, not a continuous scale.
+nlp_change_counts = nlp_token_table.assign(
+    status=nlp_token_table["changed"].map({False: "Unchanged", True: "Changed by lemmatization"})
+).groupby(["source_row", "status"]).size().reset_index(name="tokens")
+nlp_change_counts["source_row"] = nlp_change_counts["source_row"].astype(str)
+nlp_change_figure = px.bar(
+    nlp_change_counts, x="source_row", y="tokens", color="status", text="tokens",
+    category_orders={"status": ["Unchanged", "Changed by lemmatization"]},
+    color_discrete_sequence=["#0072B2", "#D55E00"],
+    labels={"source_row": "Sampled training source row", "tokens": "Token occurrences", "status": "Lookup result"},
+    title="Lemmatization changes 15 of 97 tokens in five training examples",
+    height=360, template="plotly_white",
+)
+nlp_change_figure.update_layout(legend=dict(orientation="h", y=-0.25), margin=dict(b=90))
+nlp_change_figure.show()
+
+# %% [markdown]
+# ### Inspect information loss before calling text “clean”
+# DataCamp's [stop-word exercise](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=5)
+# and the school notebooks filter common words using an English list.
+# We test that operation on an original illustrative sentence because its negation has a clear role.
+
+# %%
+# This sentence is invented for a mechanism check; it is not a tweet or an evaluation observation.
+# The stop-word set is a supplied language resource, not a list learned from our training data.
+nlp_negation_example = "Residents are not trapped by the floods."
+nlp_stop_words = set(stopwords.words("english"))
+nlp_negation_tokens = [word.lower() for word in word_tokenize(nlp_negation_example) if word.isalpha()]
+nlp_filtered_tokens = [word for word in nlp_negation_tokens if word not in nlp_stop_words]
+nlp_removed_tokens = [word for word in nlp_negation_tokens if word in nlp_stop_words]
+print("\nIllustrative sentence:", nlp_negation_example)
+print("Removed stop words:", nlp_removed_tokens)
+print("After that removal:", " ".join(nlp_filtered_tokens))
+
+# %% [markdown]
+# > **⚠️ Watch Out — Removing `not` erases the denial**
+# >
+# > **Before:** Residents are **not** trapped by the floods.
+# >
+# > **After stop-word removal:** `residents trapped floods`
+# >
+# > **A common word can carry essential meaning.** Removing `not` discards the explicit denial, so stop-word removal needs task-specific justification.
+# > This constructed example demonstrates information loss, not a measured classification error.
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# In source row 2879, `word_tokenize` separates hashtag markers; `TweetTokenizer` keeps hashtag units and the URL together.
+# Token definitions therefore change the units available to later processing, even for the same text.
+# Both are different from the baseline vectorizer's default token rule, which we retain and inspect in the next phase.
+#
+# Across the five sampled tweets, 15 of 97 token occurrences change beyond lowercasing; distinct forms decrease from 89 to 87.
+# Examples include `driven → drive`, `spreading → spread`, and `tracks → track`; these observations describe this sample only.
+# The controlled word table also shows why a noun-default call leaves `running` unchanged, while specifying a verb produces `run`.
+#
+# No filtered or lemmatized string replaces `X_train`, `X_holdout`, or the duplicate-policy key.
+#
+# ### 🧠 Learning → Better Questions
+# **Data → Information:** Original strings become inspectable token/tag/lemma records, with counted changes and traceable source rows.
+# **Knowledge → Wisdom:** Fewer distinct forms can coexist with lost meaning; inspect both before adopting a transformation.
+#
+# > **⚠️ Watch Out — Fewer word forms do not establish better F1**
+# >
+# > The five-example sample measures transformations, not classifier performance.
+# > Its vocabulary reduction establishes neither improved predictions nor better understanding of disaster reports.
+#
+# **Better question:** Does lemmatization improve class-1 F1 when all other modeling choices stay fixed?
+# **Current answer:** Not established; this lab evaluates transformations, not a new classifier.
+# Answering it would need a separately agreed training-only comparison with identical folds and learned features fitted inside each fold.
+# **⚖️ Ethical Takeaway:** Keep the original text available so preprocessing cannot silently turn a denial into an apparent emergency claim.
+
+# <!--
+# endregion
+# region 3. Predictive Modeling, Comparison & Evaluation
+# -->
+
+# %% [markdown]
+# ## 3. Predictive Modeling, Comparison & Evaluation
+#
+# ### Baseline model and evaluation
 #
 # ### ❓ Main Question
 # How well does the TF-IDF + Logistic Regression baseline classify the held-out
@@ -473,6 +939,8 @@ print("Shared prepared texts:", len(prepared_overlap))
 # held-out text, and fitting/evaluating Logistic Regression. Here those steps form
 # one Pipeline. We retain its sound sequence, not its movie-review cleaning,
 # `sag` solver choice, warning suppression, or example scores.
+# The newly inspected `GMT20250226 Pipeline II.ipynb`, cells 20–25, also puts text vectorization inside a model-selection Pipeline.
+# We retain that separation principle; its saved source contains a stray `L` in cell 20, so it is not copied verbatim.
 #
 # DataCamp sources inspected for this adaptation:
 # - [TF-IDF vectors for TED talks](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/tf-idf-and-similarity-scores?ex=3): instructions and starter code for numerical text features.
@@ -505,10 +973,11 @@ print("Shared prepared texts:", len(prepared_overlap))
 # Guided cell 15 compares two classifiers in a loop; they are alternatives, not
 # two simultaneous final predictors inside one Pipeline.
 #
-# **⚠️ Source check:** Guided cell 1's positive/negative variable names disagree with
-# the loaded file suffixes; names alone cannot establish label meaning.
-# Cell 9 prints the sample count twice, so its displayed feature count is unreliable.
-# We inspect actual inputs and matrix dimensions rather than copying those displays.
+# > **⚠️ Watch Out — Verify school outputs against actual inputs**
+# >
+# > Guided cell 1's positive/negative variable names disagree with the loaded file suffixes; names alone cannot establish label meaning.
+# > Cell 9 prints the sample count twice, so its displayed feature count is unreliable.
+# > Check actual inputs and matrix dimensions before reusing those displays.
 #
 # ### 6. A — How does text become numerical evidence?
 #
@@ -532,11 +1001,13 @@ print("Shared prepared texts:", len(prepared_overlap))
 # zero weights. A sparse matrix stores nonzero entries efficiently instead of a
 # large dense table.
 #
-# **⚠️ Watch Out:** The default `(?u)\b\w\w+\b` rule selects runs of at least two
+# The default `(?u)\b\w\w+\b` rule selects runs of at least two
 # Unicode word characters: letters, digits, and underscores.
-# Punctuation separates tokens: `#fire` becomes `fire`, while the one-character `t`
-# in a URL is dropped. URLs and mentions contribute fragments; single-token features
-# lose word order and the context needed to interpret negation, even when `not` remains.
+#
+# > **⚠️ Watch Out — Keeping `not` does not preserve its context**
+# >
+# > Unigrams discard word order, so the baseline cannot directly represent which words `not` modifies.
+# > Tokenization also changes visible text: `#fire` becomes `fire`, one-character tokens disappear, and URLs or mentions contribute fragments.
 #
 # Fixed TF-IDF defaults use word unigrams, no vocabulary cap or stop-word removal,
 # smoothed IDF, and L2 row normalization.
@@ -582,31 +1053,20 @@ baseline_pipeline = Pipeline(baseline_steps)
 # %% [markdown]
 # ### 🗺️ Mental Model — Learn once, reuse for prediction
 #
-# ```text
-# FIT
-# Training text
-#       |
-#       v
-# Learn vocabulary + IDF
-#       |
-#       v
-# Features + training labels
-#       |
-#       v
-# Learn coefficients + intercept
+# <!-- Reserve diagram space before Mermaid finishes rendering in the Interactive Window. -->
+# <div style="height: 240px; overflow: auto;">
 #
-# PREDICT
-# Holdout text
-#       |
-#       v
-# Reuse vocabulary + IDF
-#       |
-#       v
-# Features -> reuse classifier
-#       |
-#       v
-# Predicted labels
+# ```mermaid
+# flowchart LR
+#     T["FIT<br/>Training text"] --> V["Learn<br/>vocabulary + IDF"]
+#     V --> F["Features +<br/>training labels"]
+#     F --> C["Learn coefficients<br/>+ intercept"]
+#     H["PREDICT<br/>Holdout text"] --> R["Reuse<br/>vocabulary + IDF"]
+#     R --> P["Features<br/>Reuse classifier"]
+#     P --> Y["Predicted labels"]
 # ```
+#
+# </div>
 #
 # %% [markdown]
 # Logistic Regression learns one coefficient per term and an intercept from
@@ -650,6 +1110,72 @@ print("One training document's feature-matrix shape:", training_example_features
 # TF-IDF learned vocabulary and IDF from text alone; Logistic Regression used those
 # features and the recorded training labels to learn coefficients and an intercept.
 # Prediction reuses all of these quantities without updating them from holdout text or labels.
+#
+# %% [markdown]
+# ### From tokens to visible TF-IDF features
+#
+# **Main Question:** Which terms and weights does our existing fitted vectorizer produce for the inspected training tweet?
+# **Goal:** Connect the language lab to the actual baseline representation, without fitting another vectorizer or changing predictions.
+# MasterSchool's `GMT20250213-MovieLens 100K Dataset.ipynb`, cells 7–11, displays count and TF-IDF tables for small texts.
+# DataCamp's [TF-IDF representation of product feedback](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/feature-extraction-from-text?ex=7)
+# supplies a similar table pattern; we inspect only one sparse row instead of making the entire training matrix dense.
+#
+# **HOW:** The fitted vectorizer's analyzer supplies its actual tokens; counting them gives this document's term frequencies.
+# Stored feature indices connect nonzero weights to vocabulary names and learned IDF values.
+# The graph ranks TF-IDF weights, which are neither classifier coefficients nor evidence that a term caused a prediction.
+
+# %%
+from collections import Counter
+
+# Reuse the already transformed training example; these operations perform no fit.
+# Counter maps each actual baseline token to its occurrence count within this one tweet.
+nlp_baseline_tokens = tfidf_vectorizer.build_analyzer()(training_example_text.iloc[0])
+nlp_term_counts = Counter(nlp_baseline_tokens)
+nlp_sparse_row = training_example_features.getrow(0)
+nlp_feature_indices = nlp_sparse_row.indices
+nlp_feature_terms = tfidf_vectorizer.get_feature_names_out()[nlp_feature_indices]
+
+# One row represents one nonzero feature, aligned by the sparse row's column indices.
+# IDF comes from all training documents; TF-IDF also includes the configured L2 row normalization.
+nlp_feature_table = pd.DataFrame({
+    "term": nlp_feature_terms,
+    "count_in_tweet": [nlp_term_counts[term] for term in nlp_feature_terms],
+    "training_idf": tfidf_vectorizer.idf_[nlp_feature_indices],
+    "tfidf_weight": nlp_sparse_row.data,
+}).sort_values(["tfidf_weight", "term"], ascending=[False, True])
+print("\nActual baseline tokens, source row", training_example_text.index[0], ":")
+print(nlp_baseline_tokens)
+print("Nonzero features / fitted vocabulary:", len(nlp_feature_table), len(tfidf_vectorizer.vocabulary_))
+print("Ten largest TF-IDF weights for this training example:")
+print(nlp_feature_table.head(10).round(4).to_string(index=False))
+
+# A small display table keeps the plot readable; other nonzero features remain in nlp_feature_table.
+nlp_feature_plot = nlp_feature_table.head(10).sort_values("tfidf_weight", kind="stable")
+nlp_feature_figure = px.bar(
+    nlp_feature_plot, x="tfidf_weight", y="term", orientation="h",
+    hover_data={"count_in_tweet": True, "training_idf": ":.3f", "tfidf_weight": ":.4f"},
+    labels={"tfidf_weight": "TF-IDF weight after L2 normalization", "term": "Vocabulary term",
+            "count_in_tweet": "Occurrences in tweet", "training_idf": "Training IDF"},
+    title=f"Ten largest feature weights: training source row {training_example_text.index[0]}",
+    height=390, template="plotly_white",
+)
+nlp_feature_figure.update_traces(marker_color="#0072B2")
+nlp_feature_figure.show()
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# The printed tokens and table answer the feature question using the unchanged fitted baseline, not the language lab's lemmas.
+# Each displayed term has a document count, a training-derived IDF, and a normalized weight; the chart shows only ten nonzero entries.
+# Vocabulary terms absent from the full sparse row have zero weight for this tweet.
+# For equal counts within this document, larger IDF gives larger TF-IDF weight, without establishing greater predictive usefulness.
+#
+# **Better question:** Does a large TF-IDF weight imply that a term supports class 1?
+#
+# > **⚠️ Watch Out — TF-IDF weight is not a class contribution**
+# >
+# > **Answer:** No; whether a term supports class 1 also depends on the classifier's signed coefficient.
+# > The chart displays input feature weights, not coefficients or their contributions to the decision.
+# > A feature representation does not explain what caused a real disaster.
 #
 # ### 🧠 Learning → Better Questions
 # Fitting has established a representation and model, not their performance on unseen
@@ -718,6 +1244,25 @@ print("Confusion matrix (counts):")
 print(confusion_table.to_string())
 
 # %% [markdown]
+# ### Visual evidence — the same holdout disagreements
+# MasterSchool's `GMT20250219 load_dataset('imdb').ipynb`, cells 22 and 26, displays confusion matrices as heatmaps.
+# This Plotly adaptation visualizes our existing counts: rows are recorded labels and columns are predictions.
+# It adds no evaluation observations or new model result; sentiment class names from the lesson do not apply here.
+
+# %%
+nlp_confusion_figure = px.imshow(
+    confusion_counts, text_auto=True,
+    x=["0 — Non-disaster", "1 — Disaster"],
+    y=["0 — Non-disaster", "1 — Disaster"],
+    labels={"x": "Predicted label", "y": "Recorded label", "color": "Tweets"},
+    color_continuous_scale="Blues", zmin=0, zmax=int(confusion_counts.max()),
+    title="Original baseline holdout: 108 false positives and 208 false negatives",
+    height=380, template="plotly_white",
+)
+nlp_confusion_figure.update_xaxes(side="bottom")
+nlp_confusion_figure.show()
+
+# %% [markdown]
 # ### ✅ Evidence & Interpretation
 # On the unchanged 1,497-row holdout, class-1 F1 is **0.7308**, precision **0.7989**,
 # recall **0.6735**, and overall accuracy **0.7889**. Support is 860 for class 0 and
@@ -728,9 +1273,13 @@ print(confusion_table.to_string())
 # disasters are found.
 #
 # **What do the 208 missed examples among 637 recorded positives reveal that
-# overall accuracy does not?** The model misses 32.65% of recorded positives,
-# despite matching 1,181 of 1,497 labels overall.
-# Accuracy combines both classes and hides this uneven recognition.
+# overall accuracy does not?**
+#
+# > **⚠️ Watch Out — Accuracy hides missed disaster labels**
+# >
+# > **Answer:** At 78.89% accuracy, the model still misses 208 of 637 recorded positives (32.65%).
+# > The 1,181 matches among 1,497 labels combine both classes and hide this uneven recognition.
+# > Read class-1 recall and the confusion matrix alongside accuracy.
 #
 # Scores count disagreements but do not explain them. Inspect at most three examples
 # per error type, taking the lowest source indices so the selection is reproducible.
@@ -815,7 +1364,7 @@ print(false_negatives.to_string())
 # remains **UNASSESSED**; successful execution does not demonstrate understanding.
 
 # %% [markdown]
-# ## Post-baseline learning — Guided cross-validation and model comparison
+# ### Post-baseline learning — Guided cross-validation and model comparison
 #
 # ### ❓ Main Question
 # How do classifier choice and adjacent token pairs change training-fold F1,
@@ -840,10 +1389,10 @@ print(false_negatives.to_string())
 # Cell 15 compares Logistic Regression and LinearSVC with `(1, n)` n-grams for
 # `n = 1, 2, 3, 4`; it does not vary Logistic Regression's `C`.
 #
-# **⚠️ Watch Out — fold leakage:** Both guided cells fit TF-IDF on all training
-# text before CV, so each validation fold has already influenced vocabulary and IDF.
-# We retain the comparison idea but pass raw prepared strings and the entire
-# Pipeline into CV; each fold learns its own representation.
+# > **⚠️ Watch Out — Learn TF-IDF inside every CV fold**
+# >
+# > Both guided cells fit TF-IDF before CV, allowing each validation fold to influence vocabulary and IDF.
+# > Passing raw prepared strings and the entire Pipeline into CV makes each fold learn its representation from that fold's training rows only.
 #
 # Guided `cv=10` already gives this binary classifier stratified folds without shuffling.
 # We explicitly shuffle within classes with seed 42, retaining approximate class proportions.
@@ -871,29 +1420,20 @@ print(false_negatives.to_string())
 # %% [markdown]
 # ### 🗺️ Mental Model — One of ten training-only folds
 #
-# ```text
-# Existing 5,986 training rows
-#            |
-#       +----+----+
-#       |         |
-#   Nine parts  One part
-#       |       validation
-#       v         |
-#   Fit TF-IDF    |
-#       |         |
-#   Fit one       |
-#   classifier    |
-#       |         |
-#       +----+----+
-#            |
-#   Reuse fitted Pipeline
-#   on validation text
-#            |
-#    One class-1 F1 score
+# <!-- Reserve diagram space before Mermaid finishes rendering in the Interactive Window. -->
+# <div style="height: 260px; overflow: auto;">
 #
-# Repeat for all ten parts
-# Holdout stays outside
+# ```mermaid
+# flowchart LR
+#     T["Nine training parts"] --> F["Fit Pipeline<br/>TF-IDF, then classifier"]
+#     F --> P["Reuse fitted Pipeline<br/>Predict validation labels"]
+#     V["One validation part"] -->|text| P
+#     P --> S["One class-1<br/>F1 score"]
+#     V -->|recorded labels| S
 # ```
+#
+# </div>
+# Split the existing 5,986 training rows; repeat for all ten validation parts. Holdout stays outside.
 
 # %% [markdown]
 # ### 10. Keep the comparison small and explain the alternatives
@@ -936,9 +1476,10 @@ print(false_negatives.to_string())
 # Prediction adds the log prior to the sum of feature weights times log smoothed term probabilities, choosing the higher-scoring class.
 # Logs turn multiplication into addition; unknown tokens remain ignored by that fold's fitted vectorizer.
 #
-# **⚠️ Watch Out — compatible inputs are not validated assumptions:** Nonnegative TF-IDF permits this calculation;
-# it does not prove independent language features, correct labels, or trustworthy probability estimates.
-# We compare predicted labels through F1, without interpreting probabilities as certainty about a real disaster.
+# > **⚠️ Watch Out — Compatible inputs do not validate Naive Bayes assumptions**
+# >
+# > Nonnegative TF-IDF permits this calculation; it does not prove independent language features, correct labels, or trustworthy probability estimates.
+# > We compare predicted labels through F1, without interpreting probabilities as certainty about a real disaster.
 #
 # See the installed-version [Naive Bayes explanation](https://scikit-learn.org/1.5/modules/naive_bayes.html#multinomial-naive-bayes)
 # and [MultinomialNB API](https://scikit-learn.org/1.5/modules/generated/sklearn.naive_bayes.MultinomialNB.html).
@@ -946,24 +1487,21 @@ print(false_negatives.to_string())
 # %% [markdown]
 # ### 🗺️ Mental Model — Naive Bayes inside one fold
 #
-# ```text
-# Fold training TF-IDF + labels
-#              |
-#       +------+------+
-#       |             |
-# Class proportions   Term weight totals
-#       |             | per class
-#       v             v
-# Class priors     Add alpha, normalize
-#       |             |
-#       +------+------+
-#              |
-# Validation TF-IDF -> class log scores
-#              |
-#      Choose class 0 or 1
-#              |
-# Compare with validation labels -> F1
+# <!-- Reserve diagram space before Mermaid finishes rendering in the Interactive Window. -->
+# <div style="height: 380px; overflow: auto;">
+#
+# ```mermaid
+# flowchart LR
+#     T["Fold training<br/>TF-IDF + labels"] --> P["Class proportions<br/>Class priors"]
+#     T --> W["Term weight totals per class<br/>Add alpha; normalize"]
+#     P --> S["Class log scores<br/>Choose class 0 or 1"]
+#     W --> S
+#     V["Validation TF-IDF"] --> S
+#     S --> F["Compare labels<br/>F1"]
+#     L["Recorded<br/>validation labels"] --> F
 # ```
+#
+# </div>
 
 # %% [markdown]
 # Ten folds times six configurations means 60 fresh Pipeline fits: the original 40 plus 20 Naive Bayes fits.
@@ -1107,10 +1645,11 @@ print(cv_summary.round(4).to_string())
 # The original 0.7308 holdout F1 evaluates a different set and training size;
 # subtracting it from a CV average would not measure an improvement on the same evaluation.
 #
-# **⚠️ Watch Out — retrospective selection:** The highest CV mean identifies only
-# the highest observed average among these six configurations on this partition.
-# Using the same results to choose a configuration and advertise its performance introduces selection optimism.
-# Our already inspected holdout cannot become a new independent final evaluation.
+# > **⚠️ Watch Out — The best CV average is not fresh test performance**
+# >
+# > The highest mean identifies only the highest observed average among these six configurations on this partition.
+# > Choosing a configuration and advertising its performance from the same results introduces selection optimism.
+# > Our already inspected holdout cannot become a new independent final evaluation.
 #
 # Guided cell 16 refits its chosen configuration and evaluates its test set.
 # We deliberately stop at training-only comparison, keeping the original baseline model,
@@ -1133,3 +1672,207 @@ print(cv_summary.round(4).to_string())
 # task labels, resources, and dependency needs before any approved setup or inference.
 # Its pretrained-model `pipeline` serves a different purpose from fitting our scikit-learn
 # Pipeline; a sentiment prediction is not a verified disaster annotation.
+
+# <!--
+# endregion
+# region 4. Hugging Face: Pretrained Transformer Mini-Lab
+# -->
+
+# %% [markdown]
+# ## 4. Hugging Face: Pretrained Transformer Mini-Lab
+#
+# ### One pretrained Transformer inference
+#
+# ### ❓ Main Question
+# What does one pretrained sentiment prediction demonstrate, and how does its
+# pipeline differ from our fitted scikit-learn Pipeline?
+#
+# **🎯 Goal & Approach — What & Why:** Learn to interpret a pretrained model's
+# output within its actual task. Use one original English movie-review sentence,
+# separate from our tweets, to observe local inference without training or model comparison.
+#
+# **🔎 Guiding Questions:** What was learned before this lab? What do the returned
+# label and score mean, and can they answer our disaster-classification question?
+#
+# **📋 Context, Source & Task:** The closing MasterSchool Transformers lesson
+# introduces `pipeline("sentiment-analysis")`, then calls it on text and prints the result.
+# This assistant-authored adaptation names the checkpoint, revision, and CPU explicitly,
+# instead of relying on an implicit default model and download.
+#
+# DataCamp's [Using AutoClasses](https://campus.datacamp.com/courses/working-with-hugging-face/building-pipelines-with-hugging-face?ex=11)
+# provides inspected instructions and starter code combining this model, its tokenizer,
+# and a sentiment pipeline. We use the direct pipeline interface; neither source supplies our runtime result.
+# The inspected [sentiment lesson in Natural Language Processing (NLP) in Python](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-classification-with-hugging-face?ex=2)
+# uses the same DistilBERT checkpoint family; it reinforces this lab without requiring another model download or inference task.
+
+# %% [markdown]
+# ### 12. Choose a model whose output we can explain
+# DistilBERT is a smaller Transformer derived from BERT through knowledge distillation:
+# a smaller model learns from a larger model's behavior during pretraining.
+# The authors then fine-tuned this checkpoint on English SST-2 sentiment examples;
+# our lab only reuses those already learned weights.
+#
+# The selected model has approximately 67 million parameters, six Transformer layers,
+# and a 268 MB float32 safetensors weight file. Its model card declares Apache-2.0.
+# Its configuration maps `0` to `NEGATIVE` and `1` to `POSITIVE`, with a 512-position input limit.
+# These label numbers describe sentiment and have no connection to our disaster targets.
+#
+# The tokenizer converts text into vocabulary IDs, including word pieces and special tokens.
+# Attention lets each token's representation depend on other tokens in the input.
+# A classification head converts the resulting representation into two sentiment scores;
+# this computation does not verify facts or events.
+#
+# | Interface | What happens in this project? |
+# | --- | --- |
+# | scikit-learn `Pipeline.fit` | Learns TF-IDF and a classifier from our training text and labels; CV repeats fitting inside each fold. |
+# | scikit-learn `Pipeline.predict` | Reuses those learned steps to classify new text. |
+# | Hugging Face `pipeline(...)` | Loads a matching pretrained model and tokenizer, then packages tokenization, inference, and output processing. |
+# | Calling the HF pipeline on text | Reuses existing weights; this mini-lab performs no fitting or fine-tuning. |
+#
+# > **⚠️ Watch Out — Two sentiment labels leave no neutral option**
+# >
+# > This checkpoint returns either positive or negative sentiment, even when neither label captures the input well.
+# > Its model card reports country-dependent sentiment bias; one successful example cannot evaluate that bias or broader reliability.
+#
+# The card's generic "Direct Use" paragraph does not consistently describe this checkpoint;
+# its actual configuration and SST-2 training description establish the task used here.
+#
+# Sources: [model card](https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english),
+# [pinned configuration](https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/blob/714eb0fa89d2f80546fda750413ed43d93601a13/config.json),
+# [DistilBERT documentation](https://huggingface.co/docs/transformers/model_doc/distilbert),
+# and [pipeline API](https://huggingface.co/docs/transformers/main_classes/pipelines).
+
+# %% [markdown]
+# ### 🗺️ Mental Model — Reuse learned weights
+#
+# <!-- Reserve diagram space before Mermaid finishes rendering in the Interactive Window. -->
+# <div style="height: 140px; overflow: auto;">
+#
+# ```mermaid
+# flowchart LR
+#     T["Original<br/>English sentence"] --> K["Tokenizer"]
+#     K --> M["Pretrained<br/>Transformer"]
+#     M --> S["Sentiment<br/>label + score"]
+# ```
+#
+# </div>
+
+# %% [markdown]
+# ### 13. Run one local inference
+# This section additionally requires PyTorch and Transformers in the existing `.venv`.
+# The approved setup uses Python 3.11.11, `torch==2.15.0`, and `transformers==5.21.0`.
+# Restart the Interactive Window kernel after installation before running cells in order.
+#
+# Setup command, after separate installation approval:
+# `.venv/bin/python -m pip install --only-binary=:all: -c requirements.txt "torch==2.15.0" "transformers==5.21.0"`
+# Here `-c` constrains versions without installing every package in `requirements.txt`.
+#
+# First loading downloads the selected model files into the Hugging Face cache;
+# the default location is `~/.cache/huggingface/hub`, outside this repository.
+# Prediction runs locally on CPU; the demonstration sentence is not sent to a hosted inference service.
+# See [installation and caching](https://huggingface.co/docs/transformers/installation).
+
+# %%
+import torch
+import transformers
+
+print("\nHugging Face mini-lab (sentiment demonstration only):")
+print("PyTorch:", torch.__version__, "Transformers:", transformers.__version__)
+
+# These strings identify the model repository and an immutable revision of its files.
+# Pinning the revision keeps model/tokenizer selection stable across later runs.
+hf_model_id = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+hf_model_revision = "714eb0fa89d2f80546fda750413ed43d93601a13"
+
+# Load matching pretrained weights and tokenizer; no tweet data or labels enter this operation.
+# CPU is explicit; model_kwargs requests safetensors rather than another weight-file format.
+sentiment_pipeline = transformers.pipeline(
+    task="sentiment-analysis",
+    model=hf_model_id,
+    revision=hf_model_revision,
+    device="cpu",
+    model_kwargs={"use_safetensors": True},
+)
+print("Model:", hf_model_id)
+print("Revision:", hf_model_revision)
+# The loaded model's configuration maps numerical output positions to sentiment names.
+print("Sentiment labels:", sentiment_pipeline.model.config.id2label)
+
+# %%
+# One original demonstration sentence, outside the project dataset and evaluation partitions.
+# Keep natural text: this model uses its own tokenizer, not our TF-IDF preparation.
+demo_text = "The film was delightful and beautifully acted."
+
+# Calling the pipeline tokenizes the sentence, runs the fixed model, and processes its scores.
+# The result is a list with one dictionary for this input: its top label and softmax score.
+# Softmax turns two raw class scores into positive values summing to one; weights are not updated.
+sentiment_result = sentiment_pipeline(demo_text)
+print("Demonstration text:", demo_text)
+print("Observed sentiment result:", sentiment_result)
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# The complete script ran successfully on CPU on 2026-10-29 with the versions and
+# checkpoint revision printed above. The observed result for
+# `The film was delightful and beautifully acted.` was `POSITIVE`, score **0.999887** (rounded).
+#
+# > **⚠️ Watch Out — A high sentiment score does not establish disaster detection**
+# >
+# > `POSITIVE` names a sentiment label; `0.999887` is its softmax score, not measured accuracy or a calibrated guarantee of correctness.
+# > Neither available label answers whether a disaster occurred.
+#
+# Pretraining and SST-2 fine-tuning happened before this lab; this call reused the
+# tokenizer and model without learning from our sentence or tweets.
+# Unlike our scikit-learn `fit` calls, inference changed no model weights.
+# This verifies one local prediction, not performance across a population.
+#
+# The full rerun reproduced the previous baseline and all 60 printed CV fold scores
+# exactly, including their summaries. The holdout F1 remains 0.7308;
+# the sentiment score is a different quantity and must not be compared with that F1.
+
+# %% [markdown]
+# ### 🧠 Learning → Better Questions
+# The sentence and observed output are **Data**; the checkpoint, English sentiment
+# task, and label definitions give them context as **Information**.
+# **Knowledge:** a working inference path can answer its configured task while
+# providing no evidence for another task, even when its score is high.
+#
+# **Wisdom:** restrict this result to a sentiment demonstration.
+# The task mismatch makes checking label meaning more useful than treating a large score as success on our project question.
+#
+# **Better Question:** What evidence would justify using a pretrained model for disaster classification?
+# **Current answer: not established here.** It would require task-aligned labels and
+# independent, representative disaster evaluation with reviewed annotations and event relationships.
+# This demonstration supplies neither; the question does not authorize another experiment.
+#
+# **⚖️ Ethical Takeaway:** Do not present sentiment confidence as evidence that a disaster occurred.
+
+# <!--
+# endregion
+# region 5. Key Insights, Limitations & Recommendations
+# -->
+
+# %% [markdown]
+# ## 5. Key Insights, Limitations & Recommendations
+#
+# **Main Question:** What can we responsibly conclude and recommend from this project?
+# **Goal:** Separate measured classification results from claims that require new evidence.
+#
+# **Evidence and answer:** The baseline reaches class-1 F1 0.7308 on the retained holdout,
+# while missing 208 of 637 recorded positives. Training-only CV compares six configurations;
+# it does not establish reliability on new events. The Transformer lab demonstrates sentiment inference only.
+#
+# **Learning:** Data quality and evaluation boundaries determine what a successful run can establish.
+# Labels remain annotations, excluded conflicts change the population, and different wording can describe the same event.
+# The training-text lab also shows that reducing word forms and preserving meaning are different goals; no lemmatized classifier was evaluated.
+#
+# **Recommendation:** Preserve this measured baseline and report its limitations alongside its scores.
+# Before broader use, review annotations and event relationships, then evaluate on fresh representative examples.
+# No operational benefit or emergency-response readiness has been demonstrated.
+#
+# **Better Question:** Would performance hold on independently reviewed tweets from separate events?
+# **Current answer:** Not established; this requires new evaluation evidence beyond the present experiment.
+# **Ethical takeaway:** A model prediction should not be presented as verification that a disaster occurred.
+# <!--
+# endregion
+# -->
