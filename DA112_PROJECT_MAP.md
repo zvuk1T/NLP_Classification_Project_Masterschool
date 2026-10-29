@@ -2,12 +2,12 @@
 
 > **Project:** MasterSchool DA112 — NLP Classification (Disaster Tweets)
 >
-> **Version:** 1.8 — 2026-10-28
+> **Version:** 1.9 — 2026-10-29
 >
 > **Status:** Source-grounded project plan. **This file does not authorize implementation.** Data approves each bounded work block and any required Git transport.
 >
-> **Progress:** Foundation slices and Work blocks 1–3 are complete and published. Preparation was established in `34c61b6`/`f8e166c`, the explained TF-IDF + Logistic Regression baseline in `b106c98`, and the portfolio case study in `7a4007b`. The approved preparation, split, baseline results, and evidence limits remain fixed. **Question-answer review and guided CV comparison were published in `53d473e`; Naive Bayes was added and published in `ece01b8`, then reviewed by Troi. Six training-only CV configurations are now documented. Next learning focus: a separate Hugging Face mini-lab; no verified Hugging Face execution is recorded here. Homepage integration remains paused, and LSTM is explicitly excluded.**
->
+> **Progress:** The core MasterSchool Sprint 3 analysis and **TF-IDF + Logistic Regression baseline** are complete (original holdout F1 **0.7308**, 208/637 recorded positives missed); the baseline-focused README was published in `7a4007b`. Guided classical CV (`53d473e`) and Naive Bayes (`ece01b8`) are later educational additions. **Checkpoint `8524cb7` adds training-only EDA/NLTK/Plotly teaching, pretrained DistilBERT sentiment inference, and a separate frozen-MiniLM feature experiment.** These files report local execution; this documentation update does not independently rerun them. **Primary story: Sprint 3 baseline; Beyond the baseline: optional learning.** The entire Homepage implementation belongs to the separate Homepage project; LSTM is excluded.
+
 > **Repository:** https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 >
 > **Purpose:** A persistent source of truth for Data, Troi, and Spock: requirements, decisions, verified progress, and a coherent route to a portfolio-ready project.
@@ -18,18 +18,18 @@
 
 **Primary task:** Build an understandable, independently developed **binary classifier** that predicts whether a tweet describes a **real disaster** (`target = 1`) or **not a real disaster** (`target = 0`).
 
-- **Current phase — updated 2026-10-28:** The required Sprint 3 analytical baseline and training-only CV extension are complete. Naive Bayes has been implemented in the follow-up comparison, not retroactively required for the school baseline. Data and Spock are proceeding with the separate Hugging Face learning task; its setup, inference, and results remain to be verified. Homepage integration remains deferred. LSTM was shown in wider mentoring but is deliberately excluded here. This reconstruction is not evidence of a new school submission.
+- **Current phase — 2026-10-29:** The original school Sprint 3 and six training-only classical CV configurations are documented. The main Python file also contains EDA/lemmatization learning and a reported executed pretrained DistilBERT sentiment example; the second Python file reports frozen-MiniLM embeddings, new classifier CV and retrospective holdout scores. These extensions are **Beyond the baseline**, not required school steps or a new unbiased test. A documentation review does not verify their clean-environment reproduction, actual graphical rendering or a new school submission.
 - **Understanding remains a quality requirement.** Briefly recap familiar material; explain unfamiliar concepts, consequential choices, and actual errors in more depth. Faster pacing does not mean skipping evidence or correctness checks.
 - **WHY before HOW.** Keep the question, method, evidence, and limitations understandable without explaining every familiar operation again.
 - **Minimum sound approach:** tweet-aware text preprocessing → TF-IDF → Logistic Regression → honest evaluation.
 - **Data Literacy / DIKW:** Data → Information → Knowledge → Wisdom. Separate observed evidence from interpretation, and interpretation from recommendations.
 - **Keep it school-level:** follow the guided Sprint 2 methodology, adapting what is genuinely needed for tweets. Avoid unnecessary production engineering, deep learning, elaborate architecture, and unrequested extensions.
 - **No invented results or business impacts.** Never reuse example scores from lessons, previous portfolio claims, or another dataset as results of this project.
-- **Homepage integration is a planned later objective**, including the appropriate project listing and featured/favorites placement. The actual site, affected files, and publication must be separately inspected and authorized.
+- **Cross-project boundary:** `zvuk1T/zarko-vukovic-homepage` exclusively owns its public project catalog, Featured placement, Overview/page architecture, visual export/integration, routing, builds, Git transport and deployment under its own canon. DA112 provides evidence only; it does not execute website tasks.
 
-**Approved implementation format:** As established by `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`, the sole authoritative analysis is repository-root `disaster_tweets_classification.py`. Develop it in VS Code Python Interactive Window with `# %% [markdown]` explanations and `# %%` code cells. Preserve `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged as historical learner work. A derived Colab `.ipynb` export is a later, separately authorized deliverable, never a second independent implementation.
+**Python roles:** `disaster_tweets_classification.py` is authoritative for the original school Sprint 3, TF-IDF baseline and fixed holdout. `disaster_tweets_huggingface.py` is a separate **frozen-MiniLM study**, not another implementation of that baseline. Both use VS Code percent cells. Preserve the historic learner notebook unchanged; separately approved Colab export cannot become a parallel implementation.
 
-**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep the established Main Question → Learning → Better Questions method, but do not turn routine checks into standalone tasks or reteach familiar material. Larger blocks do not excuse missing explanations inside code; apply the learning guide's inline walkthrough, ASCII-map, and optional ethical-takeaway standards.
+**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep **Main Question → evidence → explicit answer → Learning → Better Questions** at meaningful-unit level. Preserve first-use explanations, **Mermaid mental maps in separate Markdown cells**, consequential **⚠️ Watch Out** warnings, and evidence-grounded **⚖️ Ethical Takeaways** as defined by the current learning guide.
 
 ## 2. Source authority, scope, and conflict resolution
 
@@ -104,7 +104,7 @@ The supplied closing lessons include:
 - **Practical Session on Using Hugging Face Transformers for Multiple NLP Tasks:** Hugging Face `pipeline` demonstrations for sentiment analysis, summarization, question answering, and translation.
 - **Overview of Popular LLMs (GPT, Llama) and Their Applications:** conceptual overview and examples, not a requirement to fine-tune or deploy an LLM.
 
-**Decision updated 2026-10-28:** The Naive Bayes comparison is complete; Hugging Face is the next separate learning task before returning to homepage integration. Inspect the actual model card, task and labels, resource/dependency needs, and demonstrate one small explainable pretrained-model inference only within an approved bounded setup. Sentiment is not a verified disaster annotation. This is not required Sprint 3 work; no Hugging Face runtime result has yet been verified in this project map.
+**Current evidence — 2026-10-29:** The primary Python file reports one locally executed **DistilBERT SST-2 sentiment** inference (`POSITIVE`, softmax about **0.999887**) on an original movie-review sentence; this is not disaster classification. The separate MiniLM Python file reports locally executed **frozen 384-feature embeddings** plus Logistic Regression/LinearSVC CV and a retrospective holdout study. Neither is a Sprint 3 school requirement, LSTM training or encoder fine-tuning. This map's revision did not reproduce those runs.
 
 ## 4. Repository baseline — verified 2026-10-26, before this map was added
 
@@ -212,7 +212,7 @@ These are **project design constraints** that produced the published baseline. P
 
 **Rule:** Data approves a complete, bounded block, not every routine operation inside it. Spock implements and verifies that block, then Data and Troi review its decisions, evidence, and explanations. Stop inside a block only for a material unresolved decision, scope change, missing essential evidence, or correctness/safety problem; continue unaffected approved work where practical. Completing a block does not authorize the next or Git transport.
 
-**Continuity:** The completed slices below remain historical evidence, not a checklist to restart. The four work blocks group the school's analytical stages without changing the safeguards in §5 or the learning method. **Work blocks 1–3 are complete and published; Work block 4 (homepage) is deferred while Data prioritizes educational follow-ups.**
+**Continuity:** Completed NLP work blocks 1–3 remain historical evidence, not tasks to restart. **The former NLP Work block 4 (Homepage integration) was superseded by Data's decision to do all website work exclusively in the separate Homepage project.** DA112 supplies source-backed facts and provenance, not a website implementation phase.
 
 ### Completed foundation — Slice 0: Local and remote repository preflight
 
@@ -289,31 +289,25 @@ Published in `7a4007b4137e4a845769bd24e96e00be89a26157`. The README now presents
 
 The authoritative `.py` remains the executable analysis and learning resource; the historical learner notebook remains separate. No new school submission, presentation recording, independent Learning PASS, business impact, deployment readiness, or emergency-response benefit is claimed.
 
-**Acceptance status:** Complete. The case study and reproducibility instructions are ready to be represented on the portfolio website.
+**Acceptance status:** The README published in `7a4007b` correctly presents the **original** baseline but predates classical CV and both Transformer learning labs. It is not currently a complete overview of both Python files. Any NLP README revision requires separate authorization; the Homepage project owns webpage design, graphics and integration.
 
-### Work block 4 — Homepage integration (**DEFERRED BY DATA**)
+### Homepage handoff — owned solely by the Homepage project (former NLP Work block 4 superseded)
 
-**Main Question:** How should this project appear coherently within the existing portfolio website?
+**Decision — 2026-10-29:** The entire webpage implementation, including cards, Featured and collection choices, links, project page/Overview, Plotly/Mermaid visuals, accessibility, build and deployment, belongs **only to `zvuk1T/zarko-vukovic-homepage`** and its canonical approvals. No such actions are authorized in DA112.
 
-**Preparation gate:** Before implementation, inspect the real portfolio repository and its current project structure, featured/favorites section, design system, navigation, and build workflow. Do not assume file locations, component names, hosting, or deployment behavior.
+**Evidence the NLP repository makes available:** Original MasterSchool Sprint 3 TF-IDF + Logistic Regression evaluated **1,497** held-out records: class-1 F1 **0.7308**, **208 of 637** recorded positives missed. Training-only classical CV is separate. The pinned, frozen MiniLM experiment reports mean CV F1 **0.773690** (Logistic Regression) and **0.768419** (LinearSVC), plus **retrospective** known-holdout F1 **0.7650 / 0.7718**. Its matched Logistic Regression holdout shows 43 fewer false negatives and 17 more false positives. These are recorded experiment findings, not a new independent final test, verified causal benefit or reliable emergency response.
 
-**Authorized scope after that inspection:** Prepare the bounded homepage integration needed to place this case study in the appropriate projects area and featured/favorites area, matching the site's existing visual and navigation patterns. Verify content, links, relevant builds, and page behavior within the approved repository scope.
+**Approved public-story hierarchy:** **Sprint 3 → TF-IDF baseline → observed errors and limits** comes first; classical-model CV, pretrained sentiment and frozen-MiniLM work are labeled **Beyond the baseline**. The NLP source does not determine the Homepage's visual design or link destination. Original code and author-created charts may inform site assets, but existing Plotly/Mermaid cells are not by themselves verified website deliverables. Never copy private records, mentor-owned teaching files, or unapproved course screenshots as website assets.
 
-**Publication boundary:** Homepage publication/deployment remains a separate explicit authorization. A prepared or locally verified website change is not automatically published.
+### Beyond the baseline — completed educational extensions
 
-**Acceptance:** The agreed project placements and links are verified against the actual site. Report separately whether changes are prepared, committed, pushed, or deployed.
+**Classical CV:** The guided question-answer, manual Pipeline and Logistic Regression/LinearSVC CV learning was published in [`53d473e`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/53d473e22ff48ad5f32e43da514e24cd5015217e); [`ece01b8`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/ece01b8cb4184b6b5ed6bd0d7a75136dbd71a22a) added `MultinomialNB`, producing six configurations on the same ten training-only folds. The original holdout baseline was not replaced.
 
-### Educational follow-ups — completed model comparison; Hugging Face next
+**Expanded school teaching and sentiment:** In [`8524cb7`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/8524cb7cd28816940be19465780a576f09862616), the main `.py` added training-only text-length EDA, tokenization/lemmatization examples, Plotly views, Mermaid maps and a reported executed DistilBERT sentiment example. Sampled linguistic transformations are **not new baseline inputs**. Its `POSITIVE` softmax score is not evidence of disaster detection.
 
-**Completed 2026-10-28:** The question-answer review, guided manual-steps-to-Pipeline explanation, and four-candidate training-only CV were published in [`53d473e`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/53d473e22ff48ad5f32e43da514e24cd5015217e). Logistic Regression and LinearSVC were each compared using unigrams and unigrams+bigrams. Their mean class-1 F1 scores were 0.7506, 0.7293, 0.7554, and 0.7529 respectively.
+**Frozen MiniLM representation:** The same commit added `disaster_tweets_huggingface.py`. It reports a pinned pretrained encoder producing **384-number vectors**, two fixed classifiers evaluated with ten training folds, and retrospective evaluation on an already examined 1,497-row holdout. Logistic Regression and LinearSVC mean CV F1 were reported as **0.773690** and **0.768419**; retrospective holdout F1 **0.7650** and **0.7718**. The encoder is frozen, not fine-tuned; external pretraining is extra information, and no independent event-level evaluation is supplied. These are source-file runtime reports, not fresh execution by Troi.
 
-**Naive Bayes completed:** Commit [`ece01b8`](https://github.com/zvuk1T/NLP_Classification_Project_Masterschool/commit/ece01b8cb4184b6b5ed6bd0d7a75136dbd71a22a) added `MultinomialNB` with the same ten training-only folds and two n-gram choices, producing means of 0.7219 and 0.7113. Spock reported 60 successful fits overall; Troi reviewed the code, confirmed that the existing executable baseline was unchanged, and recalculated the Naive Bayes summaries from recorded fold results. This is **not** a claim of independent full runtime re-execution by Troi. The original holdout F1 remains **0.7308**. Learning PASS is still **UNASSESSED**.
-
-**Next: Hugging Face mini-lab.** Data and Spock are preparing this separately: inspect a real model card, task labels, current API, dependencies, and resource implications before any bounded inference. Explain how pretrained Transformer `pipeline` differs from fitted scikit-learn `Pipeline`; do not equate sentiment with verified disaster classification. No Hugging Face execution or model download is established by the present repository evidence.
-
-**Excluded: LSTM.** Data deliberately excluded sequence/embedding/neural-network training from DA112; it may be revisited as a separate deep-learning project, not here.
-
-These extensions are learning choices, **not missing required Sprint 3 steps**. Homepage integration is paused. This status update does not authorize new dependencies, downloads, Git transport, deployment, or publication.
+**LSTM:** Deliberately excluded. Data's Learning PASS remains **UNASSESSED**. None of these extensions is a missing required Sprint 3 step or authorization for additional models or website work.
 
 ## 7. Data Literacy, DIKW, and storytelling contract
 
@@ -361,10 +355,10 @@ During an approved block:
 
 | Decision | Current state | Required handling |
 |---|---|---|
-| Current focus and pacing | **Agreed:** familiar school reconstruction, sound understanding, collaboration, then portfolio; four coherent work blocks | Larger blocks do not remove explanations of new objects or transformations |
+| Current focus and pacing | **Agreed:** MasterSchool Sprint 3 baseline first, optional learning separately labeled | No additional model is required merely to prepare public presentation |
 | Canonical maintenance | **Data + Troi:** contract, guide, and project map | Spock reports evidence and proposes corrections; no silent canonical edits |
-| Publication and synchronization | Work blocks 1–3 published through `7a4007b` | Latest verified GitHub `main` for this reconciliation; local Mac state remains a separate fact |
-| Primary implementation format | **Decided:** root `disaster_tweets_classification.py`, VS Code percent cells | Preserve the historical notebook; derived Colab export needs separate authorization |
+| Publication and synchronization | Both Python files exist at NLP checkpoint `8524cb7` | Remote GitHub does not establish Mac or deployed Homepage state |
+| Python file roles | **Decided:** primary Sprint 3/baseline `disaster_tweets_classification.py`; supplementary MiniLM `disaster_tweets_huggingface.py` | No second school baseline or parallel notebook |
 | Repeated/conflicting labels | **Approved and implemented:** lowercase/whitespace comparison, exclude conflicting groups, keep first consistent occurrence | Preserve §4.1; do not reopen policy during educational edits |
 | Split and seed | **Approved and implemented:** stratified 80/20, `random_state=42`; 5,986 training / 1,497 holdout | Preserve exact membership, order, labels, and source indices |
 | Baseline and portfolio | **Complete:** explained baseline in `b106c98`; portfolio case study in `7a4007b` | Preserve reported holdout evidence and limits; do not reopen completed work merely because a new chat starts |
@@ -375,8 +369,8 @@ During an approved block:
 | Retrospective presentation/recording | **Not created** | Do not infer a recording from prior coursework |
 | Naive Bayes | **Completed and published in `ece01b8`** | Same folds and n-gram settings; F1 0.7219 / 0.7113; no holdout reuse |
 | LSTM | **Deliberately excluded by Data on 2026-10-28** | Not required by Sprint 3; no LSTM or other neural-network training in DA112 |
-| Hugging Face mini-lab | **Next learning task, preparation with Data and Spock; execution not yet verified** | Separate bounded inference; verify model card, task, dependencies, and setup before claims |
-| Website/homepage | **Deferred by Data pending educational review** | Existing Work block 4 remains the future site integration; no website implementation or publication is authorized by this revision |
+| Hugging Face / MiniLM | **Published in `8524cb7`; both scripts report local execution** | DistilBERT sentiment and separate frozen-MiniLM CV/retrospective holdout; not independently rerun by this docs edit |
+| Homepage handoff | **Entirely owned by `zvuk1T/zarko-vukovic-homepage` by Data's decision** | NLP supplies sources only; Homepage decides pages, cards, graphics, links, build and publication |
 
 ## 10. Project completion criteria
 
@@ -396,11 +390,12 @@ The preparation checkmarks record the published implementation and Spock's repor
 ### Portfolio communication and integration (separate from model correctness)
 
 - [x] Full authoritative `.py` analysis readable end to end, with reproducible execution instructions.
-- [x] Case study and README communicate the question, decisions, evidence, errors, and limits.
-- [ ] Approved website project and featured/favorites placements verified; publication status reported truthfully.
+- [x] Baseline README covers its original question, data, evidence, errors and limits, but does not yet list every later lab.
+- [x] Both Python sources identify evidence for a Homepage handoff, with the school baseline and extensions distinguishable.
+- [ ] Homepage project separately approves and verifies presentation, visual assets, destinations and publication. **Not an NLP completion criterion.**
 - [x] Original school deliverable expectations identified without claiming unperformed historical submission.
 - [ ] Any separately approved Colab export or presentation/recording truthfully labeled and verified; neither is implied by case-study completion.
-- [x] Training-only CV and Naive Bayes educational comparisons are completed separately from the baseline; Hugging Face remains a separate follow-up and does not change the original Sprint 3 completion criteria.
+- [x] Classical CV/Naive Bayes, pretrained DistilBERT sentiment and frozen MiniLM are documented as **Beyond the baseline**; they do not change original school completion criteria.
 
 **Not required for core analytical completion:** Kaggle leaderboard rank, deep learning, Transformer fine-tuning, model deployment, or guaranteed real-world impact. Homepage integration is a separate planned portfolio block, not evidence of model quality.
 
@@ -433,10 +428,10 @@ The preparation checkmarks record the published implementation and Spock's repor
 
 ## 12. Current execution instruction
 
-**Work blocks 1–3 are complete and published through `7a4007b4137e4a845769bd24e96e00be89a26157`. Do not restart data preparation, baseline modeling, educational refactoring, or portfolio README work.**
+**NLP source checkpoint:** `8524cb7cd28816940be19465780a576f09862616` contains the two Python files; original baseline `b106c98`, guided CV `53d473e` and Naive Bayes `ece01b8` remain separate historical evidence. Do not repeat already completed modeling simply for website preparation.
 
-**Completed educational methods:** The question-answer and Pipeline explanation plus training-only CV were published in `53d473e22ff48ad5f32e43da514e24cd5015217e`; the `MultinomialNB` addition followed in `ece01b8cb4184b6b5ed6bd0d7a75136dbd71a22a`. Six candidate configurations are now documented. Do not repeat this comparison or change the published baseline/holdout.
+**Public presentation hierarchy:** **MasterSchool Sprint 3 → data preparation → TF-IDF + Logistic Regression baseline (fixed holdout F1 0.7308) → false positives, missed labels and limits** is the primary story. Classical CV, sentiment inference, and frozen MiniLM are **Beyond the baseline**, with their own denominators, task labels, pretrained information and retrospective evidence limits. README remains baseline-oriented; any NLP documentation revision needs distinct approval.
 
-**Current learning priority:** A separate, bounded Hugging Face pretrained-Transformer mini-lab with Data and Spock. Verify the model card, task alignment, labels, API, and resource/dependency requirements before execution. Explain results only after actual inference; sentiment is not verified disaster detection. LSTM and other neural-network training are excluded from DA112.
+**Next location:** All decisions and work for the Homepage's cards, featured/project placements, Overview, assets, links, rendering, local builds, Git, deployment and publication occur **only in `zvuk1T/zarko-vukovic-homepage`**, governed by its own canon and Data's authorization. No website changes are authorized in this NLP repo. This documentation reconciliation is not a fresh Python run, clean-environment reproducibility check, local Git synchronization, or publication approval.
 
-**Homepage Work block 4 remains deferred.** This document records status, not automatic authorization for Git transport, dependencies, downloads, model inference beyond the agreed scope, or publication. Data's independent Learning PASS remains **UNASSESSED**. Spock must read current canonical documents, verify the local state, report evidence and limitations, and stop at authorization boundaries.
+**Learning PASS: UNASSESSED.** STOP at the authorized repository and task boundary.

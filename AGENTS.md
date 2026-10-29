@@ -1,4 +1,4 @@
-◊# DA112 — Working and Learning Contract
+# DA112 — Working and Learning Contract
 
 **Repository:** `zvuk1T/NLP_Classification_Project_Masterschool` (public)
 
@@ -12,7 +12,7 @@ Data is the owner, learner, active reasoning partner, and final decision-maker. 
 - **Spock (Codex):** technical reasoning, local implementation, verification, reproducibility, and Git synchronization when assigned.
 - **Data:** decides project scope, analytical choices, educational priorities, acceptance, and repository actions. Other tools or agents participate only when assigned.
 
-**File ownership for this project:** Data and Troi jointly maintain only the two canonical learning-governance files, `AGENTS.md` and `HOW-WE-WORK-AND-LEARN.md`, unless Data explicitly reassigns the work. Spock edits other project files, including notebooks, data-related code, and the project map, only within Data's approved task. Troi may inspect and critique those files or prepare proposed wording without independently editing them. All agents must independently check the material relevant to their task.
+**Canonical ownership:** Data and Troi maintain **all three canonical documents**: `AGENTS.md`, `HOW-WE-WORK-AND-LEARN.md`, and `DA112_PROJECT_MAP.md`, within Data's explicit edit and Git authorization. Spock implements authorized Python/project work and proposes corrections; he edits canonical documents only on Data's explicit reassignment. The Project Map records source evidence, decisions, and progress, not a competing operational contract. All agents independently inspect relevant sources.
 
 This root `AGENTS.md` is the **sole binding repository-level operational contract**. [How We Work and Learn](HOW-WE-WORK-AND-LEARN.md) explains the educational method; [DA112 Project Map](DA112_PROJECT_MAP.md) owns school requirements, verified source notes, project decisions, and the roadmap. Neither creates a competing approval regime. Applicable higher-priority instructions and Data's latest explicit task remain controlling. Other repositories are references, not authority.
 
@@ -28,7 +28,7 @@ Read-only local Git inspection is permitted within the assigned task. Do not mis
 
 ## 3. Scope and authoritative learning sources
 
-This is a **MasterSchool DA112 educational reconstruction**, learning first and portfolio second. The principal task is classifying labeled tweets as **real disaster (`target=1`)** or **non-disaster (`target=0`)**. The original Sprint 3 assignment defines the deliverables; the guided Sprint 2 project supplies baseline methods, not reusable model results.
+This is a **MasterSchool DA112 educational reconstruction**, learning first and portfolio second. The original Sprint 3 assignment governs required work; guided Sprint 2 supplies teaching methods, not reusable scores. **The primary analytical and presentation story is Sprint 3: prepared tweets → TF-IDF + Logistic Regression → original fixed holdout → classification errors, limits, and Better Questions.** Training-only classical CV, pretrained sentiment inference, and frozen-MiniLM feature experiments are explicitly **Beyond the baseline**, not additional school requirements or new independent final tests.
 
 Use source roles as defined in the [Project Map](DA112_PROJECT_MAP.md):
 
@@ -37,7 +37,7 @@ Use source roles as defined in the [Project Map](DA112_PROJECT_MAP.md):
 3. **Mentor live-session materials:** supplementary teaching; the existing `learning_materials/mentor_live_sessions/untitled41.py` is chiefly time-series code, not an NLP implementation.
 4. **Official Kaggle documentation and tracked dataset:** actual tweet task, dataset semantics, and competition metric.
 5. **Existing repository and executed evidence:** actual code, outputs, versions, and current state.
-6. **Hugging Face closing lessons:** optional post-core learning, not a baseline requirement.
+6. **Hugging Face closing lessons:** optional post-core learning, not a baseline requirement; later sentiment and frozen-MiniLM examples are documented separately.
 
 Distinguish **verified school instructions**, **Data's authentic code/decisions**, and **assistant-authored interpretation or implementation**. Never infer unseen course material, experimental scores, Data's understanding, submission completion, or permission to redistribute mentor materials. If essential evidence is unavailable, name the gap instead of inventing it.
 
@@ -57,13 +57,13 @@ Do not install packages, change environments, download new data, start unrelated
 
 ## 5. Analytical and teaching constraints
 
-**Question-driven learning:** Start each meaningful analytical unit in `# %% [markdown]` with an evidence-answerable **Main Question** aligned with the project goal, then its **Goal** and only relevant **Guiding Questions**. Choose data and method to address those questions, not vice versa. After verified results, explain what the evidence does and does not establish, and end with **Learning → Better Questions**: what was learned, what remains uncertain, and a justified next question. Follow the [learning guide](HOW-WE-WORK-AND-LEARN.md); use this at unit level, not for every import, cell, or line. Do not impose quizzes, SMART checklists, or extra agents on routine work.
+**Question-driven learning:** At a meaningful analytical-unit level, present a Main Question, purpose, guiding questions where useful, method, verified evidence, and an **explicit answer to every learner-facing question**. When evidence cannot answer, say **not established** and explain what evidence is missing. End with Learning → Better Questions, justified decision, narrower claim, or pause. Do not invent a causal explanation or Data's mastery. Preserve meaningful **🗺️ Mental Model** diagrams in their own Markdown cells, **⚠️ Watch Out** warnings, and contextual **⚖️ Ethical Takeaways**, using the guide's Mermaid/writing standards without compulsory per-cell quizzes.
 
-**Primary implementation format:** The single authoritative analysis is the **new repository-root `disaster_tweets_classification.py`**, developed in VS Code Python Interactive Window using percent cells: `# %% [markdown]` for educational text and `# %%` for executable Python, run one cell at a time. Do **not** continue, rewrite, or replace `Notebooks/NLP_Classification_Project_Masterschool.ipynb`; it remains an unchanged historical record of Data's early work. A derived `.ipynb` for the original MasterSchool Colab deliverable may be exported from the validated `.py` **only under separate explicit authorization**, never maintained as a second independent implementation.
+**Python source roles:** Root `disaster_tweets_classification.py` is the authoritative **school Sprint 3 analysis and original TF-IDF baseline**; it also includes supplementary EDA/NLTK and a small pretrained DistilBERT sentiment illustration. Root `disaster_tweets_huggingface.py` is a **separate frozen-MiniLM representation comparison**, not another school baseline. Both use VS Code `# %% [markdown]` and `# %%` cells. Preserve the historic learner notebook `Notebooks/NLP_Classification_Project_Masterschool.ipynb`; derived Colab export requires separate authorization, never a second independent implementation.
 
 **Code:** Prefer direct, descriptive, top-to-bottom beginner/intermediate Python in the authoritative `.py`. Explain unfamiliar concepts, inputs, outputs, assumptions, and relevant trade-offs at first use. For unfamiliar Intermediate/Advanced techniques, verify a relevant official DataCamp reference when possible; never invent a lesson link. Do not add unnecessary helper layers, tests, model families, infrastructure, or automation. Correctness and leakage prevention take priority over cosmetic simplicity.
 
-**The agreed first model:** TF-IDF + Logistic Regression, evaluated with a labeled holdout using positive-class (`target=1`) F1 plus relevant supporting metrics. The [Project Map](DA112_PROJECT_MAP.md#5-methodology-contract-for-the-first-reliable-baseline) holds the exact dataset audit, open duplicate-policy decision, leakage precautions, and staged roadmap. Never automatically delete conflicting-label duplicates, learn TF-IDF on held-out text, tune on the final holdout, or present Kaggle unlabeled test data as a labeled evaluation set. Keep CV and hyperparameter tuning as later, separately approved learning steps.
+**Approved baseline and evaluation limits:** The conflicting-label and duplicate exclusion policy and stratified 80/20 split (`random_state=42`) are already decided and implemented. Preserve them. The original TF-IDF + Logistic Regression baseline attained **class-1 F1 0.7308** on the fixed **1,497-row holdout** with **208 of 637 recorded positives missed**. The later six-configuration ten-fold classical CV uses training rows only; each Pipeline learns TF-IDF inside its folds. The source files report local execution of DistilBERT sentiment inference and a frozen-MiniLM comparison. The latter's reuse of the inspected holdout is **retrospective**, not a fresh independent final evaluation. No holdout-driven selection, invented generalization, conflated sentiment/disaster labels, or LSTM training.
 
 **Source integrity:** Preserve historical learner and mentor code unless a defined, authorized change applies. Label assistant-authored code and adaptations where source provenance matters. Do not silently copy untested time-series machinery or guided-project results into the new disaster-tweet Python analysis.
 
@@ -80,5 +80,7 @@ For a meaningful analytical slice, distinguish:
 Run checks proportionate to the actual task. A documentation check is not a model execution test; a saved notebook output is not a fresh run. Report what was verified now, what was previously observed, and what remains unchecked.
 
 Complete only the explicitly authorized slice. Return a concise report with changed paths (or read-only findings), validation evidence, unresolved decisions, Git state where relevant, and the next **proposed** step. Do not automatically continue to the next slice or perform transport outside approval. The latest explicit task, not the project roadmap, defines permission to act.
+
+**NLP → Homepage boundary:** NLP owns its code, school/task provenance, measured evidence and its limitations. Homepage catalog entries, Featured selection, visuals, pages, links, navigation, build, Git transport, deployment and publication are **planned and executed solely within `zvuk1T/zarko-vukovic-homepage`**, governed by its own canonical documents and Data's separate approvals. This NLP repository supplies grounded source material; it does not implement the Homepage. The existing NLP README describes the original baseline truthfully but predates later labs; do not call it a complete two-file overview without a separately authorized revision. Do not transfer private data, copyrighted mentor material or unapproved school screenshots to the website.
 
 **Durable knowledge stays in these existing documents and next to actual analytical evidence.** Do not create parallel instruction systems, status logs, templates, test harnesses, or websites without a concrete approved need.

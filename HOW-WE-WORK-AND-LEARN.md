@@ -10,9 +10,9 @@ The analysis should help a reader understand why an NLP question matters, how re
 
 Data reports having already worked through the school project. This reconstruction develops the Data–Troi–Spock collaboration and an evidence-backed portfolio case study. Work in the map's coherent blocks, with one implementation and one joint review, rather than routine approval stops. **Larger work blocks do not justify larger unexplained jumps inside the code.** Briefly recap familiar mechanics; explain new objects, consequential choices, and actual misunderstandings where needed.
 
-The guided Sprint 2 movie-review classifier supplies teaching references; Sprint 3 Disaster Tweets is our task. Use applicable mentor examples without transferring their labels, cleaning assumptions, or scores. Hugging Face remains an optional post-baseline exercise, not a prerequisite for the core analysis or portfolio.
+The guided Sprint 2 movie-review classifier supplies teaching references; the MasterSchool Sprint 3 Disaster Tweets task is our primary project. **Sprint 3 TF-IDF + Logistic Regression, its fixed holdout and honestly explained errors are the main story.** Guided classical CV, pretrained DistilBERT sentiment inference and frozen-MiniLM representations are **Beyond the baseline**: useful additional learning, not missing school requirements or a new independent final test. Do not transfer guided labels, cleaning rules or scores as tweet evidence.
 
-The authoritative Python file is both the real analysis and a learning resource. Returning readers should be able to follow the problem, choices, transformations, evidence, limitations, and lessons without reconstructing a chat.
+The authoritative school analysis and learning narrative is `disaster_tweets_classification.py`; the independent `disaster_tweets_huggingface.py` is a supplementary representation experiment. Readers should understand each file's role, evidence and limitations without reconstructing a chat.
 
 ## 2. Main Question → Learning → Better Questions
 
@@ -70,9 +70,9 @@ Label retrospective explanations as retrospective. Do not invent Data's former b
 
 ## 3. From question to student-readable Python analysis
 
-**Primary format:** Root `disaster_tweets_classification.py` is the single implementation source. Use VS Code Python Interactive Window with `# %% [markdown]` for educational text and `# %%` for executable Python. Prefix every Markdown line with `#`, including blank lines and collapsible-answer content. Verify the actual interpreter and kernel before claiming execution.
+**Primary format:** Root `disaster_tweets_classification.py` holds Sprint 3, the TF-IDF baseline, original holdout and primary educational sequence, including a separate pretrained sentiment illustration. Root `disaster_tweets_huggingface.py` evaluates frozen MiniLM features with classical classifiers; it is not a second school baseline. Both use VS Code `# %% [markdown]` / `# %%` cells with `#`-prefixed Markdown lines. Check the actual interpreter, packages, model files/cache, and kernel before claiming execution or reproduction.
 
-Preserve the historical `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged. School/mentor notebooks are references. A derived Colab export from the validated `.py` requires separate authorization and must not become a second independent implementation.
+Preserve the historical `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged. School/mentor notebooks are references. Any derived Colab export comes from the primary validated `.py` only under separate approval, never as parallel implementation.
 
 ### Teaching functions and emoji vocabulary
 
@@ -213,7 +213,7 @@ Use the [Project Map](DA112_PROJECT_MAP.md#5-methodology-contract-for-the-first-
 | **Would robustness checks or tuning help?** | Only approved training-fold pipeline CV and modest tuning. | More computation is not automatically better understanding or generalization. |
 | **What should we claim or do next?** | Return to the purpose with DIKW and bounded judgment. | A school classifier does not establish emergency-response benefit or deployment readiness. |
 
-The agreed first model remains TF-IDF + Logistic Regression. A scikit-learn `Pipeline` binds learned transformations and model; Hugging Face's pretrained Transformer `pipeline` is a different abstraction. Explain that distinction if the optional extension is approved.
+The original model remains **TF-IDF + Logistic Regression**. Its scikit-learn `Pipeline` learns TF-IDF and one classifier. The separate Hugging Face sentiment `pipeline` packages a pretrained tokenizer and task-specific model; frozen MiniLM instead produces **384-dimensional features** for newly fitted Logistic Regression and LinearSVC. Neither is LSTM training nor encoder fine-tuning. Sentiment softmax scores are not disaster F1; training-only CV and retrospective holdout are different evidence.
 
 Before any separately approved preprocessing change, consider URLs, hashtags, mentions, punctuation, negation, names, and disaster terms. Do not mechanically copy movie-review cleaning. Keep training/inference preparation consistent, fit vocabulary/IDF on training data only, and never tune on the final holdout. In CV, fit the full pipeline independently inside each training fold.
 
@@ -243,7 +243,7 @@ Aggregation alone does not establish an explanation, causality, or a recommendat
 
 For our preparation, excluding groups with conflicting recorded labels does not establish that all ambiguous examples were removed or that retained labels are correct. Keep those claims separate. Explain false positives and false negatives in plain language when a model exists; a change in F1 is not evidence of lives saved or faster response.
 
-Good storytelling makes the path from question to evidence, meaning, limitations, and judgment understandable without hiding inconvenient findings. It starts during analysis, not only in the final presentation. Retrospective documentation does not establish that a historical recording or school submission occurred.
+Good storytelling makes the path from question to evidence, meaning, limitations, and judgment understandable without hiding inconvenient findings. **Lead with Sprint 3 → data decisions → TF-IDF baseline → errors and limits**. Label classical CV and Transformer experiments **Beyond the baseline**. Any MiniLM improvement discussion must disclose external pretraining, retrospective holdout, uncertain generalization and the false-negative / false-positive trade-off; it does not establish real-world usefulness or a new school submission.
 
 Conceptual sources, not additional assignments:
 
@@ -261,7 +261,7 @@ The ethics references were inspected as selected lessons; this is not a claim th
 
 Data leads choices and acceptance. Troi leads source-aware educational design; Spock leads authorized implementation and technical verification. Both may challenge assumptions with exact evidence and a simpler sound alternative; neither is merely the other's executor.
 
-**Canonical ownership:** Data and Troi maintain `AGENTS.md`, this guide, and `DA112_PROJECT_MAP.md`. Spock reads them and proposes corrections; authoring changes requires an explicit reassignment. Direct remote edits and local synchronization follow the contract's separate authorization boundaries.
+**Canonical ownership:** Data and Troi maintain `AGENTS.md`, this guide, and `DA112_PROJECT_MAP.md` under specific authorization. Spock proposes corrections and edits these only on Data's explicit reassignment. Remote edits do not synchronize the local Mac. **Homepage planning, presentation, implementation, visual integration, testing and publication belong exclusively to the Homepage project and its canonical documents.**
 
 For an approved analytical block: ground the question in current sources, agree purpose and material choices, implement the bounded work, verify results and teaching, then review the complete outcome. Do not add repeated approval ceremonies for routine operations. Completion, a roadmap, or a good next question does not authorize another block or publication.
 
@@ -283,4 +283,4 @@ A source review does not reproduce someone else's runtime checks; document what 
 
 For educational revisions, preserve sound existing work and repair actual gaps rather than rewriting to demonstrate compliance. Durable rules stay in `AGENTS.md`, teaching detail here, requirements and status in the map, and observations beside the `.py` analysis. Do not create extra question logs, answer keys, templates, or verification systems merely to enforce these instructions.
 
-End a bounded task with actual evidence, limitations, and the next proposed question or decision. STOP at its boundary.
+End a bounded task with actual evidence, limitations, and the next proposed question or decision. For public-facing handoff, link to verified analysis and source; distinguish school baseline from retrospective learning. In-Python Plotly `.show()` and Mermaid source are **not automatically exported or rendered website visuals**. Homepage assets, card, page, link, builds and publication are decided and implemented **only from the separate Homepage project**. STOP at the NLP repository boundary.
