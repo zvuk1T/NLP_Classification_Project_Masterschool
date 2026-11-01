@@ -16,33 +16,11 @@ The authoritative school analysis and learning narrative is `disaster_tweets_cla
 
 ## 2. Main Question → Learning → Better Questions
 
-Better Questions is our philosophy of inquiry, drawing on Data's DataCamp Gym work; Main Question is its entry point for a particular analytical unit. This is our synthesis, not a verbatim DataCamp framework. [Forming Analytical Questions](https://www.datacamp.com/courses/forming-analytical-questions) supports clarifying purpose, refining relevant questions, selecting fitting methods, and returning findings to the original need.
+Work on one meaningful learning unit: **❓ Question + 📋 Source & Context → 🎯 Goal & Approach (WHY) → 💻 Code / Method (HOW) → ✅ Evidence, Answer & Limits → 🧠 What We Learned.** This is our learning synthesis informed by [Forming Analytical Questions](https://www.datacamp.com/courses/forming-analytical-questions), not a verbatim DataCamp template.
 
-```mermaid
-flowchart LR
-    P["Purpose + context<br/>Project Question"] --> Q["Main Question<br/>Goal + relevant<br/>Guiding Questions"]
-    Q --> M["Relevant data<br/>Method +<br/>explained Python"]
-    M --> E["Verified evidence<br/>Explicit answer<br/>+ limits"]
-    E --> L["Learning<br/>What changed in<br/>our understanding?"]
-    L --> T["Ethical takeaway<br/>when relevant"]
-    L --> B["Better question<br/>Decision / pause"]
-```
+The project has an overarching question; each unit asks one relevant question. Existing `Main Question` headings remain valid. Smaller guiding checks belong beside the method or evidence, not in compulsory extra sections. Answer every learner-facing question explicitly; when evidence is insufficient, state `Not established` and explain the gap.
 
-This is a revisable reasoning loop, not a compulsory ladder or an endless research queue. Missing evidence can change a question before coding; results can challenge an assumption. A better question should emerge from evidence that changed our understanding, not simply announce the next Python operation. Wisdom considers whether that understanding, its limits, and its consequences justify another question, an action, a narrower claim, or a deliberate pause. More questions alone do not demonstrate wisdom, and no new question authorizes another work block.
-
-**Every question in the student-facing `.py` must have an explicit answer.** This includes Project and Main Questions, Guiding Questions, questions inside Learning, Better Questions, and optional transfer checks. After the relevant evidence, answer each question directly in readable prose; one concise explanation may answer several questions when the mapping is unmistakable. Do not hide answers in code, leave questions silently dangling, or fabricate certainty. For a question beyond the present evidence, state the **current answer: not established**, explain the evidence boundary and what would be needed to resolve it. A Better Question can remain open for future research while still receiving this truthful current answer. Avoid a mechanical Q&A template or repetitive restatement.
-
-### Keep three question levels connected
-
-| Level | Purpose |
-| --- | --- |
-| **Project Question** | What overall problem are we trying to understand, and why? |
-| **Main Question** | Which meaningful uncertainty can this unit investigate within scope? |
-| **Guiding Questions** | Which smaller observable checks help answer it without losing the larger purpose? |
-
-For Disaster Tweets, a project question concerns trustworthy text classification; a preparation question concerns which examples an evaluation can describe. Counting conflicting groups is a guiding check, not the whole purpose.
-
-Use specific, bounded, relevant, evidence-answerable questions. DataCamp's SMART formulation is **Specific, Measurable, Actionable, Relevant, Time-bound**; A means Actionable. Apply it proportionately, without five required headings, invented time ranges, or fictional business scenarios. A precise question can still be irrelevant.
+A new question, responsible decision, narrower claim, or pause follows only when justified by the findings. DIKW supports judgment; it is not another set of mandatory headings. SMART (Specific, Measurable, Actionable, Relevant, Time-bound) is a lens when useful, not five mandatory fields.
 
 ### Three connected WHYs
 
@@ -78,20 +56,19 @@ Preserve the historical `Notebooks/NLP_Classification_Project_Masterschool.ipynb
 
 ### Teaching functions and emoji vocabulary
 
-A meaningful analytical unit may span several cells. Use these functions naturally, not a full template for every import or operation:
+Use these at meaningful-unit level, not per code line. Preserve accepted headings in existing Python cells.
 
-| Element | Placement and purpose |
+| Function | Purpose |
 | --- | --- |
-| **❓ Main Question** | Before code: the relevant uncertainty connected to the Project Question. |
-| **📋 Context, Source & Task** | Verified source, input meaning, important assumptions, and actual instructions. |
-| **🎯 Goal & Approach — What & Why** | Why investigate, why this approach fits, and what evidence is needed. |
-| **🔎 Guiding Questions** | Only the useful smaller questions needed for this unit. |
-| **💻 Real Code + Inline Walkthrough** | The actual executable cells, with nearby comments explaining important mechanisms. |
-| **✅ Evidence & Interpretation** | After execution: verified findings, explicit answers to the unit's questions, and their limits. |
-| **🧠 Learning → Better Questions** | Transferable insight, changed understanding, significance, and a justified next question, decision, or pause. |
-| **🧑‍💼 Recruiter / Transfer Check** | Optional at a meaningful milestone; a reasoning question with a concise answer under `💡 Show answer`. |
+| **❓ Question** (existing `Main Question`) | One source-grounded uncertainty before code. |
+| **📋 Source & Context** | Actual task, inputs, grain, and assumptions. |
+| **🎯 Goal & Approach — WHY** | Why the method fits and what evidence it needs. |
+| **💻 Code / Method — HOW** | Real executable cells, with first-use mechanism explanations. |
+| **✅ Evidence, Answer & Limits** | Verified output, direct answer, interpretation, and boundaries. |
+| **🧠 What We Learned** (existing `Learning → Better Questions`) | Transferable insight; an optional further question, decision, or pause only if justified. |
+| **🧑‍💼 Recruiter / Transfer Check** | Optional meaningful check with a supported hidden answer. |
 
-Keep the emojis as navigational cues. The code itself fills the 💻 role; a separate decorative Code or Walkthrough Markdown heading must not replace comments inside executable cells. Omit inapplicable elements, such as model metrics in a setup task.
+Mental maps, warnings, and ethical notes are optional aids; do not make each one a compulsory section. The code itself supplies the 💻 function.
 
 ### Explain new objects where they are created
 
