@@ -9,6 +9,7 @@
 # **Execution evidence — 2026-10-29:** All eleven code cells ran in the project `.venv`, including 20 CV fits and two final classifier fits.
 # MiniLM improved both classifiers' mean CV F1 relative to their historical TF-IDF references; detailed results and limits appear below.
 # Run the percent cells from top to bottom in the existing project `.venv`.
+# Restart the Interactive Window kernel first; README describes dependencies and the project-local cache.
 #
 # > **⚠️ Watch Out — An encoder does not supply disaster labels**
 # >
@@ -155,6 +156,9 @@ print("Validation rows per training fold:", [len(validation) for _, validation i
 # **HOW pooling works:** Ignore padding positions, average the remaining token vectors, then divide each resulting vector by its length.
 # This produces comparable vector lengths; it neither guarantees preserved meaning nor makes individual dimensions interpretable as words.
 # Word pieces are tokenizer units that can split a word; the 256-position limit also includes special start/end tokens.
+#
+# **Setup:** The pinned snapshot must already exist in `.cache/huggingface/hub/`, with the nine files listed below.
+# Explicit local lookup avoids downloading replacements or silently using a global cache; see README for separate resource setup.
 
 # %%
 import torch
@@ -172,17 +176,24 @@ model_files = [
     "tokenizer_config.json", "vocab.txt",
 ]
 
-# Locate an already downloaded, pinned snapshot. local_files_only forbids a network download.
+# Locate the pinned snapshot in this project only; local_files_only forbids a network download.
 # Match the approved file subset; the model repository also contains unused backend formats.
+model_cache_dir = project_root / ".cache" / "huggingface" / "hub"
 try:
-    model_path = snapshot_download(
-        repo_id=model_id, revision=model_revision, allow_patterns=model_files, local_files_only=True
-    )
+    model_path = Path(snapshot_download(
+        repo_id=model_id, revision=model_revision, cache_dir=model_cache_dir,
+        allow_patterns=model_files, local_files_only=True,
+    ))
 except LocalEntryNotFoundError as error:
     raise FileNotFoundError(
-        f"Approved model setup is required for {model_id} at {model_revision}. "
-        "No model files were downloaded. Stop here until that separate setup is complete."
+        f"Missing {model_id} at {model_revision} in {model_cache_dir}. "
+        "See README for separate resource setup; nothing was downloaded."
     ) from error
+
+# An existing snapshot can be incomplete; require all nine files before loading the encoder.
+missing_model_files = [name for name in model_files if not (model_path / name).is_file()]
+if missing_model_files:
+    raise FileNotFoundError(f"Incomplete snapshot {model_path}: {missing_model_files}. See README; no download was attempted.")
 
 # Read only cached tokenizer/configuration and safetensors weights; no repository Python code is used.
 tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True, trust_remote_code=False)
@@ -193,6 +204,7 @@ encoder.eval()  # Disable training-time dropout, so inference uses the fixed mod
 encoder.requires_grad_(False)  # No encoder parameter will receive a training gradient.
 print("PyTorch:", torch.__version__, "Transformers:", transformers.__version__)
 print("Encoder:", model_id, "Revision:", model_revision)
+print("Model snapshot:", model_path)
 
 # %%
 # These dictionaries keep matrices and timings separate for the two unchanged partitions.

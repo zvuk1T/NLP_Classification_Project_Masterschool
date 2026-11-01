@@ -6,8 +6,13 @@ This MasterSchool DA112 reconstruction follows tweet data from quality checks to
 On a fixed 1,497-tweet holdout, positive-class F1 is **0.7308**; the model misses **208 of 637 recorded positives**.
 The central lesson is that preparation defines what a score describes, while error analysis reveals what the score hides.
 
-The [full Python analysis](disaster_tweets_classification.py) contains the executable work, explanations, source references, and selected error examples.
+The [school Python analysis](disaster_tweets_classification.py) contains the executable baseline, explanations, source references, and selected error examples.
 It retrospectively documents the analysis without claiming a new school submission, presentation recording, or independent assessment of learner understanding.
+
+| Authoritative source | Role |
+| --- | --- |
+| [disaster_tweets_classification.py](disaster_tweets_classification.py) | School baseline and original holdout; supplementary Plotly EDA, NLTK teaching, six training-only CV configurations and one DistilBERT sentiment example |
+| [disaster_tweets_huggingface.py](disaster_tweets_huggingface.py) | **Beyond the Baseline:** frozen MiniLM embeddings with Logistic Regression and LinearSVC, training-only CV and a retrospective holdout comparison |
 
 ## Data and consequential decisions
 
@@ -77,28 +82,90 @@ A single fixed holdout provides evidence for this experiment, without demonstrat
 
 **Better question:** What independent evidence about event overlap and annotation context would justify extending these findings beyond the retained tweets?
 The supplied text-only table does not establish those relationships, so broader claims remain unsupported.
-Training-only cross-validation or a small approved extension could be future work; neither was performed for this baseline.
+Later training-only CV and Transformer examples extend the learning; they do not change this original baseline or make its holdout fresh again.
 
 **⚖️ Ethical Takeaway:** Disclose exclusions and missed positives so readers do not mistake this educational baseline for reliable detection of every disaster report.
 
-## Reproduce the analysis
+## Beyond the Baseline
 
-The verified local environment uses **Python 3.11.11**, **pandas 2.2.3**, and **scikit-learn 1.5.2**.
-The latter two are the direct runtime packages; installed numerical dependencies include **NumPy 1.26.4** and **SciPy 1.10.1**.
-VS Code Interactive Window additionally uses **ipykernel 7.4.0** with the Python and Jupyter extensions.
+The main file compares Logistic Regression, LinearSVC and MultinomialNB at two n-gram settings using the same ten training folds.
+Every fold fits its own complete TF-IDF Pipeline. Its separate DistilBERT example predicts movie-review sentiment, not disaster labels.
 
-From the repository root, using the existing macOS project environment:
+The MiniLM file keeps the encoder frozen and fits two classical classifiers to its 384-feature vectors.
+Its explanations and Plotly comparisons distinguish current measurements from historical TF-IDF references, including the false-positive / false-negative trade-off.
+External pretraining and retrospective reuse of the inspected holdout limit the claims; no encoder fine-tuning or operational deployment is demonstrated.
 
-```bash
-.venv/bin/python disaster_tweets_classification.py
+## Run both analyses in the existing environment
+
+### Interpreter and packages
+
+Preserve the verified project-local **Python 3.11.11 `.venv`**; no rebuild is needed.
+[requirements.txt](requirements.txt) records the installed analysis, model-loading and Interactive Window packages, with selected numerical/tokenizer compatibility pins.
+It is not a full transitive lockfile, and a clean-environment installation has not been tested.
+
+The scripts use pandas, NumPy, scikit-learn, Plotly, NLTK, PyTorch, Transformers and huggingface-hub.
+SciPy supports the numerical work; safetensors and tokenizers support model loading.
+VS Code's Python/Jupyter extensions use **ipykernel 7.4.0**; **nbformat 5.11.1** supports inline Plotly display.
+The MiniLM repository name does not require installing the `sentence-transformers` Python package: this study uses Transformers directly.
+
+### Project-local resources
+
+NLTK data and pretrained weights are separate from Python packages. The ignored `.cache/` directory contains copies of existing approved resources.
+Both scripts require their relevant files here and stop with a setup error if they are missing; they do not download replacements.
+
+```text
+.cache/
+  nltk_data/
+    tokenizers/punkt_tab/english/
+    taggers/averaged_perceptron_tagger_eng/
+    corpora/wordnet.zip
+    corpora/stopwords/english
+  huggingface/hub/
+    models--distilbert--distilbert-base-uncased-finetuned-sst-2-english/snapshots/<revision>/
+    models--sentence-transformers--all-MiniLM-L6-v2/snapshots/<revision>/
 ```
 
-Alternatively, open the repository in VS Code, open the Python file, and select `.venv/bin/python` for the Interactive Window.
-Restart the kernel and run all cells from top to bottom; the required input is `DATA/train.csv`.
-The `# %%` cells execute Python, and `# %% [markdown]` cells provide the accompanying explanation.
+| Model | Immutable revision | Required snapshot files |
+| --- | --- | --- |
+| `distilbert/distilbert-base-uncased-finetuned-sst-2-english` | `714eb0fa89d2f80546fda750413ed43d93601a13` | `config.json`, `model.safetensors`, `tokenizer_config.json`, `vocab.txt` |
+| `sentence-transformers/all-MiniLM-L6-v2` | `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` | `1_Pooling/config.json`, `config.json`, `model.safetensors`, `modules.json`, `sentence_bert_config.json`, `special_tokens_map.json`, `tokenizer.json`, `tokenizer_config.json`, `vocab.txt` |
 
-The existing `requirements.txt` includes packages unused by this baseline and is not a minimal installation recipe.
-A clean-environment installation has not been tested; the command above assumes the listed packages are already available in `.venv`.
+The snapshot files are independent copies, without links back to the global cache; the original global resources remain untouched.
+NLTK lookup is restricted to the project directory, and both models use explicit cache paths with `local_files_only=True`.
+Missing setup requires a separately approved copy or provisioning step; installing requirements alone does not supply these resources.
+Neither `.venv` nor `.cache` is included in Git, so a fresh checkout is not ready to run without that setup.
+
+### Execution
+
+From the repository root, run each complete script separately with the existing interpreter (`-B` avoids writing Python bytecode):
+
+```bash
+.venv/bin/python -B disaster_tweets_classification.py
+.venv/bin/python -B disaster_tweets_huggingface.py
+```
+
+The main script includes all 60 classical CV fits and the sentiment inference; MiniLM includes encoding, 20 CV fits and two final classifier fits.
+Both use the unchanged `DATA/train.csv`; the second script reconstructs the same approved preparation and split independently.
+
+For VS Code, open this repository folder and select its `.venv/bin/python` kernel for each Python file's Interactive Window.
+Restart the kernel before running cells from top to bottom, especially after earlier sessions loaded global NLTK corpora or model objects.
+Interactive sessions use their current folder to locate data and caches; terminal scripts resolve these paths beside the source file.
+The `# %%` cells execute Python; `# %% [markdown]` cells supply explanations and Mermaid diagrams.
+Plotly display depends on the active renderer; successful terminal execution does not verify Interactive Window graphics or website export.
+
+### Verification and limits
+
+Local verification on **2026-11-01** executed both complete files through `runpy` in the existing `.venv`, with Hub offline mode and network connections blocked.
+All imports, the 13 requirement pins and `pip check` passed; both resource locations and missing/incomplete-cache errors were checked.
+Preparation, split membership/order and all ten folds matched across scripts. The baseline, six classical CV summaries and MiniLM holdout results matched their documented precision.
+The 20 recorded Naive Bayes and 20 MiniLM fold scores also matched; the other 40 historical fold values are not recorded individually in the source.
+DistilBERT again returned `POSITIVE` with score `0.999887`; this remains a sentiment demonstration.
+All 14 Plotly figures were constructed and serialized using the terminal JSON renderer.
+
+A fresh VS Code Interactive Window verified the actual interpreter/folder, current resource-loading cells, both model inferences and the original class-balance Plotly chart.
+This was a focused UI check, not a second full analysis run in the GUI or a website-export check.
+The kernel emitted an optional `IProgress not found` warning; model loading, inference and Plotly display still succeeded without installing widgets.
+The existing environment and global resources were preserved; no clean-install reproduction or new independent holdout evaluation was performed.
 
 ## Sources and provenance
 
@@ -110,5 +177,7 @@ The [historical learner notebook](Notebooks/NLP_Classification_Project_Mastersch
 - [DataCamp: TF-IDF vectors for TED talks](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/tf-idf-and-similarity-scores?ex=3).
 - [DataCamp: Pipeline for song genre prediction](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=6).
 - [scikit-learn 1.5: Pipeline API](https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html).
+- [NLTK data locations](https://www.nltk.org/data.html) and [resource lookup](https://www.nltk.org/api/nltk.data.html).
+- [Hugging Face cache layout](https://huggingface.co/docs/huggingface_hub/guides/manage-cache) and [local snapshot lookup](https://huggingface.co/docs/huggingface_hub/package_reference/file_download#huggingface_hub.snapshot_download).
 
 The Python analysis links additional inspected lessons and distinguishes teaching references from implementation adaptations.

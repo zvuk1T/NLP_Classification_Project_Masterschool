@@ -125,10 +125,12 @@
 #
 # **✅ Notes for Students:** Open this repository in VS Code, select its existing
 # `.venv/bin/python` kernel, restart it, and run cells from top to bottom.
-# This file uses pandas, scikit-learn, Plotly, and NLTK; ipykernel supports the Interactive Window.
+# This file uses pandas, scikit-learn, Plotly, NLTK, PyTorch, Transformers, and huggingface-hub.
+# ipykernel supports the Interactive Window; requirements.txt records the existing package versions.
 # Graph setup: `plotly==7.1.0` and `nbformat==5.11.1` in the existing environment.
 # nbformat supports inline display; no Matplotlib, Seaborn, Dash, or web account is needed.
-# The training-text lab below documents its separate, one-time NLTK resource setup.
+# The language and sentiment labs require the project-local resources described in README.
+# They read existing cache files; missing resources stop execution without downloading replacements.
 # A terminal alternative from the root is `.venv/bin/python disaster_tweets_classification.py`.
 
 # %%
@@ -735,11 +737,10 @@ eda_parts_figure.show()
 # The latter preserves hashtags and the URL in this example, making the adaptation to social text inspectable.
 # This is a representation comparison, not evidence that either tokenizer improves classification.
 #
-# **Setup used:** `nltk==3.10.4`, with `punkt_tab`, `wordnet`, `averaged_perceptron_tagger_eng`, and `stopwords` under `~/nltk_data`.
-# One-time setup in an approved environment:
-# `.venv/bin/python -m pip install --only-binary=:all: "nltk==3.10.4"`
-# then `.venv/bin/python -m nltk.downloader -d ~/nltk_data punkt_tab wordnet averaged_perceptron_tagger_eng stopwords`.
-# These commands are documentation, not automatic downloads during analysis; restart the kernel after installation.
+# **Setup:** `nltk==3.10.4` reads English `punkt_tab`, `wordnet`, `averaged_perceptron_tagger_eng`, and `stopwords` from `.cache/nltk_data/`.
+# These separately prepared resources are data files, not Python packages; the analysis never downloads them.
+# Restart the Interactive Window kernel before running all cells, so an earlier session cannot retain globally loaded corpora.
+# README describes the project-local layout and the separate setup boundary when resources are missing.
 # See [NLTK data setup](https://www.nltk.org/data.html), [TweetTokenizer](https://www.nltk.org/api/nltk.tokenize.casual.html),
 # [POS tagging](https://www.nltk.org/api/nltk.tag.html), and [WordNet lemmatization](https://www.nltk.org/api/nltk.stem.wordnet.html).
 
@@ -763,6 +764,23 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk.tokenize import TweetTokenizer, word_tokenize
+
+# Restrict lookup to this project's copied resources; do not fall back to a user-wide installation.
+nltk_data_path = project_root / ".cache" / "nltk_data"
+nltk.data.path = [str(nltk_data_path)]
+nltk_resources = [
+    "tokenizers/punkt_tab/english/", "corpora/wordnet.zip",
+    "taggers/averaged_perceptron_tagger_eng/", "corpora/stopwords/english",
+]
+for resource in nltk_resources:
+    try:
+        nltk.data.find(resource)
+    except LookupError as error:
+        raise FileNotFoundError(
+            f"Missing NLTK resource {resource} in {nltk_data_path}. "
+            "See README for separate resource setup; nothing was downloaded."
+        ) from error
+print("NLTK resource directory:", nltk_data_path)
 
 # Sample without looking at labels or model errors; retain CSV source indices for traceability.
 # Five observations illustrate behavior but cannot estimate its prevalence across the dataset.
@@ -1759,22 +1777,20 @@ print(cv_summary.round(4).to_string())
 
 # %% [markdown]
 # ### 13. Run one local inference
-# This section additionally requires PyTorch and Transformers in the existing `.venv`.
-# The approved setup uses Python 3.11.11, `torch==2.15.0`, and `transformers==5.21.0`.
-# Restart the Interactive Window kernel after installation before running cells in order.
+# This section uses the existing PyTorch, Transformers, and huggingface-hub versions recorded in requirements.txt.
+# Restart the Interactive Window kernel and run cells in order using the existing Python 3.11.11 `.venv`.
 #
-# Setup command, after separate installation approval:
-# `.venv/bin/python -m pip install --only-binary=:all: -c requirements.txt "torch==2.15.0" "transformers==5.21.0"`
-# Here `-c` constrains versions without installing every package in `requirements.txt`.
-#
-# First loading downloads the selected model files into the Hugging Face cache;
-# the default location is `~/.cache/huggingface/hub`, outside this repository.
+# **WHY a local snapshot:** Explicit cache lookup keeps the model revision and file location inspectable without contacting the Hub.
+# The required snapshot must already exist under `.cache/huggingface/hub/`; missing files stop execution instead of triggering a download.
 # Prediction runs locally on CPU; the demonstration sentence is not sent to a hosted inference service.
-# See [installation and caching](https://huggingface.co/docs/transformers/installation).
+# See README for setup and [Hugging Face cache layout](https://huggingface.co/docs/huggingface_hub/guides/manage-cache).
 
 # %%
 import torch
 import transformers
+from huggingface_hub import snapshot_download
+from huggingface_hub.errors import LocalEntryNotFoundError
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 print("\nHugging Face mini-lab (sentiment demonstration only):")
 print("PyTorch:", torch.__version__, "Transformers:", transformers.__version__)
@@ -1784,17 +1800,37 @@ print("PyTorch:", torch.__version__, "Transformers:", transformers.__version__)
 hf_model_id = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
 hf_model_revision = "714eb0fa89d2f80546fda750413ed43d93601a13"
 
-# Load matching pretrained weights and tokenizer; no tweet data or labels enter this operation.
-# CPU is explicit; model_kwargs requests safetensors rather than another weight-file format.
+# Despite its name, snapshot_download with local_files_only only locates cached files.
+# An explicit cache_dir prevents silently reusing the user-wide cache.
+hf_cache_dir = project_root / ".cache" / "huggingface" / "hub"
+hf_model_files = ["config.json", "model.safetensors", "tokenizer_config.json", "vocab.txt"]
+try:
+    hf_model_path = Path(snapshot_download(
+        repo_id=hf_model_id, revision=hf_model_revision, cache_dir=hf_cache_dir,
+        allow_patterns=hf_model_files, local_files_only=True,
+    ))
+except LocalEntryNotFoundError as error:
+    raise FileNotFoundError(
+        f"Missing {hf_model_id} at {hf_model_revision} in {hf_cache_dir}. "
+        "See README for separate resource setup; nothing was downloaded."
+    ) from error
+
+# A snapshot directory can exist after an incomplete copy; check every required file before loading.
+hf_missing_files = [name for name in hf_model_files if not (hf_model_path / name).is_file()]
+if hf_missing_files:
+    raise FileNotFoundError(f"Incomplete snapshot {hf_model_path}: {hf_missing_files}. See README; no download was attempted.")
+
+# Load matching local tokenizer and safetensors weights; no tweet data or labels enter this operation.
+hf_tokenizer = AutoTokenizer.from_pretrained(hf_model_path, local_files_only=True, trust_remote_code=False)
+hf_model = AutoModelForSequenceClassification.from_pretrained(
+    hf_model_path, local_files_only=True, trust_remote_code=False, use_safetensors=True,
+)
 sentiment_pipeline = transformers.pipeline(
-    task="sentiment-analysis",
-    model=hf_model_id,
-    revision=hf_model_revision,
-    device="cpu",
-    model_kwargs={"use_safetensors": True},
+    task="sentiment-analysis", model=hf_model, tokenizer=hf_tokenizer, device="cpu",
 )
 print("Model:", hf_model_id)
 print("Revision:", hf_model_revision)
+print("Model snapshot:", hf_model_path)
 # The loaded model's configuration maps numerical output positions to sentiment names.
 print("Sentiment labels:", sentiment_pipeline.model.config.id2label)
 
