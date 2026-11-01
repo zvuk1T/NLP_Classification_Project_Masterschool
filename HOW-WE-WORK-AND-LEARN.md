@@ -74,6 +74,8 @@ Label retrospective explanations as retrospective. Do not invent Data's former b
 
 Preserve the historical `Notebooks/NLP_Classification_Project_Masterschool.ipynb` unchanged. School/mentor notebooks are references. Any derived Colab export comes from the primary validated `.py` only under separate approval, never as parallel implementation.
 
+**Reproduction evidence has layers:** Package pins, ignored project-local NLTK/Transformer resources, model checkpoints and the dataset are distinct requirements. Spock reported full offline execution on 2026-11-01 in the existing Python 3.11.11 `.venv`; a fresh clone contains neither `.venv/` nor `.cache/`. No clean-environment installation has been tested. Keep existing-environment Technical PASS separate from fresh-clone portability and website rendering.
+
 ### Teaching functions and emoji vocabulary
 
 A meaningful analytical unit may span several cells. Use these functions naturally, not a full template for every import or operation:
