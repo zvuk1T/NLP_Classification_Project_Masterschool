@@ -43,11 +43,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precisio
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.svm import LinearSVC
 
-# region Explain this code
-# Reproduce the baseline observations and split before comparing representations, so changing the encoder does not silently change the evaluated rows.
-# Resolve the existing dataset beside this script, or in the Interactive Window's project folder.
-# The retained tables keep CSV source indices, while cv_folds stores positional fit/validation arrays for indexing embeddings and matching labels.
-# endregion
+# Recreate baseline rows with source indices; cv_folds stores positions within the training partition.
 project_root = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
 data_path = project_root / "DATA" / "train.csv"
 if not data_path.is_file():
@@ -84,6 +80,30 @@ print("Training source indices, first five:", train_rows.index[:5].tolist())
 print("Holdout source indices, first five:", holdout_rows.index[:5].tolist())
 print("Shared prepared strings:", len(set(X_train) & set(X_holdout)))
 print("Validation rows per training fold:", [len(validation) for _, validation in cv_folds])
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To isolate the representation change, reproduce the original normalization, retention policy, train/holdout split, and training-fold membership.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. The file path resolves beside the script or from the interactive working folder; `read_csv()` creates the source-row index.
+# 2. The copy retains original text; normalized strings identify conflicting groups, then `drop_duplicates()` retains the first consistent occurrence.
+# 3. Splitting whole rows keeps text and labels together; selecting columns preserves their matching source indices and order.
+# 4. `list(cv_splitter.split(...))` stores ten pairs of positional fit/validation arrays, reused for both classifiers.
+#
+# ```python
+# cv_folds = list(cv_splitter.split(X_train, y_train))
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Fold positions are not CSV source indices; matching membership controls observations but does not establish independent events or accurate annotations.
+#
+# </details>
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
@@ -181,11 +201,7 @@ model_files = [
     "tokenizer_config.json", "vocab.txt",
 ]
 
-# region Explain this code
-# Reuse a fixed encoder so subsequent differences concern its transferred features rather than new Transformer training.
-# Locate the pinned snapshot in this project only; local_files_only forbids a network download.
-# Match the approved file subset; the model repository also contains unused backend formats.
-# endregion
+# Locate only the pinned project snapshot; local_files_only prevents downloading missing model resources.
 model_cache_dir = project_root / ".cache" / "huggingface" / "hub"
 try:
     model_path = Path(snapshot_download(
@@ -213,6 +229,31 @@ encoder.requires_grad_(False)  # No encoder parameter will receive a training gr
 print("PyTorch:", torch.__version__, "Transformers:", transformers.__version__)
 print("Encoder:", model_id, "Revision:", model_revision)
 print("Model snapshot:", model_path)
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To compare transferred features without new Transformer training, load the fixed MiniLM encoder and matching tokenizer from existing local files.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. The model ID, revision, and file list identify the approved snapshot; local lookup uses the project cache and rejects missing snapshots.
+# 2. A separate file check rejects incomplete copies; unused backend formats in the model repository are not required.
+# 3. The tokenizer and encoder load locally with remote code disabled; `.to("cpu")` selects the execution device.
+# 4. `eval()` disables training-time dropout; `requires_grad_(False)` prevents parameter gradients, keeping the encoder frozen for later inference.
+#
+# ```python
+# encoder.eval()
+# encoder.requires_grad_(False)
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# This loads externally learned features, not disaster predictions; freezing weights does not establish whether pretraining overlapped these tweets.
+#
+# </details>
 
 # %%
 # Keep one feature matrix per partition: rows follow input tweets; columns are 384 embedding dimensions.
@@ -334,11 +375,7 @@ print("Training vector lengths, min/max:", np.linalg.norm(train_embeddings, axis
 # > Results compare these fixed workflows; they cannot establish the best achievable version of either approach.
 
 # %%
-# region Explain this code
-# Compare classifiers on identical validation rows while keeping the pretrained representation fixed.
-# Options are unfitted templates; clone creates an independent classifier for each fold.
-# Fold positions select matching embedding rows and labels; scoring uses only observations withheld from that fold's classifier fit.
-# endregion
+# Clone a fresh classifier per fold; positional embedding rows must match y_train.iloc positions.
 classifier_options = [
     ("Logistic Regression", LogisticRegression()),
     ("LinearSVC", LinearSVC(random_state=42)),
@@ -375,12 +412,36 @@ print(fold_results.pivot(index="fold", columns="classifier", values="f1").round(
 print("\nEmbedding CV summaries:")
 print(embedding_summary.round(6).to_string(index=False))
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To compare classifiers on the same frozen features, fit each template separately within every stored training fold.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `clone()` copies estimator settings without fitted parameters; each fold fits only its designated training positions.
+# 2. NumPy indexing selects embedding rows, while `.iloc` selects labels by the same positions; prediction uses the withheld positions.
+# 3. `f1_score(..., pos_label=1, zero_division=0)` scores recorded disasters and returns zero for an otherwise undefined F1.
+# 4. Records hold one classifier/fold result each; `pivot()` arranges scores by fold, while means and `std(ddof=0)` summarize ten scores.
+#
+# ```python
+# fold_classifier = clone(classifier)
+# fold_classifier.fit(
+#     train_embeddings[fit_positions],
+#     y_train.iloc[fit_positions],
+# )
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Only classifiers learn here; fixed per-tweet features can precede CV, but overlapping training subsets make fold spread unsuitable as a confidence interval.
+#
+# </details>
+
 # %%
-# region Explain this code
-# Historical values are the six published summaries documented in the main analysis, rounded to four decimals.
-# This file does not rerun or replace those 60 TF-IDF fits; the evidence column makes that distinction visible.
-# Concatenation creates one row per classifier/representation; comparisons match classifier names, while rounded references make the differences approximate.
-# endregion
+# Label the six TF-IDF summaries as rounded historical evidence; this file does not rerun those fits.
 reference_rows = [
     ("Logistic Regression", "TF-IDF (1, 1)", 0.7506, 0.0197),
     ("Logistic Regression", "TF-IDF (1, 2)", 0.7293, 0.0181),
@@ -403,11 +464,34 @@ for _, current in embedding_summary.iterrows():
         difference = current["mean_f1"] - reference["mean_f1"]
         print(f"{current['classifier']}: MiniLM minus {reference['representation']} mean F1 = {difference:+.4f} (approximate)")
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To compare representations while preserving provenance, combine six historical TF-IDF summaries with the two MiniLM summaries from this run.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. Tuple records become a DataFrame with named metric columns; `evidence` identifies historical values rounded to four decimals.
+# 2. `pd.concat(..., ignore_index=True)` stacks rows and assigns a new display index, not source-tweet identifiers.
+# 3. For each MiniLM classifier, filtering selects its matching historical classifier rows; subtraction compares CV means, never holdout scores.
+#
+# ```python
+# cv_comparison = pd.concat(
+#     [tfidf_reference, embedding_summary],
+#     ignore_index=True,
+# )
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Rounded references make differences approximate; concatenation neither reproduces the earlier 60 fits nor supplies paired historical fold scores.
+#
+# </details>
+
 # %%
-# region Explain this code
-# Lines connect fold identifiers, not time. Each point uses the same validation membership across classifiers.
-# Read the line plot for fold-to-fold changes and the scatter plot for average F1 across the available configurations.
-# endregion
+# Connect scores by fold identifier, not time; matching fold numbers use the same validation observations.
 fold_figure = px.line(
     fold_results, x="fold", y="f1", color="classifier", markers=True,
     title="MiniLM: class-1 F1 across ten training folds",
@@ -433,6 +517,25 @@ comparison_figure.update_yaxes(
     ticktext=cv_comparison["configuration"].str.replace(" + ", "<br>+ ", regex=False),
 )
 comparison_figure.show()
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To inspect variation and overall ranking separately, visualize existing fold scores and configuration summaries without fitting models.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `px.line()` uses one point per classifier/fold; markers show measured F1 and lines connect fold identifiers.
+# 2. `px.scatter()` positions each configuration at its mean F1; `error_x="std_f1"` adds its fold standard deviation.
+# 3. Symbols and hover fields retain evidence provenance; replacing label separators with `<br>` wraps display text without changing scores.
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Both axes use F1 on a zero-to-one scale; error bars describe fold variation, not significance or independent uncertainty bounds.
+#
+# </details>
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
@@ -485,11 +588,7 @@ comparison_figure.show()
 # Only TF-IDF + Logistic Regression has an existing holdout result. LinearSVC's historical figures are CV results and belong in the preceding comparison.
 
 # %%
-# region Explain this code
-# To document both fixed workflows, fit each cloned classifier on all training embeddings before predicting the familiar holdout.
-# holdout_predictions stores one position-aligned label array per classifier; holdout_records stores one metric summary per workflow.
-# The later historical baseline row is reconstructed from documented counts, not retrained; this remains retrospective evaluation.
-# endregion
+# Refit both fixed classifier templates on all training embeddings; the known holdout remains retrospective evidence.
 holdout_records = []
 holdout_predictions = {}
 print("Holdout support by recorded label:", y_holdout.value_counts().sort_index().to_dict())
@@ -535,18 +634,65 @@ holdout_summary = pd.DataFrame([baseline_record] + holdout_records)
 print("\nRetrospective holdout metrics; do not compare this table with CV means:")
 print(holdout_summary.round(4).to_string(index=False))
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To document both predeclared workflows, fit fresh classifiers on all training vectors and evaluate them on the familiar holdout.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `clone()` preserves templates; each fitted classifier predicts a position-aligned array stored under its name in `holdout_predictions`.
+# 2. Metrics compare each array with the same `y_holdout`; matrices use recorded-label rows and prediction columns in 0/1 order.
+# 3. Both heatmaps display counts on the same scale; they create no additional evaluation observations.
+# 4. Historical TN, FP, FN, and TP counts reconstruct baseline metrics; the summary joins that documented row with the current retrospective records.
+#
+# ```python
+# fitted_classifier.fit(train_embeddings, y_train)
+# predictions = fitted_classifier.predict(holdout_embeddings)
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# The baseline is not retrained, and neither current classifier is chosen by its holdout score; this inspected holdout is not an independent final test.
+#
+# </details>
+
 # %%
-# region Explain this code
-# Preserve original wording and source-row indices when inspecting prediction errors.
-# These first three errors per classifier are an illustration, not an estimate of error-type prevalence.
-# Assign each prediction array before filtering; head(3) keeps holdout order here, unlike the baseline's source-index-sorted examples.
-# endregion
+# Attach arrays before filtering; head(3) retains holdout order rather than sorting source indices.
 holdout_review = holdout_rows[["text", "target"]].copy()
 for classifier_name, predictions in holdout_predictions.items():
     holdout_review[classifier_name] = predictions
     error_mask = holdout_review[classifier_name] != holdout_review["target"]
     print("\nFirst three holdout errors:", classifier_name)
     print(holdout_review.loc[error_mask, ["text", "target", classifier_name]].head(3).to_string())
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To inspect concrete disagreements, copy original holdout text and labels, then attach each classifier’s existing predictions.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. Array assignment uses row positions; the review table retains the original source indices.
+# 2. `!=` marks every mismatch for that classifier; `.loc` selects those rows and the relevant columns.
+# 3. `head(3)` shows the first three mismatches in holdout order, potentially mixing false positives and false negatives.
+#
+# ```python
+# error_mask = (
+#     holdout_review[classifier_name]
+#     != holdout_review["target"]
+# )
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# This differs from the baseline’s separately filtered, source-index-sorted examples; three selected errors establish neither prevalence nor internal model causes.
+#
+# </details>
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
@@ -635,11 +781,7 @@ for classifier_name, predictions in holdout_predictions.items():
 # Plotting reference: [Plotly grouped bars and value labels](https://plotly.com/python/bar-charts/).
 
 # %%
-# region Explain this code
-# One row compares the same classifier with one historical TF-IDF configuration.
-# Reuse measured summaries; no fitting or holdout metrics enter this table.
-# Subtracting earlier from current mean F1 produces absolute differences, not percentage growth or paired per-fold improvements.
-# endregion
+# Match classifier names before subtracting CV means; each row compares one historical/current representation pair.
 cv_change_records = []
 for _, current in embedding_summary.iterrows():
     references = tfidf_reference.loc[tfidf_reference["classifier"] == current["classifier"]]
@@ -671,6 +813,25 @@ cv_change_figure.update_yaxes(rangemode="tozero", tickformat=".3f")
 cv_change_figure.show()
 
 # %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To make representation differences visible, derive a table of matched-classifier changes from existing CV summaries.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `iterrows()` visits MiniLM summaries; a Boolean filter selects the same classifier’s two historical TF-IDF configurations.
+# 2. Each record retains both means and their difference; no fit or holdout score enters the table.
+# 3. Signed strings format displayed labels only; grouped bars use the unrounded differences stored in `f1_change`.
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# These are absolute F1 differences, not percentage growth or paired per-fold gains; rounding in historical references limits precision.
+#
+# </details>
+
+# %% [markdown]
 # **Measured answer:** All four mean differences are positive: approximately `+0.0231` / `+0.0444` for Logistic Regression and `+0.0130` / `+0.0155` for LinearSVC.
 # The larger bigram comparison partly reflects its lower TF-IDF reference; it does not identify the best achievable model.
 # Historical means alone cannot establish paired improvements in every fold or statistical significance.
@@ -681,10 +842,7 @@ cv_change_figure.show()
 # This is retrospective evidence on the same 1,497 observations; class-1 F1, precision and recall concern the recorded disaster label.
 
 # %%
-# region Explain this code
-# Select only the two workflows that share Logistic Regression; keep their evidence labels for hover details.
-# This holds classifier choice fixed so the four displayed metrics compare representations on the same retrospective holdout.
-# endregion
+# Select the two Logistic Regression workflows and retain evidence labels for the retrospective comparison.
 representation_names = {
     "Logistic Regression + TF-IDF (1, 1)": "TF-IDF (earlier)",
     "Logistic Regression + MiniLM": "MiniLM (current)",
@@ -717,6 +875,33 @@ holdout_metric_figure.update_yaxes(title=None)
 holdout_metric_figure.show()
 
 # %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To compare four holdout metrics with classifier choice fixed, select the two Logistic Regression workflows and reshape their existing scores.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `isin(representation_names)` tests dictionary-key membership; `map()` assigns a shorter representation label to each selected row.
+# 2. `melt()` turns four metric columns into rows, retaining representation and evidence as identifiers: one score per representation/metric pair.
+# 3. Display strings round labels only; grouped horizontal bars share a zero-to-one axis and preserve provenance in hover details.
+#
+# ```python
+# matched_holdout = holdout_summary.loc[
+#     holdout_summary["configuration"].isin(
+#         representation_names
+#     )
+# ].copy()
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Reshaping does not average or recalculate metrics; the familiar holdout supports a retrospective comparison, not a new unbiased final evaluation.
+#
+# </details>
+
+# %% [markdown]
 # **Measured answer:** F1 rises from `0.7308` to `0.7650`, recall from `0.6735` to `0.7410`, and accuracy from `0.7889` to `0.8063`.
 # Precision falls from `0.7989` to `0.7906`; the representation change does not improve every metric.
 # The bars reuse existing results; reshaping with [pandas `melt`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.melt.html) does not recalculate or average scores.
@@ -727,11 +912,7 @@ holdout_metric_figure.show()
 # False negatives miss recorded disasters; false positives predict disaster for recorded non-disasters.
 
 # %%
-# region Explain this code
-# Reuse existing holdout predictions; rows are recorded labels and columns are predictions, in order [0, 1].
-# Entries [1, 0] and [0, 1] recover missed positives and false alarms for the comparison with earlier counts.
-# Subtraction shows net changes by error type, not which individual tweets changed predictions or the costs of those errors.
-# endregion
+# Recover missed positives at [1, 0] and false alarms at [0, 1] from the existing predictions.
 minilm_lr_counts = confusion_matrix(y_holdout, holdout_predictions["Logistic Regression"], labels=[0, 1])
 
 # One row per error type keeps the earlier and current counts visible in the hover details.
@@ -763,6 +944,32 @@ error_change_figure.update_yaxes(title=None)
 error_change_figure.update_traces(texttemplate="%{text}", textposition="outside", cliponaxis=False)
 error_change_figure.update_layout(height=320, showlegend=False)
 error_change_figure.show()
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To express the representation trade-off as counts, compare MiniLM Logistic Regression errors with the documented baseline errors.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `confusion_matrix(..., labels=[0, 1])` fixes recorded-label rows and prediction columns; two off-diagonal entries supply FN and FP counts.
+# 2. The two-row table retains earlier/current counts; column subtraction gives signed net changes for each error type.
+# 3. The largest absolute change sets symmetric axis limits, so increases and decreases share a comparable scale.
+#
+# ```python
+# error_changes["count_change"] = (
+#     error_changes["current_minilm"]
+#     - error_changes["earlier_tfidf"]
+# )
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Net changes do not identify individual corrected tweets or error costs; the two types also have different recorded-label denominators.
+#
+# </details>
 
 # %% [markdown]
 # **Measured answer:** Missed disaster labels decrease from `208` to `165` (`−43`); false positives increase from `108` to `125` (`+17`).
@@ -800,11 +1007,7 @@ error_change_figure.show()
 # %%
 from sklearn.model_selection import cross_val_predict
 
-# region Explain this code
-# Compare classifier regularization without re-encoding text; C changes the coefficient penalty, not sample size.
-# Rows retain training source indices; each named column will hold one configuration's withheld labels.
-# The small C list fixes this comparison in advance; records will collect one summary per configuration.
-# endregion
+# Fix classifier C choices without re-encoding; each prediction column retains training source-row alignment.
 minilm_c_values = [0.1, 1.0, 10.0]
 minilm_c_oof_predictions = pd.DataFrame(index=y_train.index)
 minilm_c_records = []
@@ -856,6 +1059,32 @@ minilm_c_summary = pd.DataFrame(minilm_c_records).set_index("configuration")
 print(f"\nMiniLM training-only OOF comparison: {len(y_train)} rows; "
       f"{y_train.eq(1).sum()} recorded positives; {y_train.eq(0).sum()} recorded negatives.")
 print(minilm_c_summary.round(4).to_string())
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To test regularization while keeping MiniLM fixed, collect withheld predictions for two classifiers at three `C` settings.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `clone(...).set_params(C=...)` changes only a copied template; the original classifier objects remain untouched.
+# 2. `cross_val_predict()` fits a fresh classifier per stored fold and returns labels in input order; embeddings are reused without refitting.
+# 3. Matrix flattening extracts TN, FP, FN, TP; positional `.iloc` selection scores stored predictions separately within each validation fold.
+# 4. Each summary row contains pooled metrics and errors alongside the mean and standard deviation of ten individual fold F1 scores.
+#
+# ```python
+# minilm_c_candidate = clone(
+#     minilm_c_template
+# ).set_params(C=minilm_c_value)
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# `C` changes the coefficient penalty, not the number of training rows; the extra scoring loop performs no fitting, and selection remains exploratory.
+#
+# </details>
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
