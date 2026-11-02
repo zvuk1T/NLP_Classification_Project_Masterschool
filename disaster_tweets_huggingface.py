@@ -8,6 +8,7 @@
 # **Reading route:** Same observations → frozen encoder → training-only CV → retrospective holdout → insights → ethics → visual comparison.
 # **Execution evidence — 2026-10-29:** All eleven code cells ran in the project `.venv`, including 20 CV fits and two final classifier fits.
 # MiniLM improved both classifiers' mean CV F1 relative to their historical TF-IDF references; detailed results and limits appear below.
+# Section 8 adds a separate training-only regularization comparison; the original workflows and holdout results remain unchanged.
 # Run the percent cells from top to bottom in the existing project `.venv`.
 # Restart the Interactive Window kernel first; README describes dependencies and the project-local cache.
 #
@@ -42,7 +43,11 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precisio
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.svm import LinearSVC
 
+# region Explain this code
+# Reproduce the baseline observations and split before comparing representations, so changing the encoder does not silently change the evaluated rows.
 # Resolve the existing dataset beside this script, or in the Interactive Window's project folder.
+# The retained tables keep CSV source indices, while cv_folds stores positional fit/validation arrays for indexing embeddings and matching labels.
+# endregion
 project_root = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
 data_path = project_root / "DATA" / "train.csv"
 if not data_path.is_file():
@@ -176,8 +181,11 @@ model_files = [
     "tokenizer_config.json", "vocab.txt",
 ]
 
+# region Explain this code
+# Reuse a fixed encoder so subsequent differences concern its transferred features rather than new Transformer training.
 # Locate the pinned snapshot in this project only; local_files_only forbids a network download.
 # Match the approved file subset; the model repository also contains unused backend formats.
+# endregion
 model_cache_dir = project_root / ".cache" / "huggingface" / "hub"
 try:
     model_path = Path(snapshot_download(
@@ -207,8 +215,15 @@ print("Encoder:", model_id, "Revision:", model_revision)
 print("Model snapshot:", model_path)
 
 # %%
+# region Explain this code
+# Compute fixed per-tweet features once because this encoder learns nothing from our dataset.
 # These dictionaries keep matrices and timings separate for the two unchanged partitions.
 # Every matrix row follows its corresponding X Series; each column is one embedding dimension.
+#
+# Multiplying by token_mask zeroes padding before summing token vectors and dividing by the non-padding count.
+# clamp(min=1) prevents division by zero; normalize then scales each nonzero tweet vector to unit length.
+# Special tokens remain included; only padding is excluded from this average.
+# endregion
 embedding_matrices = {}
 encoding_seconds = {}
 maximum_tokens = 256
@@ -286,7 +301,11 @@ print("Training vector lengths, min/max:", np.linalg.norm(train_embeddings, axis
 # > Results compare these fixed workflows; they cannot establish the best achievable version of either approach.
 
 # %%
+# region Explain this code
+# Compare classifiers on identical validation rows while keeping the pretrained representation fixed.
 # Options are unfitted templates; clone creates an independent classifier for each fold.
+# Fold positions select matching embedding rows and labels; scoring uses only observations withheld from that fold's classifier fit.
+# endregion
 classifier_options = [
     ("Logistic Regression", LogisticRegression()),
     ("LinearSVC", LinearSVC(random_state=42)),
@@ -324,8 +343,11 @@ print("\nEmbedding CV summaries:")
 print(embedding_summary.round(6).to_string(index=False))
 
 # %%
+# region Explain this code
 # Historical values are the six published summaries documented in the main analysis, rounded to four decimals.
 # This file does not rerun or replace those 60 TF-IDF fits; the evidence column makes that distinction visible.
+# Concatenation creates one row per classifier/representation; comparisons match classifier names, while rounded references make the differences approximate.
+# endregion
 reference_rows = [
     ("Logistic Regression", "TF-IDF (1, 1)", 0.7506, 0.0197),
     ("Logistic Regression", "TF-IDF (1, 2)", 0.7293, 0.0181),
@@ -349,7 +371,10 @@ for _, current in embedding_summary.iterrows():
         print(f"{current['classifier']}: MiniLM minus {reference['representation']} mean F1 = {difference:+.4f} (approximate)")
 
 # %%
+# region Explain this code
 # Lines connect fold identifiers, not time. Each point uses the same validation membership across classifiers.
+# Read the line plot for fold-to-fold changes and the scatter plot for average F1 across the available configurations.
+# endregion
 fold_figure = px.line(
     fold_results, x="fold", y="f1", color="classifier", markers=True,
     title="MiniLM: class-1 F1 across ten training folds",
@@ -427,6 +452,11 @@ comparison_figure.show()
 # Only TF-IDF + Logistic Regression has an existing holdout result. LinearSVC's historical figures are CV results and belong in the preceding comparison.
 
 # %%
+# region Explain this code
+# To document both fixed workflows, fit each cloned classifier on all training embeddings before predicting the familiar holdout.
+# holdout_predictions stores one position-aligned label array per classifier; holdout_records stores one metric summary per workflow.
+# The later historical baseline row is reconstructed from documented counts, not retrained; this remains retrospective evaluation.
+# endregion
 holdout_records = []
 holdout_predictions = {}
 print("Holdout support by recorded label:", y_holdout.value_counts().sort_index().to_dict())
@@ -473,8 +503,11 @@ print("\nRetrospective holdout metrics; do not compare this table with CV means:
 print(holdout_summary.round(4).to_string(index=False))
 
 # %%
+# region Explain this code
 # Preserve original wording and source-row indices when inspecting prediction errors.
 # These first three errors per classifier are an illustration, not an estimate of error-type prevalence.
+# Assign each prediction array before filtering; head(3) keeps holdout order here, unlike the baseline's source-index-sorted examples.
+# endregion
 holdout_review = holdout_rows[["text", "target"]].copy()
 for classifier_name, predictions in holdout_predictions.items():
     holdout_review[classifier_name] = predictions
@@ -569,8 +602,11 @@ for classifier_name, predictions in holdout_predictions.items():
 # Plotting reference: [Plotly grouped bars and value labels](https://plotly.com/python/bar-charts/).
 
 # %%
+# region Explain this code
 # One row compares the same classifier with one historical TF-IDF configuration.
 # Reuse measured summaries; no fitting or holdout metrics enter this table.
+# Subtracting earlier from current mean F1 produces absolute differences, not percentage growth or paired per-fold improvements.
+# endregion
 cv_change_records = []
 for _, current in embedding_summary.iterrows():
     references = tfidf_reference.loc[tfidf_reference["classifier"] == current["classifier"]]
@@ -612,7 +648,10 @@ cv_change_figure.show()
 # This is retrospective evidence on the same 1,497 observations; class-1 F1, precision and recall concern the recorded disaster label.
 
 # %%
+# region Explain this code
 # Select only the two workflows that share Logistic Regression; keep their evidence labels for hover details.
+# This holds classifier choice fixed so the four displayed metrics compare representations on the same retrospective holdout.
+# endregion
 representation_names = {
     "Logistic Regression + TF-IDF (1, 1)": "TF-IDF (earlier)",
     "Logistic Regression + MiniLM": "MiniLM (current)",
@@ -655,7 +694,11 @@ holdout_metric_figure.show()
 # False negatives miss recorded disasters; false positives predict disaster for recorded non-disasters.
 
 # %%
+# region Explain this code
 # Reuse existing holdout predictions; rows are recorded labels and columns are predictions, in order [0, 1].
+# Entries [1, 0] and [0, 1] recover missed positives and false alarms for the comparison with earlier counts.
+# Subtraction shows net changes by error type, not which individual tweets changed predictions or the costs of those errors.
+# endregion
 minilm_lr_counts = confusion_matrix(y_holdout, holdout_predictions["Logistic Regression"], labels=[0, 1])
 
 # One row per error type keeps the earlier and current counts visible in the hover details.
@@ -696,3 +739,119 @@ error_change_figure.show()
 # **🧠 Learning → Better Question:** Does this error trade-off justify using the more complex representation in a defined real-world setting?
 # **Current answer: not established.** The charts support a measured educational comparison; deciding usefulness also requires fresh evaluation and evidence about error costs.
 # Read the visual gains together with the ethical limits in Section 6, rather than declaring an overall winner from one score.
+
+# %% [markdown]
+# ## 8. Beyond the baseline — adjust the classifiers, keep MiniLM fixed
+#
+# **❓ Main Question:** Can a small change to classifier regularization improve the frozen-MiniLM results without Transformer fine-tuning?
+# **🎯 Goal:** Compare `C=0.1, 1, 10` for Logistic Regression and LinearSVC on the same ten training folds.
+# The encoder, embeddings, preprocessing, class weights, and prediction rules stay fixed; only the downstream classifiers learn again.
+#
+# **WHY C:** Smaller values penalize large classifier coefficients more strongly; larger values allow more flexibility.
+# Equal `C` values do not make Logistic Regression and LinearSVC equivalent because their learning objectives differ.
+# The earlier TF-IDF comparison cannot determine which setting suits MiniLM, whose features describe text differently.
+#
+# MasterSchool Sprint 3 lists optional regularization trials; DataCamp's [Regularizing models with Twitter data](https://campus.datacamp.com/courses/sentiment-analysis-in-python/lets-predict-the-sentiment?ex=11)
+# illustrates the idea for sentiment. This assistant-authored adaptation uses our recorded disaster labels and existing training folds.
+# Installed-version references: [LogisticRegression](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.LogisticRegression.html),
+# [LinearSVC](https://scikit-learn.org/1.5/modules/generated/sklearn.svm.LinearSVC.html), and [cross_val_predict](https://scikit-learn.org/1.5/modules/generated/sklearn.model_selection.cross_val_predict.html).
+#
+# **HOW:** Reuse the existing training embeddings; each row receives one prediction from a classifier trained on the other nine folds.
+# Six configurations require 60 classifier fits; neither the encoder nor the original classifier templates are changed.
+# The repeated `C=1` settings provide matching references and withheld predictions, which the earlier CV retained only as scores.
+#
+# Pooled recall, precision, F1, and error counts summarize all 5,986 withheld predictions per configuration.
+# Mean fold F1 and its standard deviation summarize ten separate scores; pooled F1 is a different calculation.
+# These are exploratory training comparisons, not new holdout results or evidence of operational reliability.
+
+# %%
+from sklearn.model_selection import cross_val_predict
+
+# region Explain this code
+# Compare classifier regularization without re-encoding text; C changes the coefficient penalty, not sample size.
+# Rows retain training source indices; each named column will hold one configuration's withheld labels.
+# The small C list fixes this comparison in advance; records will collect one summary per configuration.
+# endregion
+minilm_c_values = [0.1, 1.0, 10.0]
+minilm_c_oof_predictions = pd.DataFrame(index=y_train.index)
+minilm_c_records = []
+
+for minilm_c_name, minilm_c_template in classifier_options:
+    for minilm_c_value in minilm_c_values:
+        # Clone before changing C, preserving the original C=1 templates and their remaining settings.
+        minilm_c_candidate = clone(minilm_c_template).set_params(C=minilm_c_value)
+        minilm_c_key = f"{minilm_c_name}, C={minilm_c_value:g}"
+
+        # Each fold fits a fresh classifier; returned labels follow the original training-row order.
+        # Fixed per-tweet embeddings need no refitting inside folds; default predict rules remain unchanged.
+        minilm_c_oof_predictions[minilm_c_key] = cross_val_predict(
+            minilm_c_candidate, train_embeddings, y_train, cv=cv_folds, method="predict", n_jobs=1,
+        )
+        minilm_c_predictions = minilm_c_oof_predictions[minilm_c_key]
+
+        # Rows are recorded labels, columns are predictions; [0, 1] fixes the confusion-matrix orientation.
+        # Flattening yields correct negatives, false alarms, missed positives, and correct positives.
+        minilm_c_tn, minilm_c_fp, minilm_c_fn, minilm_c_tp = confusion_matrix(
+            y_train, minilm_c_predictions, labels=[0, 1],
+        ).ravel()
+
+        # Summarize stored predictions within each known fold; this loop performs no additional fitting.
+        # iloc uses positional memberships, while the Series retain original source indices.
+        minilm_c_fold_scores = []
+        for _, minilm_c_valid_positions in cv_folds:
+            minilm_c_fold_scores.append(f1_score(
+                y_train.iloc[minilm_c_valid_positions],
+                minilm_c_predictions.iloc[minilm_c_valid_positions], pos_label=1,
+            ))
+        minilm_c_scores = np.array(minilm_c_fold_scores)
+
+        # Recall uses recorded positives; precision uses predicted positives. Fold SD is descriptive, not a confidence interval.
+        minilm_c_records.append({
+            "configuration": minilm_c_key,
+            "pooled_recall": recall_score(y_train, minilm_c_predictions, pos_label=1),
+            "pooled_precision": precision_score(y_train, minilm_c_predictions, pos_label=1),
+            "pooled_f1": f1_score(y_train, minilm_c_predictions, pos_label=1),
+            "mean_fold_f1": minilm_c_scores.mean(),
+            "sd_fold_f1": minilm_c_scores.std(ddof=0),
+            "missed_positives": minilm_c_fn,
+            "false_alarms": minilm_c_fp,
+        })
+        print(f"Completed ten training-only folds: {minilm_c_key}")
+
+# One row per configuration keeps every tested setting visible; rounding changes display only.
+minilm_c_summary = pd.DataFrame(minilm_c_records).set_index("configuration")
+print(f"\nMiniLM training-only OOF comparison: {len(y_train)} rows; "
+      f"{y_train.eq(1).sum()} recorded positives; {y_train.eq(0).sum()} recorded negatives.")
+print(minilm_c_summary.round(4).to_string())
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# The training-only run on 2026-11-01 completed all 60 classifier fits without warnings in the existing environment.
+# The repeated `C=1` mean fold F1 values reproduce the earlier Logistic Regression `0.773690` and LinearSVC `0.768419`.
+# The frozen encoder was reused locally; no Transformer training, new download, or holdout evaluation was performed for this comparison.
+#
+# All rows below summarize the same 5,986 training examples: 2,549 recorded positives and 3,437 recorded negatives.
+# LR means Logistic Regression; SVC means LinearSVC. Error counts and pooled metrics use one withheld prediction per example.
+#
+# | Classifier | C | Pooled recall | Pooled precision | Pooled F1 | Mean fold F1 | Missed positives | False alarms |
+# | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+# | LR | 0.1 | 0.7273 | 0.8068 | 0.7650 | 0.7651 | 695 | 444 |
+# | LR | 1.0 | 0.7466 | 0.8030 | 0.7737 | 0.7737 | 646 | 467 |
+# | LR | 10.0 | 0.7399 | 0.7995 | 0.7685 | 0.7684 | 663 | 473 |
+# | SVC | 0.1 | 0.7438 | 0.8010 | 0.7714 | 0.7712 | 653 | 471 |
+# | SVC | 1.0 | 0.7383 | 0.8015 | 0.7686 | 0.7684 | 667 | 466 |
+# | SVC | 10.0 | 0.7391 | 0.7916 | 0.7645 | 0.7643 | 665 | 496 |
+#
+# **Answer:** LinearSVC with `C=0.1` has 14 fewer missed positives and five more false alarms than its own `C=1` reference.
+# Its pooled F1 rises about `0.0027`; these net count differences do not mean exactly 14 individual predictions were corrected.
+# Neither alternative improves Logistic Regression's F1, and its existing `C=1` setting retains the highest observed F1 among these six configurations.
+#
+# > **⚠️ Watch Out — A small observed gain is not a validated improvement**
+# >
+# > Selecting a setting from these same folds introduces selection optimism; fold standard deviations are not significance tests.
+# > These training results cannot be compared directly with the earlier 74.10% or 74.88% holdout recall as a measured gain.
+#
+# ### 🧠 Learning → Better Questions
+# **Does this justify replacing the existing MiniLM configuration?** This limited comparison provides no F1-based reason to replace Logistic Regression at `C=1`.
+# The small LinearSVC change remains exploratory; a claim about new events would require independent evaluation and an agreed error trade-off.
+# Stop this bounded comparison here: preserve the original workflows and report all six settings without refitting a selected winner.

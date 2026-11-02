@@ -43,7 +43,7 @@
 #
 # **Question:** How well does the classifier agree with unseen recorded labels?
 #
-# **Approach:** Evaluate the TF-IDF + Logistic Regression baseline; separately compare six full Pipelines in ten training-only CV folds.
+# **Approach:** Evaluate the original baseline; separately compare six model configurations and three regularization settings in training-only CV.
 #
 # **Evidence:** Baseline holdout F1 is 0.7308, precision 0.7989, and recall 0.6735; 208 recorded positives are missed.
 #
@@ -139,8 +139,11 @@ import sys
 
 import pandas as pd
 
+# region Explain this code
+# Locate the dataset consistently before loading its observations for inspection.
 # A script resolves data beside this file; an interactive session uses its folder.
 # project_root and data_path are filesystem locations, not data tables.
+# endregion
 if "__file__" in globals():
     project_root = Path(__file__).resolve().parent
 else:
@@ -167,8 +170,11 @@ print("First five observations (source indices shown; not a representative sampl
 print(tweets.head().to_string())
 
 # %%
+# region Explain this code
+# Check required inputs before trusting label counts or grouping tweets.
 # isna() flags missing cells; summing down each column counts True as 1, False as 0.
 # missing_counts is a Series indexed by column name, with one missing-value total each.
+# endregion
 missing_counts = tweets.isna().sum()
 
 # strip() temporarily trims text ends; eq("") flags rows containing only whitespace.
@@ -205,7 +211,10 @@ print(target_summary.to_string())
 # %%
 import plotly.express as px
 
+# region Explain this code
+# To compare annotation counts, plot one row per recorded class on a shared count axis.
 # reset_index makes the label index a plotting column; the source table stays unchanged.
+# endregion
 eda_class_counts = target_summary.reset_index()
 eda_class_counts["class"] = eda_class_counts["target"].map({0: "0 — Non-disaster", 1: "1 — Disaster"})
 eda_class_figure = px.bar(
@@ -264,8 +273,11 @@ eda_class_figure.show()
 # </div>
 
 # %%
+# region Explain this code
+# Separate repeated inputs from label disagreement before deciding which observations can support evaluation.
 # text_counts maps each exact string (its index) to the number of source rows using it.
 # Exact comparison still distinguishes case, whitespace, and punctuation.
+# endregion
 text_counts = tweets["text"].value_counts()
 
 # Keep only groups with more than one observation: len counts groups, sum counts rows.
@@ -335,8 +347,11 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # illustrates string operations; here `.str` applies them to every text in a pandas column.
 
 # %%
+# region Explain this code
+# Use the eventual input string as the duplicate key so normalization cannot hide repeated model inputs.
 # prepared copies every source row, preserving its index, original text, and target.
 # The new prepared_text column holds the comparable input without overwriting the original.
+# endregion
 prepared = tweets.copy()
 prepared["prepared_text"] = prepared["text"].str.lower()
 
@@ -402,8 +417,11 @@ print(prepared.loc[collision_mask].to_string())
 # illustrates how the chosen columns define repetition.
 
 # %%
+# region Explain this code
+# Apply the agreed exclusions before splitting to prevent identical prepared texts from appearing on both sides.
 # Create one flag per source row: True means its normalized group has both labels.
 # .loc selects whole rows; ~ flips the flags so consistent_rows keeps every other group.
+# endregion
 conflict_mask = prepared["prepared_text"].isin(conflicting_keys)
 conflicting_rows = prepared.loc[conflict_mask]
 consistent_rows = prepared.loc[~conflict_mask]
@@ -457,7 +475,10 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # Compare counts using each panel's axis, not bar heights across panels.
 
 # %%
+# region Explain this code
 # melt turns the two label columns into rows so Plotly can color the stacked bars.
+# Each plotting row now describes one retention stage and recorded class, with its source-row count.
+# endregion
 eda_retention = preparation_counts.loc[["prepared", "conflicts excluded", "repeats excluded"], ["label_0", "label_1"]]
 eda_retention = eda_retention.reset_index().melt(id_vars="stage", var_name="class", value_name="rows")
 eda_retention["class"] = eda_retention["class"].map({"label_0": "0 — Non-disaster", "label_1": "1 — Disaster"})
@@ -529,8 +550,11 @@ eda_retention_figure.show()
 import sklearn
 from sklearn.model_selection import train_test_split
 
+# region Explain this code
+# Reserve evaluation rows before learning text features or classifier parameters.
 # Randomly partition whole observations; each returned table retains its source indices.
 # stratify uses target counts, not text groups; neither table is sorted back into source order.
+# endregion
 print("scikit-learn:", sklearn.__version__)
 train_rows, holdout_rows = train_test_split(
     model_tweets, test_size=0.20, random_state=42, stratify=model_tweets["target"]
@@ -553,8 +577,11 @@ for name, frame in [("training", train_rows), ("holdout", holdout_rows)]:
     print(summary.to_string())
 
 # %%
+# region Explain this code
 # Sets contain distinct strings rather than rows; & finds strings present on both sides.
 # These overlap objects therefore hold shared text values, not source indices or labels.
+# Zero overlap rules out matching strings, not shared events or near-duplicates.
+# endregion
 original_overlap = set(train_rows["text"]) & set(holdout_rows["text"])
 prepared_overlap = set(X_train) & set(X_holdout)
 print("Partition rows / prepared rows:", len(train_rows) + len(holdout_rows), len(model_tweets))
@@ -636,7 +663,11 @@ print("Shared prepared texts:", len(prepared_overlap))
 # motivate distribution comparisons; this is an original adaptation to our training tweets.
 
 # %%
+# region Explain this code
 # Work on a separate table: train_rows, model inputs, and source indices remain unchanged.
+# The two length columns describe each training tweet; neither becomes a classifier feature.
+# Grouping produces one row per class, with nested column labels identifying the measure and summary statistic.
+# endregion
 eda_lengths = train_rows[["target"]].copy()
 eda_lengths["class"] = eda_lengths["target"].map({0: "0 — Non-disaster", 1: "1 — Disaster"})
 eda_lengths["characters"] = train_rows["text"].str.len()
@@ -652,6 +683,10 @@ print(eda_length_summary.to_string())
 # Bins summarize a distribution; their boundaries affect its appearance and are not learned classification thresholds.
 
 # %%
+# region Explain this code
+# To compare shapes despite unequal class sizes, histnorm="percent" expresses bin counts as percentages of each class trace's observations.
+# Facets place those traces in separate panels; shared axes keep the resulting percentages comparable.
+# endregion
 eda_character_figure = px.histogram(
     eda_lengths, x="characters", color="class", facet_col="class", histnorm="percent",
     category_orders={"class": ["0 — Non-disaster", "1 — Disaster"]},
@@ -675,6 +710,10 @@ eda_character_figure.show()
 # We use the linear quartile convention explicitly so the displayed summary has a defined calculation.
 
 # %%
+# region Explain this code
+# To compare variation within classes, summarize each training tweet's whitespace-part count rather than plotting only an average.
+# points="outliers" displays observations beyond the whiskers; it does not exclude them from the data or the summary.
+# endregion
 eda_parts_figure = px.box(
     eda_lengths, x="class", y="whitespace_parts", color="class", points="outliers",
     category_orders={"class": ["0 — Non-disaster", "1 — Disaster"]},
@@ -765,7 +804,10 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk.tokenize import TweetTokenizer, word_tokenize
 
+# region Explain this code
+# Keep this language lab separate from model inputs while inspecting tokenization and grammatical word forms.
 # Restrict lookup to this project's copied resources; do not fall back to a user-wide installation.
+# endregion
 nltk_data_path = project_root / ".cache" / "nltk_data"
 nltk.data.path = [str(nltk_data_path)]
 nltk_resources = [
@@ -823,8 +865,11 @@ print(pd.DataFrame(nlp_method_records).to_string(index=False))
 # > Preserving negation and special tokens does not make this demonstration a validated cleaning policy or a lossless reconstruction.
 
 # %%
+# region Explain this code
+# Inspect dictionary-based word changes in grammatical context before treating them as useful model preparation.
 # This dictionary translates two tag conventions; it does not learn anything from our labels.
 # Each record below represents one token position in one sampled training tweet.
+# endregion
 nlp_pos_map = {"J": "a", "N": "n", "V": "v", "R": "r"}
 nlp_token_records = []
 for source_row, original_text in nlp_examples["text"].items():
@@ -864,8 +909,11 @@ print(nlp_reconstructed.to_string())
 # The denominator includes punctuation, URLs, and hashtags retained by this tokenizer; this is not a count of linguistic words.
 
 # %%
+# region Explain this code
+# Compare changed and unchanged occurrences within each sampled tweet, keeping its full token count visible.
 # A status describes each token occurrence; grouping counts occurrences, not distinct vocabulary entries.
 # Source-row numbers become strings so the chart treats them as five categories, not a continuous scale.
+# endregion
 nlp_change_counts = nlp_token_table.assign(
     status=nlp_token_table["changed"].map({False: "Unchanged", True: "Changed by lemmatization"})
 ).groupby(["source_row", "status"]).size().reset_index(name="tokens")
@@ -888,8 +936,11 @@ nlp_change_figure.show()
 # We test that operation on an original illustrative sentence because its negation has a clear role.
 
 # %%
+# region Explain this code
 # This sentence is invented for a mechanism check; it is not a tweet or an evaluation observation.
 # The stop-word set is a supplied language resource, not a list learned from our training data.
+# The two filtered lists partition alphabetic tokens into kept and removed words, making lost negation inspectable.
+# endregion
 nlp_negation_example = "Residents are not trapped by the floods."
 nlp_stop_words = set(stopwords.words("english"))
 nlp_negation_tokens = [word.lower() for word in word_tokenize(nlp_negation_example) if word.isalpha()]
@@ -1042,8 +1093,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
+# region Explain this code
+# Connect text representation and classification so prediction can reuse the same ordered transformations learned during fitting.
 # This unfitted vectorizer defines the token/weight rules; it has not learned vocabulary or IDF.
 # The unfitted classifier will learn coefficients for those numerical features plus an intercept.
+# endregion
 tfidf_vectorizer = TfidfVectorizer()
 logistic_classifier = LogisticRegression()
 
@@ -1105,9 +1159,11 @@ baseline_pipeline = Pipeline(baseline_steps)
 # See the installed-version [Pipeline contract](https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html).
 
 # %%
+# region Explain this code
 # fit first learns vocabulary and IDF from X_train and transforms that same training text.
 # It then fits classifier coefficients/intercept using the resulting matrix and y_train.
 # TF-IDF does not use the labels; the classifier does. No holdout input participates here.
+# endregion
 baseline_pipeline.fit(X_train, y_train)
 
 # Inspect one training document using the SAME fitted vectorizer, without another fit.
@@ -1145,8 +1201,11 @@ print("One training document's feature-matrix shape:", training_example_features
 # %%
 from collections import Counter
 
+# region Explain this code
 # Reuse the already transformed training example; these operations perform no fit.
 # Counter maps each actual baseline token to its occurrence count within this one tweet.
+# Sparse column positions link weights to vocabulary terms, letting the table show only present features without densifying the whole training matrix.
+# endregion
 nlp_baseline_tokens = tfidf_vectorizer.build_analyzer()(training_example_text.iloc[0])
 nlp_term_counts = Counter(nlp_baseline_tokens)
 nlp_sparse_row = training_example_features.getrow(0)
@@ -1201,8 +1260,11 @@ nlp_feature_figure.show()
 # with the recorded holdout labels, and which errors does that agreement hide?**
 
 # %%
+# region Explain this code
+# Evaluate reuse of the learned model without fitting any part on the holdout.
 # predict transforms X_holdout with the learned vocabulary/IDF, then applies the fitted classifier.
 # The returned array contains one 0/1 per input position, in X_holdout order; it has no pandas index.
+# endregion
 holdout_predictions = baseline_pipeline.predict(X_holdout)
 print("Holdout predictions:", len(holdout_predictions))
 
@@ -1242,8 +1304,11 @@ print("Holdout predictions:", len(holdout_predictions))
 # %%
 from sklearn.metrics import classification_report, confusion_matrix
 
+# region Explain this code
+# Assess agreement with recorded labels using both class-level scores and counts of the two error types.
 # This formatted report compares pairs in matching holdout order, not by pandas index lookup.
 # Each class row contains precision, recall, F1, and support; digits controls display rounding only.
+# endregion
 holdout_report = classification_report(
     y_holdout, holdout_predictions, labels=[0, 1], digits=4
 )
@@ -1268,6 +1333,10 @@ print(confusion_table.to_string())
 # It adds no evaluation observations or new model result; sentiment class names from the lesson do not apply here.
 
 # %%
+# region Explain this code
+# To locate errors behind the overall score, display the existing matrix with recorded labels in rows and predictions in columns.
+# The lower-left cell counts missed positives; the upper-right counts false alarms, with color encoding counts rather than error rates.
+# endregion
 nlp_confusion_figure = px.imshow(
     confusion_counts, text_auto=True,
     x=["0 — Non-disaster", "1 — Disaster"],
@@ -1312,8 +1381,11 @@ nlp_confusion_figure.show()
 # (instructions and starter code). Adapt their filtering/sorting patterns to source-row indices.
 
 # %%
+# region Explain this code
+# Attach predictions to their original observations before selecting illustrative disagreements for inspection.
 # Copy original text and recorded target in the SAME holdout order used for prediction.
 # The separate table preserves source indices; none of the eight preparation objects is changed.
+# endregion
 holdout_results = holdout_rows[["text", "target"]].copy()
 
 # An unlabeled array is assigned by position: prediction i belongs to input row i.
@@ -1536,8 +1608,11 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 
+# region Explain this code
+# Compare complete text-to-label workflows so every validation fold remains outside vocabulary, IDF, and classifier learning.
 # cv_splitter defines ten training/validation partitions within X_train and y_train.
 # The integer seed recreates identical memberships for each candidate; no holdout enters it.
+# endregion
 cv_splitter = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
 # Each tuple names an unfitted classifier option; none is the fitted baseline object.
@@ -1691,6 +1766,115 @@ print(cv_summary.round(4).to_string())
 # Its pretrained-model `pipeline` serves a different purpose from fitting our scikit-learn
 # Pipeline; a sentiment prediction is not a verified disaster annotation.
 
+# %% [markdown]
+# ### 11.1 Beyond the baseline — a small regularization experiment
+#
+# **❓ Main Question:** Can changing one Logistic Regression setting reduce missed positives without concealing additional false alarms?
+# **🎯 Goal:** Compare `C=0.1, 1, 10` using the existing training rows, unigram TF-IDF, and ten stratified folds.
+# The same three settings were explored in a temporary training-only run; this section makes that comparison reproducible.
+# It is an exploratory extension, not a new independent test or a replacement for the original baseline.
+#
+# **WHY C:** Regularization penalizes large learned coefficients, limiting how strongly individual features influence the model's decision.
+# Smaller `C` means a stronger penalty; larger `C` permits more flexibility, which does not guarantee better predictions.
+# We change only `C`, keeping the solver, preprocessing, class weights, and default prediction rule fixed.
+#
+# MasterSchool Sprint 3 suggests optional `C`/solver trials; see [Project Map, section 3.2](DA112_PROJECT_MAP.md#32-sprint-3--self-paced-project-our-principal-assignment).
+# DataCamp's [Regularizing models with Twitter data](https://campus.datacamp.com/courses/sentiment-analysis-in-python/lets-predict-the-sentiment?ex=11)
+# compares regularization on airline sentiment; this assistant-authored adaptation uses our disaster labels and leakage-safe folds.
+# See the installed-version [LogisticRegression parameters](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.LogisticRegression.html).
+#
+# **HOW:** Out-of-fold predictions give each training row one prediction from a model fitted on the other nine parts.
+# Each complete Pipeline learns its vocabulary, IDF, and classifier within that fold; the original holdout is excluded.
+# Three settings require 30 fits, including a repeated `C=1` reference because the earlier comparison retained scores, not predictions.
+#
+# We pool these predictions to count errors and calculate recall, precision, and F1 across all training rows.
+# Mean fold F1 remains separate: averaging ten F1 values is not the same calculation as F1 from pooled predictions.
+# Neither summary establishes performance on new events; see [cross_val_predict](https://scikit-learn.org/1.5/modules/generated/sklearn.model_selection.cross_val_predict.html).
+
+# %%
+from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.model_selection import cross_val_predict
+
+# region Explain this code
+# To compare regularization, change C's coefficient penalty, not the training sample size.
+# Columns hold one setting's withheld predictions; rows retain original source indices in training order.
+# c_records collects one summary per setting, while c_values fixes the small comparison before fitting.
+# endregion
+c_values = [0.1, 1.0, 10.0]
+c_oof_predictions = pd.DataFrame(index=y_train.index)
+c_records = []
+
+for c_value in c_values:
+    # A fresh candidate leaves the already fitted baseline untouched; all other defaults stay unchanged.
+    c_pipeline = Pipeline([
+        ("tfidf", TfidfVectorizer()),
+        ("classifier", LogisticRegression(C=c_value)),
+    ])
+
+    # cross_val_predict clones the whole Pipeline inside each fold and returns labels in input order.
+    # predict keeps Logistic Regression's default decision rule; no threshold is selected here.
+    c_oof_predictions[c_value] = cross_val_predict(
+        c_pipeline, X_train, y_train, cv=cv_splitter, method="predict", n_jobs=1,
+    )
+    c_predictions = c_oof_predictions[c_value]
+
+    # labels=[0, 1] fixes row/column order: recorded labels by predicted labels.
+    # Flattening reads correct negatives, false alarms, missed positives, then correct positives.
+    c_tn, c_fp, c_fn, c_tp = confusion_matrix(y_train, c_predictions, labels=[0, 1]).ravel()
+
+    # Recreate the same fold memberships to summarize stored predictions; this loop performs no fitting.
+    # valid_positions are positional row numbers, so iloc selects matching labels and predictions.
+    c_fold_scores = []
+    for _, valid_positions in cv_splitter.split(X_train, y_train):
+        c_fold_scores.append(f1_score(
+            y_train.iloc[valid_positions], c_predictions.iloc[valid_positions], pos_label=1,
+        ))
+
+    # Recall uses recorded positives; precision uses predicted positives; both describe dataset labels.
+    # The two F1 columns deliberately distinguish pooled predictions from the mean of ten fold scores.
+    c_records.append({
+        "C": c_value,
+        "pooled_recall": recall_score(y_train, c_predictions, pos_label=1),
+        "pooled_precision": precision_score(y_train, c_predictions, pos_label=1),
+        "pooled_f1": f1_score(y_train, c_predictions, pos_label=1),
+        "mean_fold_f1": pd.Series(c_fold_scores).mean(),
+        "missed_positives": c_fn,
+        "false_alarms": c_fp,
+    })
+    print(f"Completed ten training-only folds for C={c_value:g}")
+
+# Each table row identifies one C setting; rounding affects display only, not stored values.
+c_summary = pd.DataFrame(c_records).set_index("C")
+print(f"\nTraining-only OOF comparison: {len(y_train)} rows; "
+      f"{y_train.eq(1).sum()} recorded positives; {y_train.eq(0).sum()} recorded negatives.")
+print(c_summary.round(4).to_string())
+
+# %% [markdown]
+# ### ✅ Evidence & Interpretation
+# The local Python 3.11.11 / scikit-learn 1.5.2 run completed all 30 fits without warnings.
+# Each setting produced 5,986 withheld predictions: 2,549 recorded positives and 3,437 recorded negatives.
+# The repeated `C=1` mean fold F1 reproduces the earlier 0.7506; no new holdout predictions were made.
+#
+# | C | Pooled recall | Pooled precision | Pooled F1 | Mean fold F1 | Missed positives | False alarms |
+# | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+# | 0.1 | 0.5073 | 0.8507 | 0.6355 | 0.6350 | 1,256 | 227 |
+# | 1.0 | 0.7018 | 0.8069 | 0.7507 | 0.7506 | 760 | 428 |
+# | 10.0 | 0.7372 | 0.7704 | 0.7534 | 0.7534 | 670 | 560 |
+#
+# **Answer:** Compared with `C=1` on these same rows, `C=10` has 90 fewer missed positives but 132 additional false alarms.
+# Pooled F1 rises only about 0.0027, while precision falls; `C=0.1` misses substantially more positives despite higher precision.
+# This supports a small observed trade-off, not a reliably superior model or an explanation of why particular tweets changed predictions.
+#
+# > **⚠️ Watch Out — Comparing settings is not an independent final test**
+# >
+# > Selecting and reporting a preferred setting from these same results can produce optimism; no winner is refitted here.
+# > The original 67.35% recall concerns different holdout rows and cannot serve as the starting point for this comparison.
+#
+# ### 🧠 Learning → Better Questions
+# **Would the additional detections justify the additional false alarms?** That decision is not established by F1 alone.
+# It requires an agreed purpose, acceptable review workload, and error costs; these educational labels do not establish operational benefits.
+# Preserve the original baseline and treat `C=10` as a candidate for further investigation, with independent evidence needed for broader claims.
+
 # <!--
 # endregion
 # region 4. Hugging Face: Pretrained Transformer Mini-Lab
@@ -1795,8 +1979,11 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 print("\nHugging Face mini-lab (sentiment demonstration only):")
 print("PyTorch:", torch.__version__, "Transformers:", transformers.__version__)
 
+# region Explain this code
 # These strings identify the model repository and an immutable revision of its files.
 # Pinning the revision keeps model/tokenizer selection stable across later runs.
+# The local snapshot supplies matching sentiment weights and tokenization; constructing the pipeline does not train it or predict a label yet.
+# endregion
 hf_model_id = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
 hf_model_revision = "714eb0fa89d2f80546fda750413ed43d93601a13"
 
@@ -1835,8 +2022,11 @@ print("Model snapshot:", hf_model_path)
 print("Sentiment labels:", sentiment_pipeline.model.config.id2label)
 
 # %%
+# region Explain this code
 # One original demonstration sentence, outside the project dataset and evaluation partitions.
 # Keep natural text: this model uses its own tokenizer, not our TF-IDF preparation.
+# This checks the sentiment inference path; one returned label cannot estimate accuracy or answer the disaster-classification question.
+# endregion
 demo_text = "The film was delightful and beautifully acted."
 
 # Calling the pipeline tokenizes the sentence, runs the fixed model, and processes its scores.
