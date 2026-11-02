@@ -100,15 +100,25 @@ The mechanism is the movement from source rows to group-level evidence and back 
 
 ### 📖 Source-Owned Explain This Code
 
-Use `# region Explain this code` in the authoritative Python source when an important operation needs a deeper explanation.
+Use two complementary levels of explanation. The authoritative Python source owns both; detailed walkthroughs belong **outside executable code cells**.
+
+**💻 Executable code cell — `# %%`:** Keep real Python and short, always-visible `#` comments at first use. Explain important inputs, operations, transformations, and outputs without narrating trivial syntax.
+
+**📖 Collapsible Markdown cell — `# %% [markdown]`:** Immediately after a code cell requiring deeper explanation, use `<details><summary>💡 Explain this code</summary>` and close it with `</details>`. Prefix every line of this Markdown cell with `#`, including blank lines and any fenced code excerpts.
+
+Adapt the explanation to the complexity of the code:
 
 - **📖 Overview — WHAT:** Explain what the code accomplishes, its inputs, and its output.
-- **🔢 Step-by-step breakdown — HOW:** Explain important expressions, transformations, and object changes using short code excerpts when helpful.
-- **💡 Why this matters — WHY & LIMITS:** Connect the mechanism to our analytical question, explain relevant assumptions, and identify important limitations.
+- **🔢 Step-by-step breakdown — HOW:** Explain important expressions and transformations in execution order, using short excerpts of the actual code when helpful.
+- **💡 Why this matters — WHY & LIMITS:** Connect the mechanism to our analytical question and explain consequential assumptions or limitations.
 
 **Learning purpose:** Help a returning learner reconstruct the reasoning, understand unfamiliar operations, modify code confidently, and transfer the knowledge to new problems.
 
-Adapt explanation depth to complexity. These are teaching functions, not mandatory headings for every cell. Preserve useful inline comments, avoid repetition, and let the website reuse the same source-owned explanation. A supplied explanation does not establish Learning PASS.
+These are teaching functions, not mandatory headings for every cell. Preserve useful inline comments, avoid duplication, and keep subsequent Evidence and Learning separate. A supplied explanation does not establish Learning PASS.
+
+Existing explanations using the previous folding convention are legacy source content, **not a second authoring standard**. Migrate them only through a separately authorized Python edit that preserves executable logic, analytical evidence, important inline comments, and source integrity.
+
+Verify the disclosure, Markdown, and code highlighting in the actual VS Code Interactive Window; do not assume that editor folding and rendered Markdown are equivalent. The Python file remains the authoritative learning source; website rendering and source-fingerprint updates require separate validation and authorization.
 
 ### Optional aids: Mermaid maps and ethics
 
