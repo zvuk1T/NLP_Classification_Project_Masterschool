@@ -97,6 +97,19 @@ consistent_rows = prepared.loc[~conflict_mask]
 
 The mechanism is the movement from source rows to group-level evidence and back to row selection. "Create a mask" or "use groupby" alone does not explain that movement. Introduce the meaning of `.index`, `isin()`, `.loc`, and `~` at the relevant first use, without repeating the explanation mechanically later.
 
+
+### 📖 Source-Owned Explain This Code
+
+Use `# region Explain this code` in the authoritative Python source when an important operation needs a deeper explanation.
+
+- **📖 Overview — WHAT:** Explain what the code accomplishes, its inputs, and its output.
+- **🔢 Step-by-step breakdown — HOW:** Explain important expressions, transformations, and object changes using short code excerpts when helpful.
+- **💡 Why this matters — WHY & LIMITS:** Connect the mechanism to our analytical question, explain relevant assumptions, and identify important limitations.
+
+**Learning purpose:** Help a returning learner reconstruct the reasoning, understand unfamiliar operations, modify code confidently, and transfer the knowledge to new problems.
+
+Adapt explanation depth to complexity. These are teaching functions, not mandatory headings for every cell. Preserve useful inline comments, avoid repetition, and let the website reuse the same source-owned explanation. A supplied explanation does not establish Learning PASS.
+
 ### Optional aids: Mermaid maps and ethics
 
 Use **🗺️ Mental Model**, **⚠️ Watch Out**, and **✅ Notes for Students** near a real conceptual dependency, misconception, or practical need. They are optional aids, not quotas or decoration. Mental maps make relationships visible; warnings challenge misleading assumptions; ethical takeaways connect evidence to responsibility. Preserve genuinely useful aids during simplification instead of deleting them just to shorten prose.
