@@ -215,15 +215,7 @@ print("Encoder:", model_id, "Revision:", model_revision)
 print("Model snapshot:", model_path)
 
 # %%
-# region Explain this code
-# Compute fixed per-tweet features once because this encoder learns nothing from our dataset.
-# These dictionaries keep matrices and timings separate for the two unchanged partitions.
-# Every matrix row follows its corresponding X Series; each column is one embedding dimension.
-#
-# Multiplying by token_mask zeroes padding before summing token vectors and dividing by the non-padding count.
-# clamp(min=1) prevents division by zero; normalize then scales each nonzero tweet vector to unit length.
-# Special tokens remain included; only padding is excluded from this average.
-# endregion
+# Keep one feature matrix per partition: rows follow input tweets; columns are 384 embedding dimensions.
 embedding_matrices = {}
 encoding_seconds = {}
 maximum_tokens = 256
@@ -250,6 +242,7 @@ for partition_name, texts in [("training", X_train), ("holdout", X_holdout)]:
             token_vectors = encoder(**encoded).last_hidden_state
             # The extra dimension lets each 0/1 padding flag apply to all 384 token features.
             token_mask = encoded["attention_mask"].unsqueeze(-1).to(token_vectors.dtype)
+            # Exclude padding before averaging; special tokens still contribute.
             vector_sums = (token_vectors * token_mask).sum(dim=1)
             token_counts = token_mask.sum(dim=1).clamp(min=1)
             tweet_vectors = vector_sums / token_counts
@@ -265,6 +258,46 @@ train_embeddings = embedding_matrices["training"]
 holdout_embeddings = embedding_matrices["holdout"]
 print("Training feature range:", train_embeddings.min(), train_embeddings.max())
 print("Training vector lengths, min/max:", np.linalg.norm(train_embeddings, axis=1).min(), np.linalg.norm(train_embeddings, axis=1).max())
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To compare transferred features with TF-IDF, convert each prepared tweet into 384 fixed numerical features. `embedding_matrices` keeps training and holdout separate.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `texts.tolist()` retains input order; batches contain at most 32 tweets to limit working memory.
+#    `full_token_ids` holds untruncated ID lists; their lengths feed the check for inputs exceeding 256 positions.
+# 2. `tokenizer(...)` converts word pieces into vocabulary IDs, adds special tokens, pads each batch, and caps inputs at 256 positions.
+#    `return_tensors="pt"` returns PyTorch tensors; `attention_mask` contains 1 for non-padding positions and 0 for padding.
+# 3. `encoder(**encoded).last_hidden_state` passes the dictionary entries as named inputs and returns contextual token vectors.
+#    For B tweets and T padded token positions, their shape is `(B, T, 384)`; these are not disaster predictions.
+#    `torch.inference_mode()` disables gradient tracking; the encoder was already frozen and put in evaluation mode above.
+# 4. `unsqueeze(-1)` gives the mask shape `(B, T, 1)`; `.to(token_vectors.dtype)` matches its numeric type to the vectors.
+#    In `(token_vectors * token_mask).sum(dim=1)`, each flag applies across 384 features, then summation removes the token axis.
+#    `vector_sums` therefore has shape `(B, 384)`, with padding contributing zero.
+# 5. `token_mask.sum(dim=1).clamp(min=1)` produces a `(B, 1)` non-padding count, guarded against a zero denominator.
+#    `vector_sums / token_counts` averages each tweet's remaining token vectors; special tokens remain included.
+# 6. `functional.normalize(tweet_vectors, p=2, dim=1)` scales along the 384-feature axis using each row's Euclidean length.
+#    A tiny denominator floor guards against division by zero; these nonzero tweet vectors become unit length.
+#    Their entries can still be negative and are not probabilities.
+# 7. `.cpu().numpy()` converts each batch to a NumPy array; `np.concatenate(batch_embeddings, axis=0)` stacks batches in their original order.
+#    Each partition's matrix has shape `(len(texts), 384)`; positional row order, not a pandas index, preserves alignment with its labels.
+#
+# ```python
+# vector_sums = (token_vectors * token_mask).sum(dim=1)
+# token_counts = token_mask.sum(dim=1).clamp(min=1)
+# tweet_vectors = vector_sums / token_counts
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# These fixed per-tweet operations learn no vocabulary, corpus statistics, or label relationships here; only the downstream classifiers fit our labels.
+# Masking excludes padding, not unimportant words; pooling and possible truncation can still lose information relevant to disaster classification.
+#
+# </details>
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation

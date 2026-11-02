@@ -936,19 +936,45 @@ nlp_change_figure.show()
 # We test that operation on an original illustrative sentence because its negation has a clear role.
 
 # %%
-# region Explain this code
-# This sentence is invented for a mechanism check; it is not a tweet or an evaluation observation.
-# The stop-word set is a supplied language resource, not a list learned from our training data.
-# The two filtered lists partition alphabetic tokens into kept and removed words, making lost negation inspectable.
-# endregion
+# Illustrative text only; training and holdout inputs stay unchanged.
 nlp_negation_example = "Residents are not trapped by the floods."
+# Supplied English stop words; alphabetic tokens retain sentence order.
 nlp_stop_words = set(stopwords.words("english"))
 nlp_negation_tokens = [word.lower() for word in word_tokenize(nlp_negation_example) if word.isalpha()]
+# Partition tokens by membership, not meaning.
 nlp_filtered_tokens = [word for word in nlp_negation_tokens if word not in nlp_stop_words]
 nlp_removed_tokens = [word for word in nlp_negation_tokens if word in nlp_stop_words]
 print("\nIllustrative sentence:", nlp_negation_example)
 print("Removed stop words:", nlp_removed_tokens)
 print("After that removal:", " ".join(nlp_filtered_tokens))
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To inspect information loss, trace an invented sentence into kept and removed token lists. No dataset row or model input changes.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `set(stopwords.words("english"))` creates `nlp_stop_words` from NLTK's supplied English list for membership checks.
+#    This set is not learned from our tweets.
+# 2. In `nlp_negation_tokens`, `for word in word_tokenize(nlp_negation_example)` visits tokens in sentence order.
+#    `if word.isalpha()` keeps letter-only tokens; `word.lower()` supplies each retained element of the new list.
+# 3. The first list comprehension keeps tokens absent from the stop-word set, preserving their order and repetitions.
+#    `nlp_filtered_tokens` holds the kept tokens; the opposite `if word in nlp_stop_words` condition collects removed tokens in `nlp_removed_tokens`.
+# 4. `" ".join(nlp_filtered_tokens)` produces a display string; the lists remain available for inspection.
+#
+# ```python
+# nlp_filtered_tokens = [word for word in nlp_negation_tokens if word not in nlp_stop_words]
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Filtering tests membership, not meaning: it removes `not` even though that token reverses the claim.
+# The paired lists expose this loss; they neither measure classification performance nor change the baseline's stop-word policy.
+#
+# </details>
 
 # %% [markdown]
 # > **⚠️ Watch Out — Removing `not` erases the denial**
@@ -1159,11 +1185,7 @@ baseline_pipeline = Pipeline(baseline_steps)
 # See the installed-version [Pipeline contract](https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html).
 
 # %%
-# region Explain this code
-# fit first learns vocabulary and IDF from X_train and transforms that same training text.
-# It then fits classifier coefficients/intercept using the resulting matrix and y_train.
-# TF-IDF does not use the labels; the classifier does. No holdout input participates here.
-# endregion
+# Learn vocabulary, IDF and classifier parameters from the training partition only.
 baseline_pipeline.fit(X_train, y_train)
 
 # Inspect one training document using the SAME fitted vectorizer, without another fit.
@@ -1173,6 +1195,36 @@ training_example_features = tfidf_vectorizer.transform(training_example_text)
 print("Training example (source index retained):")
 print(training_example_text.to_string())
 print("One training document's feature-matrix shape:", training_example_features.shape)
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# **📖 Overview — WHAT**
+#
+# To keep evaluation inputs outside learning, fit the existing Pipeline on training tweets only. Then inspect one training representation without refitting.
+#
+# **🔢 Step-by-step breakdown — HOW**
+#
+# 1. `baseline_pipeline.fit(X_train, y_train)` receives prepared tweet strings and their matching recorded labels.
+#    TF-IDF first learns the vocabulary (term-to-column mapping) and IDF (weights based on training-document frequencies).
+# 2. That fitted vectorizer converts the training strings into a sparse document-term matrix.
+#    Rows are tweets; columns are learned terms; entries are term counts weighted by IDF and normalized per row.
+# 3. Logistic Regression learns coefficients and an intercept from that matrix and `y_train`; TF-IDF does not use these labels.
+#    The existing Pipeline now contains fitted steps; `fit()` does not return holdout predictions.
+# 4. `X_train.head(1)` selects a one-element Series, retaining its source index.
+#    `tfidf_vectorizer.transform(training_example_text)` reuses the fitted vocabulary and IDF to produce one sparse row, without learning new terms.
+#
+# ```python
+# baseline_pipeline.fit(X_train, y_train)
+# training_example_features = tfidf_vectorizer.transform(training_example_text)
+# ```
+#
+# **💡 Why this matters — WHY & LIMITS**
+#
+# Keeping `X_holdout` and `y_holdout` outside this fit prevents evaluation observations from shaping the learned representation or classifier.
+# Later prediction reuses both fitted steps; separation alone does not establish reliable labels, independent events, or a fresh holdout.
+#
+# </details>
 
 # %% [markdown]
 # ### ✅ Evidence & Interpretation
