@@ -2,8 +2,8 @@
 # # Disaster Tweets — Project Overview
 #
 # **Problem:** Can tweet text distinguish recorded disaster and non-disaster examples?
-# **Goal:** Build an understandable classifier and evaluate how trustworthy its predictions are.
-# **Context:** MasterSchool DA112; an educational analysis of labeled tweets, not an emergency-response system.
+# **🎯 Goal & Approach — WHY:** Build an understandable classifier and evaluate how trustworthy its predictions are.
+# **📋 Source & Context:** MasterSchool DA112; an educational analysis of labeled tweets, not an emergency-response system.
 #
 # ## Explore the five project phases
 # Open any summary for the question, approach, evidence, and limitations.
@@ -14,11 +14,11 @@
 # <details>
 # <summary><strong>1. Data Understanding, Quality & Preparation</strong></summary>
 #
-# **Question:** Which observations can support a fair evaluation?
+# **❓ What is the Question?** Which observations can support a fair evaluation?
 #
-# **Approach:** Audit labels and repeated texts, apply the agreed retention policy, then create the fixed stratified split.
+# **🎯 Goal & Approach — WHY:** Audit labels and repeated texts, apply the agreed retention policy, then create the fixed stratified split.
 #
-# **Evidence:** 7,613 source rows become 7,483 retained rows: 5,986 training and 1,497 holdout.
+# **✅ Evidence, Answer & Limits:** 7,613 source rows become 7,483 retained rows: 5,986 training and 1,497 holdout.
 #
 # **Limit / next step:** No shared original or prepared strings across the split does not prove independence between events.
 #
@@ -27,11 +27,11 @@
 # <details>
 # <summary><strong>2. Exploratory Data Analysis & Visualization</strong></summary>
 #
-# **Question:** What patterns appear before modeling?
+# **❓ What is the Question?** What patterns appear before modeling?
 #
-# **Approach:** Compare training-text distributions, then inspect tokenization, lemmatization, and information loss in five training examples.
+# **🎯 Goal & Approach — WHY:** Compare training-text distributions, then inspect tokenization, lemmatization, and information loss in five training examples.
 #
-# **Evidence:** Median character lengths are 101 and 114 for classes 0 and 1; both have median 15 whitespace-separated parts.
+# **✅ Evidence, Answer & Limits:** Median character lengths are 101 and 114 for classes 0 and 1; both have median 15 whitespace-separated parts.
 # The separate language lab changes 15 of 97 tokens; its results do not change the classifier inputs.
 #
 # **Limit / next step:** Distributions overlap. These descriptive differences establish neither causes nor predictive performance.
@@ -41,11 +41,11 @@
 # <details>
 # <summary><strong>3. Predictive Modeling, Comparison & Evaluation</strong></summary>
 #
-# **Question:** How well does the classifier agree with unseen recorded labels?
+# **❓ What is the Question?** How well does the classifier agree with unseen recorded labels?
 #
-# **Approach:** Evaluate the original baseline; separately compare six model configurations and three regularization settings in training-only CV.
+# **🎯 Goal & Approach — WHY:** Evaluate the original baseline; separately compare six model configurations and three regularization settings in training-only CV.
 #
-# **Evidence:** Baseline holdout F1 is 0.7308, precision 0.7989, and recall 0.6735; 208 recorded positives are missed.
+# **✅ Evidence, Answer & Limits:** Baseline holdout F1 is 0.7308, precision 0.7989, and recall 0.6735; 208 recorded positives are missed.
 #
 # **Limit / next step:** CV is a post-baseline learning comparison. It provides no new independent holdout test or deployment guarantee.
 #
@@ -54,11 +54,11 @@
 # <details>
 # <summary><strong>4. Hugging Face: Pretrained Transformer Mini-Lab</strong></summary>
 #
-# **Question:** What does a pretrained Transformer inference demonstrate?
+# **❓ What is the Question?** What does a pretrained Transformer inference demonstrate?
 #
-# **Approach:** Run one local English sentiment prediction and contrast Hugging Face pipeline with scikit-learn Pipeline.
+# **🎯 Goal & Approach — WHY:** Run one local English sentiment prediction and contrast Hugging Face pipeline with scikit-learn Pipeline.
 #
-# **Evidence:** The movie-review example returns POSITIVE with a score of 0.999887.
+# **✅ Evidence, Answer & Limits:** The movie-review example returns POSITIVE with a score of 0.999887.
 #
 # **Limit / next step:** This score is not measured accuracy. Sentiment inference supplies no evidence of disaster-classification performance.
 #
@@ -67,11 +67,11 @@
 # <details>
 # <summary><strong>5. Key Insights, Limitations & Recommendations</strong></summary>
 #
-# **Question:** What conclusions and next steps does the evidence justify?
+# **❓ What is the Question?** What conclusions and next steps does the evidence justify?
 #
-# **Approach:** Connect observed scores, error examples, population limits, and the separate sentiment demonstration.
+# **🎯 Goal & Approach — WHY:** Connect observed scores, error examples, population limits, and the separate sentiment demonstration.
 #
-# **Evidence:** Text supports measured agreement with retained annotations; real-world disaster-detection reliability remains unestablished.
+# **✅ Evidence, Answer & Limits:** Text supports measured agreement with retained annotations; real-world disaster-detection reliability remains unestablished.
 #
 # **Limit / next step:** Review annotations and event relationships, then obtain fresh representative evaluation data before making broader claims.
 #
@@ -90,10 +90,10 @@
 #
 # ### Context and source notes
 #
-# **Project Question:** Can tweet text help distinguish disaster from non-disaster
+# **❓ What is the Question?** Can tweet text help distinguish disaster from non-disaster
 # examples, and what would make evidence of that ability trustworthy?
 #
-# ### 📋 Context, Source & Task
+# ### 📋 Source & Context
 # MasterSchool DA112 Sprint 3 asks us to classify disaster tweets using the supplied
 # `DATA/train.csv`: text and target (`1` disaster, `0` non-disaster).
 # These recorded annotations are not independently verified facts about events.
@@ -113,10 +113,10 @@
 # %% [markdown]
 # ### 1.1 Understand the observations and labels
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # What do the dataset structure and target distribution tell us before modeling?
 #
-# **🎯 Goal & Approach — What & Why:** Establish what one observation contains
+# **🎯 Goal & Approach — WHY:** Establish what one observation contains
 # and whether its required fields are usable. Count labels to describe the starting
 # population; these proportions provide context, not a measure of predictive ability.
 #
@@ -286,12 +286,12 @@ eda_class_figure.show()
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The supplied table has 7,613 rows and two columns, with no missing values,
 # blank texts, or invalid labels. Class `0` contains 4,342 rows (57.03%);
 # class `1` contains 3,271 (42.97%). Non-disaster annotations are moderately more common.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # Usable fields and known class proportions establish a starting population.
 # They do not establish that each row adds a distinct example or a reliable answer.
 # **What changes when we count texts rather than rows, and inspect label agreement?**
@@ -299,10 +299,10 @@ eda_class_figure.show()
 # %% [markdown]
 # ### 1.2 Distinguish repeated texts from conflicting annotations
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # How much repetition and label disagreement does exact text equality reveal?
 #
-# **🎯 Goal & Approach — What & Why:** Group identical strings to distinguish
+# **🎯 Goal & Approach — WHY:** Group identical strings to distinguish
 # repeated observations from distinct inputs. Count different labels within each
 # group to expose inconsistent supervision without guessing a correct annotation.
 #
@@ -386,7 +386,7 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # Of 7,503 distinct exact texts, 69 repeated groups contain 179 rows, including 110
 # occurrences beyond the first. Only 92 extra rows also repeat the label.
 # Eighteen text groups have both labels, involving 55 observations.
@@ -395,7 +395,7 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # recording two labels for one input does. These counts do not identify which label
 # is correct or explain why the annotations differ.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # The initial row total overstates the number of distinct exact inputs. A table
 # can have complete fields while offering contradictory supervision.
 # Before deciding which examples survive, **does the intended preparation make
@@ -404,10 +404,10 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # %% [markdown]
 # ### 1.3 Understand what normalization changes
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # Which observations become equivalent under our chosen text preparation?
 #
-# **🎯 Goal & Approach — What & Why:** Compare the original text with a copy
+# **🎯 Goal & Approach — WHY:** Compare the original text with a copy
 # lowercased, reduced to single whitespace separators, and trimmed at both ends.
 # Use this prepared string as both the duplicate key and the eventual model input.
 # Otherwise, differently written inputs could bypass the duplicate policy.
@@ -483,14 +483,14 @@ print(prepared.loc[collision_mask].to_string())
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # Normalization leaves 7,501 distinct keys, merging two pairs of original strings.
 # Source rows 3340 and 7604 differ in whitespace; row 6119 adds a case variant
 # to an existing conflicting group. The source indices are zero-based row positions.
 # Conflict membership therefore increases from 55 to 56 rows, while the number of
 # conflicting groups remains 18.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # Equality depends on the representation used. Inspecting only original strings
 # would miss a row that becomes equivalent to conflicting inputs after preparation.
 # **How does applying the agreed policy to these normalized groups change the
@@ -499,10 +499,10 @@ print(prepared.loc[collision_mask].to_string())
 # %% [markdown]
 # ### 1.4 Apply the retention policy and account for the population
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # Which observations remain under the agreed policy, and what does exclusion cost?
 #
-# **🎯 Goal & Approach — What & Why:** Exclude every row in a normalized group
+# **🎯 Goal & Approach — WHY:** Exclude every row in a normalized group
 # containing both labels, then keep the first source occurrence of each consistent
 # group. Count these two exclusion reasons separately to make the change traceable.
 # This is the project's approved policy, not a prescribed school rule or label repair.
@@ -649,7 +649,7 @@ eda_retention_figure.show()
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The 18 conflicting normalized groups contain 56 rows: 29 labeled `0`, 27 labeled `1`.
 # Removing them, then 74 redundant consistent occurrences (16 / 58 by label),
 # leaves 7,483 rows: 4,297 labeled `0`, 3,186 labeled `1`.
@@ -662,7 +662,7 @@ eda_retention_figure.show()
 # > The policy removes 56 conflicting rows and 74 repeats before evaluation; a small change in class balance does not make exclusions neutral.
 # > Agreement among retained labels does not establish that those labels are correct or that excluded cases would be classified reliably.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # Mapping group decisions back to every source row avoids retaining an arbitrary
 # label from a disputed group. Preparation defines the population a score describes,
 # not just the input format. **Which tweets will our result describe, and which
@@ -677,10 +677,10 @@ eda_retention_figure.show()
 # %% [markdown]
 # ### 1.5 Separate training and holdout observations
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # What does our training/holdout separation preserve, and what remains uncertain?
 #
-# **🎯 Goal & Approach — What & Why:** Reserve 20% of the prepared rows for
+# **🎯 Goal & Approach — WHY:** Reserve 20% of the prepared rows for
 # holdout evaluation using stratification and `random_state=42`. Split whole rows
 # first, so original text, prepared text, labels, and source indices travel together.
 #
@@ -773,7 +773,7 @@ print("Shared prepared texts:", len(prepared_overlap))
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # Results from the supplied data and existing environment:
 #
 # | Population | Rows | Label 0 | Label 1 | Label 1 share |
@@ -787,7 +787,7 @@ print("Shared prepared texts:", len(prepared_overlap))
 # Both original-text and prepared-text overlap counts are zero. This establishes
 # separation under the compared text definitions, not model performance.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # The starting row count suggested how much data was available. Grouping and
 # normalization showed why distinct inputs, consistent labels, and retained rows
 # are different quantities. Filtering then changed which population can be evaluated.
@@ -833,14 +833,14 @@ print("Shared prepared texts:", len(prepared_overlap))
 #
 # ### Training-text distributions
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # How do text-length distributions compare between recorded classes in the training subset?
 #
-# **🎯 Goal & Approach — What & Why:** Compare characters and whitespace-separated parts to distinguish two meanings of length.
+# **🎯 Goal & Approach — WHY:** Compare characters and whitespace-separated parts to distinguish two meanings of length.
 # Use the existing training rows only; this retrospective exploration changes no model features or preparation decisions.
 # **🔎 Guiding Questions:** Do typical lengths differ, and would a difference alone establish useful classification?
 #
-# **HOW:** Count characters in original text, including spaces and punctuation; split on whitespace for a simple second measure.
+# **💻 Code / Method — HOW:** Count characters in original text, including spaces and punctuation; split on whitespace for a simple second measure.
 # These parts are not linguistic words or the tokens used by either TF-IDF or the Transformer.
 # DataCamp's [grouped histograms](https://campus.datacamp.com/courses/data-manipulation-with-pandas/creating-and-visualizing-dataframes?ex=5)
 # and [EDA histograms](https://campus.datacamp.com/courses/exploratory-data-analysis-in-python/getting-to-know-a-dataset?ex=4)
@@ -962,7 +962,7 @@ eda_parts_figure.show()
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # Class 0 has 3,437 training rows: median 101 characters, range 7–157; class 1 has 2,549: median 114, range 14–150.
 # Both classes have median 15 whitespace-separated parts; their ranges are 1–31 and 2–30, respectively.
 # Typical character length differs, while typical part count does not; the distributions overlap and neither observation establishes classification performance.
@@ -974,7 +974,7 @@ eda_parts_figure.show()
 #
 # The original table has no missing fields, so a missingness chart would add little beyond the existing zero-count check.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # Length depends on its definition; inspecting only an average or median would hide variation within each class.
 # **Better question:** What accounts for the character-length difference when the median part count is identical?
 # **Current answer:** Not established; examining part lengths, URLs, and annotation context in training data could investigate it, without assuming a cause.
@@ -983,14 +983,14 @@ eda_parts_figure.show()
 # %% [markdown]
 # ### Text Preprocessing: Tokenization & Lemmatization
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # How do tokenization and lemmatization change selected training tweets, and what information could cleaning erase?
 #
-# **🎯 Goal & Approach — What & Why:** Make language transformations visible before deciding whether they belong in a classifier.
+# **🎯 Goal & Approach — WHY:** Make language transformations visible before deciding whether they belong in a classifier.
 # Inspect five reproducibly sampled training tweets in a separate table; keep the established model inputs and evaluation unchanged.
 # **🔎 Guiding Questions:** Which units become tokens, which forms change, and does a smaller vocabulary establish better predictions?
 #
-# **📋 Context, Source & Task:** This is an original retrospective adaptation of school methods and DataCamp teaching examples.
+# **📋 Source & Context:** This is an original retrospective adaptation of school methods and DataCamp teaching examples.
 # Source locations below use one-based notebook cell numbers and PDF page numbers; saved school outputs are not our results.
 #
 # | Teaching reference | What we transfer or adapt |
@@ -1287,7 +1287,7 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 # > This constructed example demonstrates information loss, not a measured classification error.
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # In source row 2879, `word_tokenize` separates hashtag markers; `TweetTokenizer` keeps hashtag units and the URL together.
 # Token definitions therefore change the units available to later processing, even for the same text.
 # Both are different from the baseline vectorizer's default token rule, which we retain and inspect in the next phase.
@@ -1298,7 +1298,7 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 #
 # No filtered or lemmatized string replaces `X_train`, `X_holdout`, or the duplicate-policy key.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # **Data → Information:** Original strings become inspectable token/tag/lemma records, with counted changes and traceable source rows.
 # **Knowledge → Wisdom:** Fewer distinct forms can coexist with lost meaning; inspect both before adopting a transformation.
 #
@@ -1322,11 +1322,11 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 #
 # ### Baseline model and evaluation
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # How well does the TF-IDF + Logistic Regression baseline classify the held-out
 # tweets, and where does it fail?
 #
-# **📋 Context, Source & Task:** Use the unchanged prepared training and holdout
+# **📋 Source & Context:** Use the unchanged prepared training and holdout
 # objects above. The outcome is one measured baseline for the retained population,
 # not evidence of reliability on every disaster report.
 #
@@ -1376,7 +1376,7 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 #
 # ### 6. A — How does text become numerical evidence?
 #
-# **🎯 Goal & Approach — What & Why:** Translate each prepared tweet into numerical
+# **🎯 Goal & Approach — WHY:** Translate each prepared tweet into numerical
 # features so a classifier can learn associations with its recorded label.
 # Learn that representation only from training text to keep evaluation separate.
 #
@@ -1456,7 +1456,7 @@ baseline_pipeline = Pipeline(baseline_steps)
 # </details>
 
 # %% [markdown]
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # A prepared string and a model feature are different objects. Tokenization and
 # weighting determine which distinctions the classifier can use; this representation
 # cannot retain every distinction visible to a human reader.
@@ -1464,7 +1464,7 @@ baseline_pipeline = Pipeline(baseline_steps)
 #
 # ### 7. B — What does the classifier learn, and how does it predict?
 #
-# **🎯 Goal & Approach — What & Why:** Fit the single Pipeline on the 5,986 training
+# **🎯 Goal & Approach — WHY:** Fit the single Pipeline on the 5,986 training
 # observations, then reuse its learned transformation and classifier for the holdout.
 # This keeps feature columns consistent between learning and prediction.
 #
@@ -1550,7 +1550,7 @@ print("One training document's feature-matrix shape:", training_example_features
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The fitted representation has 18,494 term columns; the inspected training document
 # occupies one row on that axis.
 # The classifier's training matrix has 5,986 rows, one per training observation.
@@ -1563,13 +1563,13 @@ print("One training document's feature-matrix shape:", training_example_features
 # %% [markdown]
 # ### From tokens to visible TF-IDF features
 #
-# **Main Question:** Which terms and weights does our existing fitted vectorizer produce for the inspected training tweet?
-# **Goal:** Connect the language lab to the actual baseline representation, without fitting another vectorizer or changing predictions.
+# **❓ What is the Question?** Which terms and weights does our existing fitted vectorizer produce for the inspected training tweet?
+# **🎯 Goal & Approach — WHY:** Connect the language lab to the actual baseline representation, without fitting another vectorizer or changing predictions.
 # MasterSchool's `GMT20250213-MovieLens 100K Dataset.ipynb`, cells 7–11, displays count and TF-IDF tables for small texts.
 # DataCamp's [TF-IDF representation of product feedback](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/feature-extraction-from-text?ex=7)
 # supplies a similar table pattern; we inspect only one sparse row instead of making the entire training matrix dense.
 #
-# **HOW:** The fitted vectorizer's analyzer supplies its actual tokens; counting them gives this document's term frequencies.
+# **💻 Code / Method — HOW:** The fitted vectorizer's analyzer supplies its actual tokens; counting them gives this document's term frequencies.
 # Stored feature indices connect nonzero weights to vocabulary names and learned IDF values.
 # The graph ranks TF-IDF weights, which are neither classifier coefficients nor evidence that a term caused a prediction.
 
@@ -1640,7 +1640,7 @@ nlp_feature_figure.show()
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The printed tokens and table answer the feature question using the unchanged fitted baseline, not the language lab's lemmas.
 # Each displayed term has a document count, a training-derived IDF, and a normalized weight; the chart shows only ten nonzero entries.
 # Vocabulary terms absent from the full sparse row have zero weight for this tweet.
@@ -1654,7 +1654,7 @@ nlp_feature_figure.show()
 # > The chart displays input feature weights, not coefficients or their contributions to the decision.
 # > A feature representation does not explain what caused a real disaster.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # Fitting has established a representation and model, not their performance on unseen
 # observations. **How much agreement does reusing these learned quantities produce
 # with the recorded holdout labels, and which errors does that agreement hide?**
@@ -1689,7 +1689,7 @@ print("Holdout predictions:", len(holdout_predictions))
 # %% [markdown]
 # ### 8. C — What do the scores and mistakes tell us?
 #
-# **🎯 Goal & Approach — What & Why:** Compare predictions with the 1,497 recorded
+# **🎯 Goal & Approach — WHY:** Compare predictions with the 1,497 recorded
 # holdout labels. Use positive-class F1 as agreed, then inspect its component errors.
 # The holdout is now evaluation evidence; its results must not guide changes to this baseline.
 #
@@ -1804,7 +1804,7 @@ nlp_confusion_figure.show()
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # On the unchanged 1,497-row holdout, class-1 F1 is **0.7308**, precision **0.7989**,
 # recall **0.6735**, and overall accuracy **0.7889**. Support is 860 for class 0 and
 # 637 for class 1. These values describe this retained population and fixed experiment.
@@ -1885,7 +1885,7 @@ print(false_negatives.to_string())
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation — selected disagreements
+# ### ✅ Evidence, Answer & Limits — selected disagreements
 # Source indices below identify the printed records. The last column contains
 # possible explanations, not measured feature contributions or verified causes.
 #
@@ -1904,7 +1904,7 @@ print(false_negatives.to_string())
 # the prevalence of a proposed error pattern.
 # No example was relabeled or used to tune settings.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # The analysis now measures one model's agreement with labels in a defined evaluation
 # population. Precision exceeds recall for class 1: predicted positives often match
 # annotations, but almost one-third of recorded positives are missed.
@@ -1933,16 +1933,16 @@ print(false_negatives.to_string())
 # %% [markdown]
 # ### Post-baseline learning — Guided cross-validation and model comparison
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # How do classifier choice and adjacent token pairs change training-fold F1,
 # and how consistent are these comparisons across folds?
 #
-# **📋 Context, Source & Task:** This is a retrospective educational extension,
+# **📋 Source & Context:** This is a retrospective educational extension,
 # written after the published baseline holdout was inspected.
 # It uses only the existing 5,986 training strings and labels; the 1,497-row holdout
 # and its original baseline results remain separate.
 #
-# **🎯 Goal & Approach — What & Why:** Compare six configurations on the same
+# **🎯 Goal & Approach — WHY:** Compare six configurations on the same
 # ten validation folds to separate classifier choice from adding short token sequences.
 # Keep all learned text transformations inside each fold so its validation text
 # cannot influence vocabulary or IDF.
@@ -2175,7 +2175,7 @@ print(cv_summary.round(4).to_string())
 
 # %% [markdown]
 # ### 11. Read the fold results without overstating them
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The existing Python 3.11.11 / scikit-learn 1.5.2 environment produced the results
 # below with the fixed ten-fold splitter; all 60 fits completed without warnings.
 # The original four configurations reproduce their published means, standard deviations, minima, and maxima at four decimals.
@@ -2247,7 +2247,7 @@ print(cv_summary.round(4).to_string())
 # We deliberately stop at training-only comparison, keeping the original baseline model,
 # predictions, and published holdout metrics unchanged.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # Naive Bayes illustrates that a smaller fold spread can accompany lower agreement with recorded positive labels.
 # Spread describes consistency across these folds; it cannot by itself justify preferring a classifier or trusting its probabilities.
 #
@@ -2268,8 +2268,8 @@ print(cv_summary.round(4).to_string())
 # %% [markdown]
 # ### 11.1 Beyond the baseline — a small regularization experiment
 #
-# **❓ Main Question:** Can changing one Logistic Regression setting reduce missed positives without concealing additional false alarms?
-# **🎯 Goal:** Compare `C=0.1, 1, 10` using the existing training rows, unigram TF-IDF, and ten stratified folds.
+# **❓ What is the Question?** Can changing one Logistic Regression setting reduce missed positives without concealing additional false alarms?
+# **🎯 Goal & Approach — WHY:** Compare `C=0.1, 1, 10` using the existing training rows, unigram TF-IDF, and ten stratified folds.
 # The same three settings were explored in a temporary training-only run; this section makes that comparison reproducible.
 # It is an exploratory extension, not a new independent test or a replacement for the original baseline.
 #
@@ -2282,7 +2282,7 @@ print(cv_summary.round(4).to_string())
 # compares regularization on airline sentiment; this assistant-authored adaptation uses our disaster labels and leakage-safe folds.
 # See the installed-version [LogisticRegression parameters](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.LogisticRegression.html).
 #
-# **HOW:** Out-of-fold predictions give each training row one prediction from a model fitted on the other nine parts.
+# **💻 Code / Method — HOW:** Out-of-fold predictions give each training row one prediction from a model fitted on the other nine parts.
 # Each complete Pipeline learns its vocabulary, IDF, and classifier within that fold; the original holdout is excluded.
 # Three settings require 30 fits, including a repeated `C=1` reference because the earlier comparison retained scores, not predictions.
 #
@@ -2371,7 +2371,7 @@ print(c_summary.round(4).to_string())
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The local Python 3.11.11 / scikit-learn 1.5.2 run completed all 30 fits without warnings.
 # Each setting produced 5,986 withheld predictions: 2,549 recorded positives and 3,437 recorded negatives.
 # The repeated `C=1` mean fold F1 reproduces the earlier 0.7506; no new holdout predictions were made.
@@ -2391,7 +2391,7 @@ print(c_summary.round(4).to_string())
 # > Selecting and reporting a preferred setting from these same results can produce optimism; no winner is refitted here.
 # > The original 67.35% recall concerns different holdout rows and cannot serve as the starting point for this comparison.
 #
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # **Would the additional detections justify the additional false alarms?** That decision is not established by F1 alone.
 # It requires an agreed purpose, acceptable review workload, and error costs; these educational labels do not establish operational benefits.
 # Preserve the original baseline and treat `C=10` as a candidate for further investigation, with independent evidence needed for broader claims.
@@ -2406,18 +2406,18 @@ print(c_summary.round(4).to_string())
 #
 # ### One pretrained Transformer inference
 #
-# ### ❓ Main Question
+# ### ❓ What is the Question?
 # What does one pretrained sentiment prediction demonstrate, and how does its
 # pipeline differ from our fitted scikit-learn Pipeline?
 #
-# **🎯 Goal & Approach — What & Why:** Learn to interpret a pretrained model's
+# **🎯 Goal & Approach — WHY:** Learn to interpret a pretrained model's
 # output within its actual task. Use one original English movie-review sentence,
 # separate from our tweets, to observe local inference without training or model comparison.
 #
 # **🔎 Guiding Questions:** What was learned before this lab? What do the returned
 # label and score mean, and can they answer our disaster-classification question?
 #
-# **📋 Context, Source & Task:** The closing MasterSchool Transformers lesson
+# **📋 Source & Context:** The closing MasterSchool Transformers lesson
 # introduces `pipeline("sentiment-analysis")`, then calls it on text and prints the result.
 # This assistant-authored adaptation names the checkpoint, revision, and CPU explicitly,
 # instead of relying on an implicit default model and download.
@@ -2592,7 +2592,7 @@ print("Observed sentiment result:", sentiment_result)
 # </details>
 
 # %% [markdown]
-# ### ✅ Evidence & Interpretation
+# ### ✅ Evidence, Answer & Limits
 # The complete script ran successfully on CPU on 2026-10-29 with the versions and
 # checkpoint revision printed above. The observed result for
 # `The film was delightful and beautifully acted.` was `POSITIVE`, score **0.999887** (rounded).
@@ -2612,7 +2612,7 @@ print("Observed sentiment result:", sentiment_result)
 # the sentiment score is a different quantity and must not be compared with that F1.
 
 # %% [markdown]
-# ### 🧠 Learning → Better Questions
+# ### 🧠 What We Learned
 # The sentence and observed output are **Data**; the checkpoint, English sentiment
 # task, and label definitions give them context as **Information**.
 # **Knowledge:** a working inference path can answer its configured task while
@@ -2636,14 +2636,14 @@ print("Observed sentiment result:", sentiment_result)
 # %% [markdown]
 # ## 5. Key Insights, Limitations & Recommendations
 #
-# **Main Question:** What can we responsibly conclude and recommend from this project?
-# **Goal:** Separate measured classification results from claims that require new evidence.
+# **❓ What is the Question?** What can we responsibly conclude and recommend from this project?
+# **🎯 Goal & Approach — WHY:** Separate measured classification results from claims that require new evidence.
 #
-# **Evidence and answer:** The baseline reaches class-1 F1 0.7308 on the retained holdout,
+# **✅ Evidence, Answer & Limits:** The baseline reaches class-1 F1 0.7308 on the retained holdout,
 # while missing 208 of 637 recorded positives. Training-only CV compares six configurations;
 # it does not establish reliability on new events. The Transformer lab demonstrates sentiment inference only.
 #
-# **Learning:** Data quality and evaluation boundaries determine what a successful run can establish.
+# **🧠 What We Learned:** Data quality and evaluation boundaries determine what a successful run can establish.
 # Labels remain annotations, excluded conflicts change the population, and different wording can describe the same event.
 # The training-text lab also shows that reducing word forms and preserving meaning are different goals; no lemmatized classifier was evaluated.
 #

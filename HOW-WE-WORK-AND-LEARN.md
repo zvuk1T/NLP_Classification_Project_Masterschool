@@ -14,11 +14,11 @@ The guided Sprint 2 movie-review classifier supplies teaching references; the Ma
 
 The authoritative school analysis and learning narrative is `disaster_tweets_classification.py`; the independent `disaster_tweets_huggingface.py` is a supplementary representation experiment. Readers should understand each file's role, evidence and limitations without reconstructing a chat.
 
-## 2. Main Question → Learning → Better Questions
+## 2. What is the Question? → What We Learned
 
-Work on one meaningful learning unit: **❓ Question + 📋 Source & Context → 🎯 Goal & Approach (WHY) → 💻 Code / Method (HOW) → ✅ Evidence, Answer & Limits → 🧠 What We Learned.** This is our learning synthesis informed by [Forming Analytical Questions](https://www.datacamp.com/courses/forming-analytical-questions), not a verbatim DataCamp template.
+Work on one meaningful learning unit: **❓ What is the Question? + 📋 Source & Context → 🎯 Goal & Approach — WHY → 💻 Code / Method — HOW → ✅ Evidence, Answer & Limits → 🧠 What We Learned.** This is our learning synthesis informed by [Forming Analytical Questions](https://www.datacamp.com/courses/forming-analytical-questions), not a verbatim DataCamp template.
 
-The project has an overarching question; each unit asks one relevant question. Existing `Main Question` headings remain valid. Smaller guiding checks belong beside the method or evidence, not in compulsory extra sections. Answer every learner-facing question explicitly; when evidence is insufficient, state `Not established` and explain the gap.
+The project has an overarching question; each unit asks one relevant question. Use `❓ What is the Question?` for that teaching function. Existing analyses adopt the six labels below through explicitly authorized edits; this guide alone does not authorize rewriting source files. Smaller guiding checks belong beside the method or evidence, not in compulsory extra sections. Answer every learner-facing question explicitly; when evidence is insufficient, state `Not established` and explain the gap.
 
 A new question, responsible decision, narrower claim, or pause follows only when justified by the findings. DIKW supports judgment; it is not another set of mandatory headings. SMART (Specific, Measurable, Actionable, Relevant, Time-bound) is a lens when useful, not five mandatory fields.
 
@@ -56,16 +56,16 @@ Preserve the historical `Notebooks/NLP_Classification_Project_Masterschool.ipynb
 
 ### Teaching functions and emoji vocabulary
 
-Use these at meaningful-unit level, not per code line. Preserve accepted headings in existing Python cells.
+Use these six labels for visible teaching functions at meaningful-unit level, not per code line. Preserve accepted questions, explanations, and analytical grouping; do not require six separate headings in every cell. Keep a justified further question separate from `What We Learned`.
 
 | Function | Purpose |
 | --- | --- |
-| **❓ Question** (existing `Main Question`) | One source-grounded uncertainty before code. |
+| **❓ What is the Question?** | One source-grounded uncertainty before code. |
 | **📋 Source & Context** | Actual task, inputs, grain, and assumptions. |
 | **🎯 Goal & Approach — WHY** | Why the method fits and what evidence it needs. |
 | **💻 Code / Method — HOW** | Real executable cells, with first-use mechanism explanations. |
 | **✅ Evidence, Answer & Limits** | Verified output, direct answer, interpretation, and boundaries. |
-| **🧠 What We Learned** (existing `Learning → Better Questions`) | Transferable insight; an optional further question, decision, or pause only if justified. |
+| **🧠 What We Learned** | Transferable insight; an optional further question, decision, or pause only if justified. |
 | **🧑‍💼 Recruiter / Transfer Check** | Optional meaningful check with a supported hidden answer. |
 
 Mental maps, warnings, and ethical notes are optional aids; do not make each one a compulsory section. The code itself supplies the 💻 function.

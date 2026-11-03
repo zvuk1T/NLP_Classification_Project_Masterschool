@@ -31,7 +31,7 @@
 
 **Agreed source structure:** Support meaningful `##` chapters and `###` sections inside the Python files' Markdown percent cells. These levels should identify substantial analytical units; every question, warning or teaching aid does not need a navigation entry. Any later source reorganization must preserve the educational explanations, code, analytical results and baseline-versus-**Beyond the Baseline** distinction. Final website outline selection, navigation and responsive behavior belong to the Homepage repository; this direction does not change either Python file now.
 
-**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Keep **Main Question → evidence → explicit answer → Learning → Better Questions** at meaningful-unit level. Preserve first-use explanations, **Mermaid mental maps in separate Markdown cells**, consequential **⚠️ Watch Out** warnings, and evidence-grounded **⚖️ Ethical Takeaways** as defined by the current learning guide.
+**Pacing:** One agreed work block → one complete implementation within scope → one joint review. A block may contain several analytical units and many cells; running cells in sequence does not require separate approval for each cell. Follow the guide's six teaching functions, from **❓ What is the Question?** through **🧠 What We Learned**, with evidence and explicit answers at meaningful-unit level. Keep a justified further question or decision separate from the learning. Preserve first-use explanations, **Mermaid mental maps in separate Markdown cells**, consequential **⚠️ Watch Out** warnings, and evidence-grounded **⚖️ Ethical Takeaways** as defined by the current learning guide.
 
 ## 2. Source authority, scope, and conflict resolution
 
@@ -259,7 +259,7 @@ These are **project design constraints** that produced the published baseline. P
 
 ### Completed foundation — Slice 2A: First working Python analysis (2026-10-27)
 
-**Question:** What do the dataset structure, target distribution, and duplicate tweets tell us before modeling?
+**❓ What is the Question?** What do the dataset structure, target distribution, and duplicate tweets tell us before modeling?
 
 1. Prepare an ignored project-local `.venv` with a suitable installed Python, `pandas==2.2.3`, `ipykernel`, and their dependencies. Preserve dependency declarations.
 2. Create root `disaster_tweets_classification.py` with question-led explanations and executable percent cells.
@@ -277,7 +277,7 @@ These are **project design constraints** that produced the published baseline. P
 
 ### Work block 1 — Prepare the data for modeling (**COMPLETE AND PUBLISHED**)
 
-**Main Question:** How can we prepare these tweets for a fair, reproducible model evaluation?
+**❓ What is the Question?** How can we prepare these tweets for a fair, reproducible model evaluation?
 
 The approved preparation and split were published in `34c61b6c51f946941b4d226df3cd06a27bc4a4e3`; §4.1 records their policy and results. The educational refactor in `f8e166ca1e285773dd381f3853aef9cc094e99b3` established the question-led structure, first-use code explanations, visible transformations, readable checks, and evidence-linked learning.
 
@@ -287,7 +287,7 @@ The current main `.py` uses **standalone Mermaid mental maps**, contextual warni
 
 ### Work block 2 — Baseline model and evaluation (**COMPLETE AND PUBLISHED**)
 
-**Main Question:** How well does the TF-IDF + Logistic Regression baseline classify the held-out tweets, and where does it fail?
+**❓ What is the Question?** How well does the TF-IDF + Logistic Regression baseline classify the held-out tweets, and where does it fail?
 
 Published in `b106c9833d76942b4fc02ee0109c35c0d4af2edb`. The single scikit-learn Pipeline learns TF-IDF and Logistic Regression from the 5,986 training observations only, then predicts the unchanged 1,497-row holdout.
 
@@ -305,7 +305,7 @@ The analysis inspects a small reproducible set of false positives and false nega
 
 ### Work block 3 — Portfolio case study (**COMPLETE AND PUBLISHED**)
 
-**Main Question:** How can a reader understand the problem, decisions, evidence, and limitations without reading our conversations?
+**❓ What is the Question?** How can a reader understand the problem, decisions, evidence, and limitations without reading our conversations?
 
 Published in `7a4007b4137e4a845769bd24e96e00be89a26157`. The README now presents the project as an explainable MasterSchool educational case study: problem, preparation decisions, baseline mechanism, holdout evidence, error patterns, limitations, reproducibility, and source provenance.
 
