@@ -1,11 +1,13 @@
 # %% [markdown]
 # # Disaster Tweets — Frozen Transformer Features
 #
-# **❓ What is the Question?** Does changing the text representation improve disaster classification when the classifier and evaluation rows stay fixed?
+# **What is the Question ❓** Does changing the text representation improve disaster classification when the classifier and evaluation rows stay fixed?
+#
 # **🎯 Goal & Approach — WHY:** Compare MiniLM embeddings with the existing TF-IDF results, using Logistic Regression and LinearSVC.
 # This assistant-authored extension complements `disaster_tweets_classification.py`; that file remains the source of the original baseline.
 #
 # **Reading route:** Same observations → frozen encoder → training-only CV → retrospective holdout → insights → ethics → visual comparison.
+#
 # **Initial execution — 2026-10-29:** The original comparison ran locally, including 20 CV fits and two final classifier fits.
 # MiniLM improved both classifiers' mean CV F1 relative to their historical TF-IDF references; detailed results and limits appear below.
 # Section 8 adds a separate training-only regularization comparison; the original workflows and holdout results remain unchanged.
@@ -20,8 +22,10 @@
 # %% [markdown]
 # ## 1. Preserve the observations and evaluation boundaries
 #
-# **❓ What is the Question?** Are we comparing representations on the same observations?
+# **What is the Question ❓** Are we comparing representations on the same observations?
+#
 # **🎯 Goal & Approach — WHY:** Reuse the main analysis's normalization, retention policy, split and ten training folds.
+#
 # **🔎 Guiding Question:** What does equal membership control, and what uncertainty remains?
 #
 # The supplied `DATA/train.csv` contains text and recorded labels: `0` non-disaster, `1` disaster.
@@ -158,8 +162,10 @@ print("Validation rows per training fold:", [len(validation) for _, validation i
 # %% [markdown]
 # ## 2. Turn each tweet into a frozen representation
 #
-# **❓ What is the Question?** What does the pretrained encoder supply, and what will our classifiers still learn?
+# **What is the Question ❓** What does the pretrained encoder supply, and what will our classifiers still learn?
+#
 # **🎯 Goal & Approach — WHY:** Produce one 384-number vector per tweet using `sentence-transformers/all-MiniLM-L6-v2`.
+#
 # **🔎 Guiding Questions:** How do token vectors become one tweet vector, and why may this representation be computed before CV?
 #
 # A Transformer makes token representations depend on surrounding tokens. Pooling then combines those token vectors into one fixed-length representation.
@@ -451,8 +457,10 @@ print("Training vector lengths, min/max:", np.linalg.norm(train_embeddings, axis
 # %% [markdown]
 # ## 3. Compare the same classifiers in the same ten folds
 #
-# **❓ What is the Question?** Does MiniLM improve training-only CV F1 for Logistic Regression or LinearSVC?
+# **What is the Question ❓** Does MiniLM improve training-only CV F1 for Logistic Regression or LinearSVC?
+#
 # **🎯 Goal & Approach — WHY:** Fit fresh classifiers on nine folds and score the remaining fold, repeating all ten partitions.
+#
 # **🔎 Guiding Questions:** Are gains consistent across folds, and what does the fold standard deviation describe?
 #
 # Both classifiers retain the main file's settings: `LogisticRegression()` and `LinearSVC(random_state=42)`.
@@ -636,7 +644,8 @@ comparison_figure.show()
 # %% [markdown]
 # ## 4. Report the two predeclared models on the existing holdout
 #
-# **❓ What is the Question?** What do the two frozen-feature workflows predict on the unchanged 1,497 holdout rows?
+# **What is the Question ❓** What do the two frozen-feature workflows predict on the unchanged 1,497 holdout rows?
+#
 # **🎯 Goal & Approach — WHY:** Refit each classifier on all training embeddings, then evaluate the holdout once with fixed settings.
 # Both classifiers are evaluated regardless of their CV ranking; this adds two final classifier fits without choosing a CV winner.
 #
@@ -774,7 +783,8 @@ for classifier_name, predictions in holdout_predictions.items():
 # %% [markdown]
 # ## 5. Insights and evidence limits
 #
-# **❓ What is the Question?** What does this experiment establish?
+# **What is the Question ❓** What does this experiment establish?
+#
 # **🎯 Goal & Approach — WHY:** Connect measured differences to a proportionate conclusion.
 #
 # **✅ Evidence, Answer & Limits:** MiniLM increased both classifiers' mean CV F1 on the unchanged training folds.
@@ -788,7 +798,8 @@ for classifier_name, predictions in holdout_predictions.items():
 # %% [markdown]
 # ## 6. Ethical interpretation and responsible use
 #
-# **❓ What is the Question?** What may we responsibly claim from the observed improvements?
+# **What is the Question ❓** What may we responsibly claim from the observed improvements?
+#
 # **🎯 Goal & Approach — WHY:** Interpret the error trade-off without inventing operational benefits.
 #
 # **✅ Evidence, Answer & Limits:** MiniLM + Logistic Regression misses 43 fewer recorded positives and produces 17 additional false positives.
@@ -802,13 +813,16 @@ for classifier_name, predictions in holdout_predictions.items():
 #
 # **🧠 What We Learned:** The appropriate balance between missed reports and false alarms is not established here.
 # Use the following charts to inspect measured differences while retaining these evidence limits.
+#
 # **⚖️ Ethical Takeaway:** Report error counts and uncertainty together; neither representation establishes emergency-response readiness.
 
 # %% [markdown]
 # ## 7. Visual comparison — TF-IDF and Hugging Face features
 #
-# **❓ What is the Question?** How large are the measured differences, and which errors change when we replace TF-IDF with MiniLM?
+# **What is the Question ❓** How large are the measured differences, and which errors change when we replace TF-IDF with MiniLM?
+#
 # **🎯 Goal & Approach — WHY:** Finish with three complementary Plotly views, derived from the result tables and predictions already computed above.
+#
 # **🔎 Guiding Question:** Which comparisons keep the classifier fixed, and where is a matching baseline unavailable?
 #
 # **Comparison boundary:** CV includes both classifiers against their two historical TF-IDF configurations, using the same training rows and folds.
@@ -817,6 +831,7 @@ for classifier_name, predictions in holdout_predictions.items():
 #
 # ### A. Change in training-only mean F1
 # **🎯 Goal & Approach — WHY:** A difference plot makes the size of each change easier to read than eight nearby averages.
+#
 # **💻 Code / Method — HOW:** Subtract each classifier's historical TF-IDF mean from its current MiniLM mean; positive bars indicate higher mean F1.
 # These are absolute F1 differences, not relative percentage improvements; historical rounding makes the differences approximate.
 #
@@ -877,6 +892,7 @@ cv_change_figure.show()
 #
 # ### B. Holdout metrics with Logistic Regression fixed
 # **🎯 Goal & Approach — WHY:** F1 summarizes a trade-off, so show precision, recall and accuracy beside it rather than treating one score as the whole result.
+#
 # **💻 Code / Method — HOW:** Display the earlier TF-IDF and current MiniLM scores side by side on the same zero-to-one scale.
 # This is retrospective evidence on the same 1,497 observations; class-1 F1, precision and recall concern the recorded disaster label.
 
@@ -937,6 +953,7 @@ holdout_metric_figure.show()
 #
 # ### C. Translate the trade-off into error counts
 # **🎯 Goal & Approach — WHY:** Error counts make the measured trade-off concrete without assigning an unsupported cost to either error type.
+#
 # **💻 Code / Method — HOW:** Subtract earlier Logistic Regression error counts from its MiniLM counts; negative means fewer errors of that type.
 # False negatives miss recorded disasters; false positives predict disaster for recorded non-disasters.
 
@@ -1002,7 +1019,8 @@ error_change_figure.show()
 # %% [markdown]
 # ## 8. Beyond the baseline — adjust the classifiers, keep MiniLM fixed
 #
-# **❓ What is the Question?** Can a small change to classifier regularization improve the frozen-MiniLM results without Transformer fine-tuning?
+# **What is the Question ❓** Can a small change to classifier regularization improve the frozen-MiniLM results without Transformer fine-tuning?
+#
 # **🎯 Goal & Approach — WHY:** Compare `C=0.1, 1, 10` for Logistic Regression and LinearSVC on the same ten training folds.
 # The encoder, embeddings, preprocessing, class weights, and prediction rules stay fixed; only the downstream classifiers learn again.
 #
