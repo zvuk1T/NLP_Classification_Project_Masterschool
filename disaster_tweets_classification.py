@@ -2561,3 +2561,40 @@ print("Observed sentiment result:", sentiment_result)
 # <!--
 # endregion
 # -->
+
+# %% [markdown]
+# <!-- project-wrap-up -->
+# ## The Story So Far
+#
+# *From a question about words to a question about trust.*
+#
+# ### Data
+# We began by asking whether tweet text could help separate disaster-labelled examples
+# from the rest. Before building a model, repeated text and conflicting annotations
+# brought the meaning of those labels into focus. They record how tweets were labelled;
+# they do not independently verify that a disaster occurred.
+#
+# ### Information
+# After preparing the data, we built a TF-IDF and Logistic Regression baseline.
+# Its errors gave us a starting point for asking what another representation might change.
+# In a separate [Beyond the Baseline study](disaster_tweets_huggingface.py),
+# frozen MiniLM representations reused a model pretrained on external data.
+# With Logistic Regression, they found more disaster-labelled tweets while raising more
+# false alarms on the same, already inspected holdout.
+#
+# ### Knowledge
+# Together, those results brought the meaning of mistakes into focus.
+# **Fewer misses do not settle which model is more useful: the judgment also depends
+# on false alarms and the consequences of each error in the intended use.**
+# The comparison shows a different balance of mistakes; it does not establish which
+# balance would be acceptable in practice.
+#
+# ### Wisdom
+# Our conclusion remains bounded by that evidence: this is a retrospective comparison
+# of recorded labels. Whether the same trade-off would hold on new events is not established.
+# A justified next chapter would define acceptable errors for a specific use case,
+# then compare the fixed approaches on independent, representative tweets from new events
+# with reviewed annotations. That would test whether this pattern carries beyond the
+# examples that started the story.
+#
+# *Would the same trade-off hold on new events—and what would make it acceptable for a real use case?*
