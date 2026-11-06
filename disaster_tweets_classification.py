@@ -116,22 +116,13 @@
 # ### ❓ What is the Question?
 # What do the dataset structure and target distribution tell us before modeling?
 #
-# **🎯 Goal & Approach — WHY:** Establish what one observation contains
-# and whether its required fields are usable. Count labels to describe the starting
-# population; these proportions provide context, not a measure of predictive ability.
+# **🎯 Goal & Approach — WHY:** Inspect the source rows, check usable text and labels, then count each recorded class.
+# Label proportions describe this population; they do not measure predictive ability.
 #
-# **🔎 Guiding Questions:** Are text or labels missing or invalid? How many
-# observations belong to each recorded class?
+# **✅ Notes for Students:** Open this repository, select `.venv/bin/python`, restart the kernel, and run cells top-to-bottom.
+# README explains the installed packages and required local resources; missing resources stop execution without downloading replacements.
 #
-# **✅ Notes for Students:** Open this repository in VS Code, select its existing
-# `.venv/bin/python` kernel, restart it, and run cells from top to bottom.
-# This file uses pandas, scikit-learn, Plotly, NLTK, PyTorch, Transformers, and huggingface-hub.
-# ipykernel supports the Interactive Window; requirements.txt records the existing package versions.
-# Graph setup: `plotly==7.1.0` and `nbformat==5.11.1` in the existing environment.
-# nbformat supports inline display; no Matplotlib, Seaborn, Dash, or web account is needed.
-# The language and sentiment labs require the project-local resources described in README.
-# They read existing cache files; missing resources stop execution without downloading replacements.
-# A terminal alternative from the root is `.venv/bin/python disaster_tweets_classification.py`.
+# **Step 1 — Confirm the runtime.** Check which Python executable and pandas version will read the data.
 
 # %%
 from pathlib import Path
@@ -139,23 +130,44 @@ import sys
 
 import pandas as pd
 
-# Resolve filesystem paths before loading the source table; Interactive Window execution uses its current folder.
+print("Python:", sys.version.split()[0])
+print("Interpreter:", sys.executable)
+print("pandas:", pd.__version__)
+
+# %% [markdown]
+# **Step 2 — Locate the input.** The next cell produces a file path, not a data table.
+# A script uses its own folder; Interactive Window execution uses the current working folder.
+
+# %%
+# __file__ exists during script execution; resolve makes that script path absolute.
 if "__file__" in globals():
-    project_root = Path(__file__).resolve().parent
+    script_path = Path(__file__).resolve()
+    project_root = script_path.parent
 else:
     project_root = Path.cwd()
 
+# Build the CSV path and stop if it is missing before attempting to read it.
 data_path = project_root / "DATA" / "train.csv"
 if not data_path.is_file():
     raise FileNotFoundError(
         f"Cannot find {data_path}. Start the Interactive Window in the repository root."
     )
 
-print("Python:", sys.version.split()[0])
-print("Interpreter:", sys.executable)
-print("pandas:", pd.__version__)
 print("CSV:", data_path)
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# `globals()` checks whether a script filename is available; `parent` selects that file's containing folder.
+# `/` joins path components, while `is_file()` checks the resulting location.
+# If the file is missing, inspect the working folder before continuing.
+#
+# </details>
+
+# %% [markdown]
+# **Step 3 — Read and preview the table.** Use the verified path to load one labeled tweet per row.
+
+# %%
 # Read one labeled observation per row; its index is the zero-based source position.
 # Keep tweets unchanged so later subsets can be traced back to these original rows.
 tweets = pd.read_csv(data_path)
@@ -168,76 +180,75 @@ print(tweets.head().to_string())
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect the supplied observations, locate `DATA/train.csv` and load it as `tweets`, with one labeled tweet per row.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `"__file__" in globals()` checks whether the session knows the script filename; otherwise `Path.cwd()` uses the current working folder.
-# 2. `resolve().parent` finds the script folder; joining path components builds `data_path`, not a data table.
-# 3. `is_file()` rejects a missing input before `read_csv()` loads it; `shape`, `dtypes`, and `head()` expose structure and five examples.
-#
-# ```python
-# tweets = pd.read_csv(data_path)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# The default integer index traces CSV row positions; `head()` is a preview, not a representative sample or a quality guarantee.
+# `read_csv()` creates `tweets`; its default integer index records zero-based CSV row positions.
+# `shape`, `dtypes`, and `head()` show structure and five examples, without establishing representativeness or data quality.
 #
 # </details>
 
+# %% [markdown]
+# **Step 4 — Inspect missing cells.** Count absence before interpreting or changing any values.
+
 # %%
-# Count missing cells by column; the resulting Series uses column names as its index.
-missing_counts = tweets.isna().sum()
-
-# strip() temporarily trims text ends; eq("") flags rows containing only whitespace.
-# Summing these flags counts blank texts without changing the source column.
-blank_text_count = tweets["text"].str.strip().eq("").sum()
-
-# isin checks membership in allowed labels. ~ reverses each flag: True now means invalid.
-# This is a row count, including missing labels, not a count of distinct bad label values.
-invalid_label_count = (~tweets["target"].isin([0, 1])).sum()
+# isna marks individual missing cells; summing down each column counts them.
+missing_cells = tweets.isna()
+missing_counts = missing_cells.sum()
 print("Missing values by column:")
 print(missing_counts.to_string())
+
+# %% [markdown]
+# **Step 5 — Check empty text.** A non-missing string can still contain only spaces.
+
+# %%
+# Work on a temporary Series; the original text column remains unchanged.
+trimmed_text = tweets["text"].str.strip()
+blank_text_mask = trimmed_text.eq("")
+blank_text_count = blank_text_mask.sum()
 print("Blank text rows:", blank_text_count)
+
+# %% [markdown]
+# **Step 6 — Check label values.** Each observation must have recorded label 0 or 1 before grouping or modeling.
+
+# %%
+# Each flag describes one row; ~ reverses membership so invalid or missing labels become True.
+valid_label_mask = tweets["target"].isin([0, 1])
+invalid_label_mask = ~valid_label_mask
+invalid_label_count = invalid_label_mask.sum()
 print("Missing or invalid target rows:", invalid_label_count)
 
-# Stop if required inputs are unusable; subsequent grouping assumes valid text and labels.
-if missing_counts.any() or blank_text_count or invalid_label_count:
+# %% [markdown]
+# **Step 7 — Decide whether analysis can continue.** The checks above provide the evidence for one input safeguard.
+
+# %%
+# Name the three reasons for stopping before combining them into one decision.
+has_missing_values = missing_counts.any()
+has_blank_text = blank_text_count > 0
+has_invalid_labels = invalid_label_count > 0
+unusable_inputs = has_missing_values or has_blank_text or has_invalid_labels
+if unusable_inputs:
     raise ValueError("Unexpected missing, blank, or invalid values; inspect before continuing.")
 
-# Count observations per label; sort_index orders the label keys as 0, then 1.
-# target_summary has one row per class, with the original row count as its denominator.
-target_counts = tweets["target"].value_counts().sort_index()
+# %% [markdown]
+# **Step 8 — Summarize recorded classes.** With usable fields, count each label and calculate its share of the original rows.
+
+# %%
+# Count labels, then order the Series index as 0 and 1.
+target_counts = tweets["target"].value_counts()
+target_counts = target_counts.sort_index()
+
+# The summary has one row per class; divide each count by the full source population.
 target_summary = target_counts.to_frame(name="rows")
-target_summary["percent"] = (target_counts / len(tweets) * 100).round(2)
+target_shares = target_counts / len(tweets)
+target_percentages = target_shares * 100
+target_summary["percent"] = target_percentages.round(2)
 print("Original label distribution:")
 print(target_summary.to_string())
 
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To check whether label summaries are usable, inspect missing fields, blank text, and labels outside the allowed pair.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `isna()` creates a Boolean table; `.sum()` counts missing cells down each column, with `True` contributing one.
-# 2. `.str.strip().eq("")` detects whitespace-only text; `~...isin([0, 1])` flags invalid or missing labels without changing them.
-# 3. The guard stops on any detected problem; `value_counts().sort_index()` then counts classes in 0/1 order.
-# 4. `to_frame()` creates one row per class; dividing by `len(tweets)` gives percentages of the original table.
-#
-# ```python
-# missing_counts = tweets.isna().sum()
-# invalid_label_count = (~tweets["target"].isin([0, 1])).sum()
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Passing these checks establishes usable fields under these rules, not accurate annotations or distinct examples.
+# `value_counts()` counts observations; `to_frame()` makes those counts a named table column.
+# Each percentage uses all original rows as its denominator; rounding changes only the reported precision.
+# The earlier checks establish usable fields under our rules, not correct annotations or distinct examples.
 #
 # </details>
 
@@ -269,19 +280,9 @@ eda_class_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To make class balance visible, display the existing `target_summary` counts as two bars.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `reset_index()` exposes the `target` index as a column; `map()` supplies readable class names.
-# 2. `px.bar()` uses `rows` for heights and printed counts, with percentages in hover details.
-# 3. Layout settings control axes and spacing; `show()` renders the figure without modifying or uploading the source table.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# The denominator is the original dataset, not the population of real-world disaster reports.
+# `reset_index()` exposes class labels as a column; `map()` gives them readable names.
+# `px.bar()` displays the existing counts, with percentages in hover details.
+# The denominator is the supplied dataset, not all real-world disaster reports.
 #
 # </details>
 
@@ -329,14 +330,11 @@ eda_class_figure.show()
 # </div>
 
 # %%
-# Count source rows per exact string; text_counts is indexed by text, not source-row number.
+# Count source rows per exact string; the index contains texts, not source-row positions.
 text_counts = tweets["text"].value_counts()
-
-# Keep only groups with more than one observation: len counts groups, sum counts rows.
 repeated_text_counts = text_counts[text_counts > 1]
 
-# duplicated(keep="first") flags later occurrences True and each first occurrence False.
-# Checking the whole table additionally requires the target to match; neither call deletes rows.
+# Later occurrences repeat text; whole-row duplicates additionally require the same label.
 extra_text_rows = tweets["text"].duplicated(keep="first").sum()
 extra_identical_rows = tweets.duplicated(keep="first").sum()
 print("Unique exact texts:", len(text_counts))
@@ -345,15 +343,17 @@ print("Rows belonging to repeated groups:", repeated_text_counts.sum())
 print("Additional exact-text occurrences:", extra_text_rows)
 print("Additional identical (text, target) rows:", extra_identical_rows)
 
-# Each grouped result holds the number of distinct target values, not observations.
-# Its index contains text strings, not the original integer source-row indices.
-labels_per_text = tweets.groupby("text")["target"].nunique()
+# %% [markdown]
+# The 69 repeated groups contain 179 rows, including 110 occurrences beyond the first.
+# Only 92 extra rows also repeat the label; text repetition and whole-row repetition therefore differ.
+# Next, count distinct labels within each text group to locate disagreements.
 
-# Select counts above one and extract their index: the strings whose groups have both labels.
+# %%
+# One value counts distinct labels for one exact text; a count above one means disagreement.
+labels_per_text = tweets.groupby("text")["target"].nunique()
 conflicting_texts = labels_per_text[labels_per_text > 1].index
 
-# Map the conflicting group keys back to one Boolean flag per original source row.
-# isin is True for any row whose text belongs to those groups, including every label.
+# Map those text keys back to one flag per source row, including every conflicting group member.
 exact_conflict_mask = tweets["text"].isin(conflicting_texts)
 conflicting_row_count = exact_conflict_mask.sum()
 print("Exact-text groups with both labels:", len(conflicting_texts))
@@ -362,44 +362,20 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To distinguish repeated inputs from contradictory annotations, inspect exact-text groups without deleting observations.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `value_counts()` counts rows per string; filtering counts above one identifies repeated groups.
-# 2. `duplicated(keep="first")` flags later occurrences; checking the whole table additionally requires matching targets.
-# 3. `groupby("text")["target"].nunique()` counts distinct labels per string, not rows per group.
-# 4. `.index` extracts conflicting text keys; `isin()` maps those keys back to a Boolean flag for every source row.
-#
-# ```python
-# labels_per_text = tweets.groupby("text")["target"].nunique()
-# conflicting_texts = labels_per_text[labels_per_text > 1].index
-# exact_conflict_mask = tweets["text"].isin(conflicting_texts)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Group counts, row counts, and extra occurrences answer different questions; exact equality still distinguishes case, whitespace, and punctuation.
+# Grouped `nunique()` counts labels per text, rather than rows per text.
+# `.index` extracts conflicting text keys; `isin()` returns a membership flag for every original row.
+# These checks identify disagreements without deleting rows or choosing a correct annotation.
 #
 # </details>
 
 # %% [markdown]
 # ### ✅ Evidence, Answer & Limits
-# Of 7,503 distinct exact texts, 69 repeated groups contain 179 rows, including 110
-# occurrences beyond the first. Only 92 extra rows also repeat the label.
-# Eighteen text groups have both labels, involving 55 observations.
-#
-# Repetition and conflict are different: repeating one label adds no disagreement;
-# recording two labels for one input does. These counts do not identify which label
-# is correct or explain why the annotations differ.
+# Eighteen exact-text groups contain both labels, involving 55 observations.
+# Identical inputs can therefore provide contradictory supervision; these counts cannot identify the correct label or explain the disagreement.
 #
 # ### 🧠 What We Learned
-# The initial row total overstates the number of distinct exact inputs. A table
-# can have complete fields while offering contradictory supervision.
-# Before deciding which examples survive, **does the intended preparation make
-# previously different strings count as the same input?**
+# Complete fields do not establish distinct inputs or consistent labels.
+# Before applying the retention policy, check whether normalization makes previously different strings equal.
 
 # %% [markdown]
 # ### 1.3 Understand what normalization changes
@@ -425,76 +401,48 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # illustrates string operations; here `.str` applies them to every text in a pandas column.
 
 # %%
-# Copy source rows and indices before creating prepared_text, the normalization and duplicate-comparison key.
+# Preserve original text and source indices; the new column defines the model input and duplicate key.
 prepared = tweets.copy()
 prepared["prepared_text"] = prepared["text"].str.lower()
-
-# The regular expression \s+ matches one or more whitespace characters, including newlines.
-# Replace each run with one space, then strip only leading and trailing whitespace.
+# \s+ matches a run of whitespace; replace it with one space, then trim both ends.
 prepared["prepared_text"] = prepared["prepared_text"].str.replace(r"\s+", " ", regex=True)
 prepared["prepared_text"] = prepared["prepared_text"].str.strip()
+print("Original/prepared example (source index retained):")
+print(prepared[["text", "prepared_text", "target"]].head(1).to_string())
 
-# Both Series are indexed by normalized strings: count distinct labels or original forms.
-# A normalized group can now collect source rows that had different exact strings.
+# %% [markdown]
+# `prepared_text` changes case and whitespace while retaining the original text beside it.
+# We now group by that new key, because the classifier will receive those same prepared strings.
+
+# %%
+# Each Series uses normalized text keys: values count distinct labels or distinct original forms.
 labels_per_prepared_text = prepared.groupby("prepared_text")["target"].nunique()
 original_forms_per_key = prepared.groupby("prepared_text")["text"].nunique()
-
-# collision_keys lists normalized strings merging originals; conflicting_keys lists label disputes.
-# These are group keys, not source-row numbers; more than one form does not imply a conflict.
 collision_keys = original_forms_per_key[original_forms_per_key > 1].index
 conflicting_keys = labels_per_prepared_text[labels_per_prepared_text > 1].index
-
-# collision_mask marks each source row involved in a merge. .loc keeps True rows and all columns.
-# The displayed integer index still identifies where each observation came from in the CSV.
-collision_mask = prepared["prepared_text"].isin(collision_keys)
 print("Distinct normalized texts before exclusions:", len(labels_per_prepared_text))
 print("Normalized keys merging distinct original texts:", len(collision_keys))
-print("Original/prepared example:")
-print(prepared[["text", "prepared_text", "target"]].head(1).to_string())
+print("Normalized groups with both labels:", len(conflicting_keys))
+
+# %% [markdown]
+# Normalization leaves 7,501 distinct keys and merges two pairs of original strings.
+# A merge need not create a label conflict; inspect the source rows before using these group keys for exclusion.
+
+# %%
+# isin maps group keys back to source rows; loc keeps every matching row and its original index.
+collision_mask = prepared["prepared_text"].isin(collision_keys)
 print("Rows in normalization collisions (source indices retained):")
 print(prepared.loc[collision_mask].to_string())
 
 # %% [markdown]
-# <details><summary>💡 Explain this code</summary>
-#
-# **📖 Overview — WHAT**
-#
-# To audit equality under the eventual model representation, add normalized text while retaining original wording and recorded labels.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `copy()` preserves source indices; `.str.lower()`, whitespace replacement, and `.str.strip()` produce each prepared string.
-# 2. The two grouped Series count distinct labels and original forms per prepared string, respectively.
-# 3. Counts above one identify conflicting keys or normalization collisions; `.index` contains strings, not row numbers.
-# 4. `isin()` marks source rows belonging to collision keys; `.loc` displays those rows with their original indices.
-#
-# ```python
-# prepared["prepared_text"] = (
-#     prepared["prepared_text"].str.replace(
-#         r"\s+", " ", regex=True
-#     )
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Merged spellings do not necessarily disagree on labels; normalization changes input equality and can erase case distinctions.
-#
-# </details>
-
-# %% [markdown]
 # ### ✅ Evidence, Answer & Limits
-# Normalization leaves 7,501 distinct keys, merging two pairs of original strings.
-# Source rows 3340 and 7604 differ in whitespace; row 6119 adds a case variant
-# to an existing conflicting group. The source indices are zero-based row positions.
-# Conflict membership therefore increases from 55 to 56 rows, while the number of
-# conflicting groups remains 18.
+# Rows 3340 and 7604 differ in whitespace; row 6119 adds a case variant to an existing conflicting group.
+# Conflict membership increases from 55 to 56 rows, while the number of conflicting groups remains 18.
+# Source indices identify zero-based CSV row positions.
 #
 # ### 🧠 What We Learned
-# Equality depends on the representation used. Inspecting only original strings
-# would miss a row that becomes equivalent to conflicting inputs after preparation.
-# **How does applying the agreed policy to these normalized groups change the
-# population we will evaluate?**
+# Equality depends on the representation used.
+# The retention policy must use `conflicting_keys` from prepared text, so it also excludes the newly equivalent group member.
 
 # %% [markdown]
 # ### 1.4 Apply the retention policy and account for the population
@@ -519,22 +467,33 @@ print(prepared.loc[collision_mask].to_string())
 # illustrates how the chosen columns define repetition.
 
 # %%
-# Flag every row in a conflicting normalized-text group; ~ selects the remaining groups.
+# Map conflicting text keys to source rows; ~ keeps every row outside those groups.
 conflict_mask = prepared["prepared_text"].isin(conflicting_keys)
 conflicting_rows = prepared.loc[conflict_mask]
 consistent_rows = prepared.loc[~conflict_mask]
+print("Excluded conflicting rows:", len(conflicting_rows))
+print("Rows available for repeat checking:", len(consistent_rows))
 
-# Among consistent rows, True marks occurrences after the first matching prepared_text.
-# Filtering preserves source order; the first occurrence has the earliest source index.
+# %% [markdown]
+# Excluding all 56 conflicting rows leaves 7,557 rows with consistent labels within each normalized group.
+# Those groups can still repeat, so use `consistent_rows` for the next check.
+
+# %%
+# True marks occurrences after each first prepared_text; filtering preserves source order.
 repeat_mask = consistent_rows.duplicated(subset="prepared_text", keep="first")
 redundant_rows = consistent_rows.loc[repeat_mask]
-
-# model_tweets keeps one row per surviving normalized input, with original text and label.
-# Its source indices can have gaps; copying does not reset or renumber them.
+# Keep one row per surviving input, retaining original text, label and source index.
 model_tweets = consistent_rows.loc[~repeat_mask].copy()
+print("Excluded later repeats:", len(redundant_rows))
+print("Retained rows:", len(model_tweets))
+print(model_tweets[["prepared_text", "target"]].head(3).to_string())
 
-# Build one summary record per stage; each dictionary names that stage's counts.
-# stage_rows is the corresponding table; eq(label).sum() counts observations of that class.
+# %% [markdown]
+# Removing 74 later repeats leaves 7,483 rows; index gaps retain the link to their original CSV positions.
+# Before splitting `model_tweets`, account for all removed and retained rows by recorded label.
+
+# %%
+# One record describes one disjoint outcome, except original which supplies the starting total.
 stage_records = []
 for stage, stage_rows in [
     ("original", tweets),
@@ -548,51 +507,28 @@ for stage, stage_rows in [
         "label_1": stage_rows["target"].eq(1).sum(),
         "total": len(stage_rows),
     })
-
-# Convert the records to a table indexed by stage names, not tweets or source positions.
 preparation_counts = pd.DataFrame(stage_records).set_index("stage")
 print("Rows by stage and target label:")
 print(preparation_counts.to_string())
-print("Conflicting normalized groups:", len(conflicting_keys))
 
-# Subtract the disjoint removed and retained populations; zero means every row is accounted for.
+# %% [markdown]
+# Conflicts remove 29 label-0 and 27 label-1 rows; repeats remove another 16 and 58, respectively.
+# The prepared row contains 4,297 label-0 and 3,186 label-1 observations.
+# Check that these outcomes account for every source row and leave no repeated or conflicting inputs.
+
+# %%
+# Subtract the disjoint removed and retained populations; zero means every source row is accounted for.
 unaccounted_rows = len(tweets) - len(conflicting_rows) - len(redundant_rows) - len(model_tweets)
-
-# Count any later repeated input and any surviving group with more than one distinct label.
-# remaining_label_counts again has normalized-text keys; each value counts labels, not rows.
 remaining_duplicates = model_tweets["prepared_text"].duplicated().sum()
+# Group-level counts check surviving label disagreement separately from repeated rows.
 remaining_label_counts = model_tweets.groupby("prepared_text")["target"].nunique()
 remaining_conflicts = (remaining_label_counts > 1).sum()
 print("Unaccounted source rows:", unaccounted_rows)
 print("Remaining extra occurrences / conflicting groups:", remaining_duplicates, remaining_conflicts)
 
 # %% [markdown]
-# <details><summary>💡 Explain this code</summary>
-#
-# **📖 Overview — WHAT**
-#
-# To prevent identical prepared inputs crossing the later split, apply the agreed exclusions and account for every source row.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `isin(conflicting_keys)` flags all members of disputed groups; `.loc[~conflict_mask]` keeps the other rows.
-# 2. `duplicated(subset="prepared_text", keep="first")` then flags later consistent repeats; the retained copy keeps source indices and order.
-# 3. The loop builds stage summaries by label; excluded groups, excluded repeats, and retained rows form disjoint populations.
-# 4. Subtraction checks row accounting; duplicate and distinct-label counts check the retained table against the chosen rules.
-#
-# ```python
-# consistent_rows = prepared.loc[~conflict_mask]
-# repeat_mask = consistent_rows.duplicated(
-#     subset="prepared_text", keep="first"
-# )
-# model_tweets = consistent_rows.loc[~repeat_mask].copy()
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Keeping the first occurrence is reproducible, not proof of a better label; exclusion changes the population that later scores describe.
-#
-# </details>
+# All three checks return zero, so the retained table satisfies the agreed accounting and equality rules.
+# The following chart uses `preparation_counts`; the later split uses `model_tweets`.
 
 # %% [markdown]
 # ### Visual evidence — what the retention policy removes
@@ -603,11 +539,20 @@ print("Remaining extra occurrences / conflicting groups:", remaining_duplicates,
 # %%
 # Reshape label columns into plotting rows: one stage/class pair and its count per row.
 eda_retention = preparation_counts.loc[["prepared", "conflicts excluded", "repeats excluded"], ["label_0", "label_1"]]
-eda_retention = eda_retention.reset_index().melt(id_vars="stage", var_name="class", value_name="rows")
+eda_retention = eda_retention.reset_index()
+eda_retention = eda_retention.melt(id_vars="stage", var_name="class", value_name="rows")
 eda_retention["class"] = eda_retention["class"].map({"label_0": "0 — Non-disaster", "label_1": "1 — Disaster"})
 eda_retention["panel"] = eda_retention["stage"].map({
     "prepared": "Retained", "conflicts excluded": "Excluded", "repeats excluded": "Excluded",
 })
+print("Chart input: one row per outcome and recorded class:")
+print(eda_retention.to_string(index=False))
+
+# %% [markdown]
+# Six rows represent three policy outcomes crossed with two recorded classes.
+# Plot these existing counts in separate retained/excluded panels so the smaller exclusions remain visible.
+
+# %%
 eda_retention_figure = px.bar(
     eda_retention, x="stage", y="rows", color="class", text="rows", facet_col="panel",
     color_discrete_sequence=["#0072B2", "#D55E00"],
@@ -624,38 +569,16 @@ eda_retention_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect retention and exclusions separately, reshape the existing stage counts for stacked, faceted bars.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `.loc` selects the retained and two excluded stages; `reset_index()` makes stage names a column.
-# 2. `melt()` converts `label_0` and `label_1` into class/count rows; `map()` assigns class and panel names.
-# 3. `facet_col` separates retained from excluded populations; disabling axis matching gives each panel its own scale.
-#
-# ```python
-# eda_retention = eda_retention.reset_index().melt(
-#     id_vars="stage",
-#     var_name="class",
-#     value_name="rows",
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Compare counts against each panel’s axis; equal visual heights across independent scales do not mean equal populations.
+# `reset_index()` exposes stage names; `melt()` converts the two label columns into stage/class/count rows for plotting.
+# Separate panels keep small exclusion counts visible beside the retained population.
+# Each panel has its own vertical scale, so equal bar heights across panels do not mean equal counts.
 #
 # </details>
 
 # %% [markdown]
 # ### ✅ Evidence, Answer & Limits
-# The 18 conflicting normalized groups contain 56 rows: 29 labeled `0`, 27 labeled `1`.
-# Removing them, then 74 redundant consistent occurrences (16 / 58 by label),
-# leaves 7,483 rows: 4,297 labeled `0`, 3,186 labeled `1`.
-# The accounting difference, remaining duplicates, and remaining conflicts are all zero.
-#
-# Class `1` now represents 42.58%, compared with 42.97% originally.
+# The retained population contains 7,483 rows, with class 1 representing 42.58%, compared with 42.97% originally.
+# The preceding checks account for all rows and find no remaining duplicate inputs or conflicting groups.
 #
 # > **⚠️ Watch Out — Excluding conflicts changes who the score describes**
 # >
@@ -663,13 +586,9 @@ eda_retention_figure.show()
 # > Agreement among retained labels does not establish that those labels are correct or that excluded cases would be classified reliably.
 #
 # ### 🧠 What We Learned
-# Mapping group decisions back to every source row avoids retaining an arbitrary
-# label from a disputed group. Preparation defines the population a score describes,
-# not just the input format. **Which tweets will our result describe, and which
-# were excluded before evaluation?**
-# It will describe held-out examples drawn from the 7,483 retained rows.
-# The 56 conflicting rows and 74 redundant occurrences are excluded before that evaluation;
-# the result cannot establish performance on those removed observations.
+# Mapping group decisions back to all their rows avoids choosing an arbitrary label from a disputed group.
+# The later score describes held-out examples drawn from the retained population; performance on excluded observations remains unestablished.
+# Use this retained table for the fixed split below.
 #
 # **⚖️ Ethical Takeaway:** Disclose exclusions so readers do not mistake results
 # on retained tweets for evidence covering every original example.
@@ -725,20 +644,9 @@ for name, frame in [("training", train_rows), ("holdout", holdout_rows)]:
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To separate learning from evaluation, reserve a stratified holdout and keep every tweet paired with its recorded label.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `train_test_split()` receives the complete retained table; `test_size=0.20` reserves approximately one fifth of its rows.
-# 2. `stratify` preserves class proportions approximately; the fixed seed reproduces membership for the same inputs, order, and environment.
-# 3. Selecting text and target from each returned table creates position-aligned `X` and `y` Series with matching source indices.
-# 4. The loop reports each partition’s class counts and percentages using that partition’s own denominator.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Stratification uses labels, not event groups; source indices are retained but the returned rows are not sorted into source order.
+# `train_test_split()` reserves 20% of the retained rows and approximately preserves label proportions using the fixed seed.
+# Selecting text and labels from each returned table keeps positions and source indices aligned; partition percentages use their own denominators.
+# Returned rows are not sorted by source index, and stratification does not keep related events together.
 #
 # </details>
 
@@ -753,22 +661,9 @@ print("Shared prepared texts:", len(prepared_overlap))
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To audit exact separation, compare distinct original and prepared strings across the two partitions.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# `set()` removes repeated values within each input; `&` returns the values present on both sides.
-# The two overlap sets therefore contain shared text strings, while `len()` reports their counts.
-#
-# ```python
-# prepared_overlap = set(X_train) & set(X_holdout)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Zero overlap excludes identical strings under these definitions; it does not establish independence between related events or near-duplicates.
+# `set()` keeps distinct strings; `&` finds strings present in both training and holdout, and `len()` counts that overlap.
+# The two comparisons check original text and the prepared model input separately.
+# Zero overlap rules out identical strings under those definitions, not related events or near-duplicates.
 #
 # </details>
 
@@ -788,21 +683,15 @@ print("Shared prepared texts:", len(prepared_overlap))
 # separation under the compared text definitions, not model performance.
 #
 # ### 🧠 What We Learned
-# The starting row count suggested how much data was available. Grouping and
-# normalization showed why distinct inputs, consistent labels, and retained rows
-# are different quantities. Filtering then changed which population can be evaluated.
+# Row counts, distinct inputs and consistently labeled inputs measure different things.
+# Excluding rows changes the population our scores can describe.
+# Generalization to new events or excluded examples is not established; it needs
+# event relationships, annotation review and fresh representative examples.
 #
 # > **⚠️ Watch Out — Different texts can describe the same event**
 # >
 # > Zero shared strings rules out exact overlap under our comparisons; it does not establish event independence or annotation accuracy.
 # > Stratification preserves class proportions but cannot prevent related reports from crossing partitions.
-#
-# **Better question:** What additional evidence would justify extending a future
-# score on these retained tweets to other events or ambiguous original examples?
-# Generalization to those populations is not established by this text-only table.
-# It would require event identifiers or verified links between reports, annotation review,
-# and separately collected examples representative of the intended use.
-# Keep claims limited to the retained population until that evidence exists.
 #
 # Any later learned text transformation must be fitted on training data only.
 # The holdout is reserved for evaluation, not tuning; no model is fitted in this preparation section.
@@ -852,26 +741,29 @@ eda_lengths = train_rows[["target"]].copy()
 eda_lengths["class"] = eda_lengths["target"].map({0: "0 — Non-disaster", 1: "1 — Disaster"})
 eda_lengths["characters"] = train_rows["text"].str.len()
 eda_lengths["whitespace_parts"] = train_rows["text"].str.split().str.len()
-eda_length_summary = eda_lengths.groupby("class")[["characters", "whitespace_parts"]].agg(["count", "min", "median", "max"])
+print("Length measures for three training observations:")
+print(eda_lengths.head(3).to_string())
+
+# %% [markdown]
+# Each source-indexed row now has two measures: characters and whitespace-separated parts.
+# Group these same rows by recorded class to compare their typical lengths and ranges.
+
+# %%
+
+# Select the two length measures, then summarize each class separately.
+# The grouped object holds rows by class; agg creates the final summary table.
+eda_length_columns = ["characters", "whitespace_parts"]
+eda_lengths_by_class = eda_lengths.groupby("class")[eda_length_columns]
+eda_length_summary = eda_lengths_by_class.agg(["count", "min", "median", "max"])
 print("Training-only original-text lengths:")
 print(eda_length_summary.to_string())
 
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To compare text lengths, create two per-tweet measures from original training strings and summarize them by recorded class.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `.str.len()` counts characters, including spaces and punctuation; `.str.split().str.len()` counts whitespace-separated parts.
-# 2. `groupby("class")` gathers tweets by label; `agg()` calculates count, minimum, median, and maximum for each measure.
-# 3. The result has one row per class and two-level column labels identifying measure and statistic.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Whitespace parts are not necessarily linguistic words or model tokens; these descriptive summaries establish no predictive performance.
+# `groupby()` and `agg()` summarize each class; two-level column names identify the measure and statistic.
+# Median character length is 101 for class 0 and 114 for class 1; both have median 15 whitespace-separated parts.
+# The charts below show the variation those medians hide.
 #
 # </details>
 
@@ -900,24 +792,9 @@ eda_character_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To compare distribution shapes, plot training-character lengths as within-class percentages in separate panels.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# `histnorm="percent"` divides each bin count by its class trace’s observation count; `facet_col` separates the two traces.
-# Explicit 10-character bins and shared axes make the displayed shapes comparable.
-#
-# ```python
-# eda_character_figure.update_traces(
-#     xbins=dict(start=0, end=160, size=10)
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# The vertical axis shows percentages, not raw counts; bin boundaries affect appearance and are not learned decision thresholds.
+# `histnorm="percent"` expresses each bin as a share of its class trace; separate panels and shared axes support comparison.
+# Fixed 10-character bins make the display reproducible.
+# The vertical axis is a percentage, and bin edges are display choices rather than learned classification thresholds.
 #
 # </details>
 
@@ -946,18 +823,9 @@ eda_parts_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect within-class variation, create box plots from the training tweets’ whitespace-part counts.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# `px.box()` groups values by class; `quartilemethod="linear"` fixes how quartiles are interpolated.
-# `points="outliers"` displays observations beyond the whiskers without removing them from the calculation.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# A point outside the whiskers is not automatically an error; this visualization neither filters observations nor changes classifier inputs.
+# `px.box()` groups training-text lengths by class; `quartilemethod="linear"` fixes quartile interpolation.
+# `points="outliers"` shows observations beyond the whiskers without removing them.
+# An outside point is not automatically an error, and the chart changes no model inputs.
 #
 # </details>
 
@@ -976,8 +844,8 @@ eda_parts_figure.show()
 #
 # ### 🧠 What We Learned
 # Length depends on its definition; inspecting only an average or median would hide variation within each class.
-# **Better question:** What accounts for the character-length difference when the median part count is identical?
-# **Current answer:** Not established; examining part lengths, URLs, and annotation context in training data could investigate it, without assuming a cause.
+# The cause of the character-length difference is not established. Inspecting part lengths,
+# URLs and annotation context in training data could investigate it.
 # **⚖️ Ethical Takeaway:** Longer text is not evidence that a report describes a real emergency.
 
 # %% [markdown]
@@ -993,6 +861,8 @@ eda_parts_figure.show()
 # **📋 Source & Context:** This is an original retrospective adaptation of school methods and DataCamp teaching examples.
 # Source locations below use one-based notebook cell numbers and PDF page numbers; saved school outputs are not our results.
 #
+# <details><summary>📋 Teaching sources and adaptations</summary>
+#
 # | Teaching reference | What we transfer or adapt |
 # | --- | --- |
 # | MasterSchool `GMT20250210-Introduction to NLP.pdf`, pp. 20–29 | Tokenization, stemming, and lemmatization; cleaning choices depend on the task. |
@@ -1001,6 +871,8 @@ eda_parts_figure.show()
 # | MasterSchool `guided_campus.ipynb`, cell 4 | An explicit preparation sequence; its source matches our local `guided.ipynb`. |
 # | DataCamp [tokenization](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=2), [stemming](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=9), and [lemmatization](https://campus.datacamp.com/courses/natural-language-processing-nlp-in-python/text-processing-fundamentals?ex=10) | Inspect intermediate representations, using our own examples and NLTK. |
 # | DataCamp [before/after lemmas](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/text-preprocessing-pos-tagging-and-ner?ex=4) and [POS tagging](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/text-preprocessing-pos-tagging-and-ner?ex=9) | Transfer the comparison and grammatical context; those exercises use spaCy, which this lab does not require. |
+#
+# </details>
 #
 # ### WHY → HOW: distinguish the operations
 # Tokenization chooses text units; it does not yet assign TF-IDF weights or learn disaster labels.
@@ -1056,60 +928,134 @@ for resource in nltk_resources:
         ) from error
 print("NLTK resource directory:", nltk_data_path)
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# `nltk.data.path` restricts lookup to the project's existing resource directory.
+# The loop checks each required resource; a missing resource stops execution without downloading a replacement.
+# These files support tokenization and dictionary lookup, not disaster-label learning.
+#
+# </details>
+
+# %% [markdown]
+# Select five training examples before inspecting any transformations.
+# Their original CSV indices let us trace every later token back to its tweet.
+
+# %%
 # Sample without looking at labels or model errors; retain CSV source indices for traceability.
 # Five observations illustrate behavior but cannot estimate its prevalence across the dataset.
-nlp_examples = train_rows[["text", "prepared_text"]].sample(n=5, random_state=42).sort_index()
+nlp_example_columns = ["text", "prepared_text"]
+nlp_example_candidates = train_rows[nlp_example_columns]
+nlp_examples = nlp_example_candidates.sample(n=5, random_state=42)
+nlp_examples = nlp_examples.sort_index()
 print("\nLanguage lab: NLTK", nltk.__version__)
 print("Five training examples, indexed by source row:")
 print(nlp_examples[["text"]].to_string())
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# `sample()` chooses five rows reproducibly; `sort_index()` then orders their source indices without changing membership.
+# Each row is still a training tweet with its original and prepared text.
+# This small sample illustrates behavior rather than measuring dataset-wide prevalence.
+#
+# </details>
+
+# %% [markdown]
+# Compare two tokenizers on one of those tweets before processing the whole sample.
+
+# %%
 # Preserve case for grammatical tagging and keep handles/repeated characters as configured.
 # The example is the second sampled row in source-index order, not a chosen model error.
 nlp_tokenizer = TweetTokenizer(preserve_case=True, reduce_len=False, strip_handles=False)
 nlp_example_text = nlp_examples["text"].iloc[1]
+nlp_example_tokens = nlp_tokenizer.tokenize(nlp_example_text)
 print("\nTokenization example, source row:", nlp_examples.index[1])
 print("School word_tokenize:", word_tokenize(nlp_example_text))
-print("TweetTokenizer:", nlp_tokenizer.tokenize(nlp_example_text))
-
-# A short original illustration supplies known grammatical roles: noun, verb, and adjective.
-# The default WordNet call assumes a noun; the explicit POS call can produce a different lemma.
-nlp_lemmatizer = WordNetLemmatizer()
-nlp_stemmer = PorterStemmer()
-nlp_method_records = []
-for word, wordnet_pos in [("floods", "n"), ("running", "v"), ("better", "a")]:
-    nlp_method_records.append({
-        "word": word, "Porter stem": nlp_stemmer.stem(word),
-        "noun-default lemma": nlp_lemmatizer.lemmatize(word),
-        "specified POS": wordnet_pos, "POS lemma": nlp_lemmatizer.lemmatize(word, pos=wordnet_pos),
-    })
-print("\nIllustrative words, not dataset measurements:")
-print(pd.DataFrame(nlp_method_records).to_string(index=False))
+print("TweetTokenizer:", nlp_example_tokens)
 
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
+# `.iloc[1]` selects the second sampled row by position; its source index remains available separately.
+# `nlp_example_tokens` is an ordered list of text units, including special tokens retained by `TweetTokenizer`.
+# Here `word_tokenize` separates hashtag markers; `TweetTokenizer` retains hashtag units and the URL for the teaching steps below.
 #
-# To inspect language transformations separately from modeling, load local NLTK resources and select five traceable training examples.
+# </details>
+
+# %% [markdown]
+# Compare three transformations on the same illustrative words, adding one result column at a time.
+# These examples explain the methods; they are not dataset measurements.
+
+# %%
+# Create the two tools and a three-row input table; the supplied roles mean noun, verb, and adjective.
+nlp_lemmatizer = WordNetLemmatizer()
+nlp_stemmer = PorterStemmer()
+nlp_method_table = pd.DataFrame({
+    "word": ["floods", "running", "better"],
+    "specified POS": ["n", "v", "a"],
+})
+print(nlp_method_table.to_string(index=False))
+
+# %% [markdown]
+# **Stemming:** Apply shortening rules to each word, then inspect the new column before dictionary lookup.
+
+# %%
+# Collect one stem per input word in the same row order.
+nlp_stems = []
+for word in nlp_method_table["word"]:
+    stem = nlp_stemmer.stem(word)
+    nlp_stems.append(stem)
+nlp_method_table["Porter stem"] = nlp_stems
+print(nlp_method_table[["word", "Porter stem"]].to_string(index=False))
+
+# %% [markdown]
+# `floods` becomes `flood`, and `running` becomes `run`; `better` stays unchanged.
+# These shortening rules use no grammatical role. Compare them with dictionary lookup next.
 #
-# **🔢 Step-by-step breakdown — HOW**
+# **Default lemmatization:** WordNet assumes a noun when no grammatical role is supplied.
+# Compare this result with the stem before changing the grammatical input.
+
+# %%
+# Keep one default lemma per word; this call uses no surrounding sentence.
+nlp_default_lemmas = []
+for word in nlp_method_table["word"]:
+    lemma = nlp_lemmatizer.lemmatize(word)
+    nlp_default_lemmas.append(lemma)
+nlp_method_table["noun-default lemma"] = nlp_default_lemmas
+print(nlp_method_table[["word", "noun-default lemma"]].to_string(index=False))
+
+# %% [markdown]
+# Default lookup changes `floods` to `flood` but leaves `running` unchanged.
+# Supply the grammatical roles from the original input table to see whether that changes the result.
 #
-# 1. Assigning `nltk.data.path` restricts resource lookup; `find()` checks each resource and missing files raise an error without downloading.
-# 2. `sample(n=5, random_state=42).sort_index()` selects rows reproducibly, then orders them by their original source indices.
-# 3. `.iloc[1]` selects the second sampled row by position for the tokenizer comparison, independent of its source-index value.
-# 4. The word loop compares a stem, a noun-default lemma, and a lemma with a supplied grammatical role.
+# **Lemmatization with a supplied role:** Pair each word with its noun, verb, or adjective code from the input table.
+# DataCamp's [Loop over DataFrame](https://campus.datacamp.com/courses/intermediate-python/loops?ex=14) introduces this row-by-row pattern.
+
+# %%
+# iterrows supplies a row label and its values; _ means the table index is not needed here.
+nlp_pos_lemmas = []
+for _, example in nlp_method_table.iterrows():
+    word = example["word"]
+    wordnet_pos = example["specified POS"]
+    lemma = nlp_lemmatizer.lemmatize(word, pos=wordnet_pos)
+    nlp_pos_lemmas.append(lemma)
+nlp_method_table["POS lemma"] = nlp_pos_lemmas
+
+# Order the comparison columns; each row describes one illustrative word.
+nlp_method_columns = [
+    "word", "Porter stem", "noun-default lemma", "specified POS", "POS lemma",
+]
+nlp_method_table = nlp_method_table[nlp_method_columns]
+print("\nIllustrative words, not dataset measurements:")
+print(nlp_method_table.to_string(index=False))
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
 #
-# ```python
-# nlp_examples = (
-#     train_rows[["text", "prepared_text"]]
-#     .sample(n=5, random_state=42)
-#     .sort_index()
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# The five tweets illustrate mechanisms, not dataset-wide prevalence; the separate invented word examples are not measured tweet outcomes.
+# With supplied roles, verb `running` becomes `run` and adjective `better` becomes `good`.
+# Supplying a role changes dictionary lookup; WordNet does not infer that role from a sentence.
+# For real tweets, estimate roles from complete token sequences before applying lookup.
 #
 # </details>
 
@@ -1125,66 +1071,204 @@ print(pd.DataFrame(nlp_method_records).to_string(index=False))
 # > Preserving negation and special tokens does not make this demonstration a validated cleaning policy or a lossless reconstruction.
 
 # %%
-# Map tag conventions without learning from labels; each token record keeps its source row and sequence position.
+# Tag the one-tweet example before lowercasing; each pair contains a token and its estimated grammatical role.
+nlp_example_tagged_tokens = nltk.pos_tag(nlp_example_tokens)
+print("\nToken / POS pairs for the same example:")
+print(nlp_example_tagged_tokens)
+
+# Translate Treebank prefixes into WordNet's adjective, noun, verb, and adverb codes.
+# This fixed dictionary uses no dataset labels; unsupported prefixes have no mapped role.
 nlp_pos_map = {"J": "a", "N": "n", "V": "v", "R": "r"}
-nlp_token_records = []
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# `pos_tag()` estimates a role from the whole token sequence, preserving case and surrounding words as context.
+# The dictionary translates the first tag letter into a convention understood by WordNet; it does not estimate roles itself.
+# Tags are estimates, so they support an inspectable illustration rather than a validated cleaning policy.
+#
+# </details>
+
+# %% [markdown]
+# **Step 1 — Tokenize the five tweets.** Keep each source index beside its ordered token list.
+
+# %%
+# This dictionary maps one CSV source index to one tweet's tokens; the next cell tags those same lists.
+nlp_tokens_by_source = {}
 for source_row, original_text in nlp_examples["text"].items():
     nlp_tokens = nlp_tokenizer.tokenize(original_text)
+    nlp_tokens_by_source[source_row] = nlp_tokens
+print("Example token list:")
+print(nlp_tokens_by_source[nlp_examples.index[1]])
+
+# %% [markdown]
+# The preview retains hashtag units and a URL; these are tokens alongside ordinary words.
+# Pass the same ordered lists to the tagger so surrounding tokens remain available as context.
+#
+# **Step 2 — Tag each complete sequence.** Reuse the token lists before lowercasing, preserving sentence context for POS estimation.
+
+# %%
+# Each dictionary value now contains ordered (token, estimated tag) pairs for one tweet.
+nlp_tags_by_source = {}
+for source_row, nlp_tokens in nlp_tokens_by_source.items():
     nlp_tagged_tokens = nltk.pos_tag(nlp_tokens)
-    for position, (token, tag) in enumerate(nlp_tagged_tokens):
-        # Lowercase only after tagging; compare lemmas with this same lowercased form.
-        # NNP/NNPS denote estimated proper names; unknown tag prefixes return None.
-        lower_token = token.lower()
-        wordnet_pos = nlp_pos_map.get(tag[0])
-        eligible = token.isalpha() and not tag.startswith("NNP") and wordnet_pos is not None
-        lemma = nlp_lemmatizer.lemmatize(lower_token, pos=wordnet_pos) if eligible else lower_token
-        nlp_token_records.append({
-            "source_row": source_row, "position": position, "token": token,
-            "lowercase": lower_token, "POS": tag, "lemma": lemma,
-            "changed": lemma != lower_token,
+    nlp_tags_by_source[source_row] = nlp_tagged_tokens
+print("Example token / POS pairs:")
+print(nlp_tags_by_source[nlp_examples.index[1]])
+
+# %% [markdown]
+# Each pair now contains the original token and an estimated grammatical tag.
+# The next table keeps those pairs beside their tweet and token positions.
+#
+# **Step 3 — Make one row per token.** Convert the five tagged sequences into a table before applying any lemmatization rule.
+
+# %%
+# The outer loop selects a tweet; enumerate supplies each token's position inside that tweet.
+nlp_tagged_records = []
+for source_row, nlp_tagged_tokens in nlp_tags_by_source.items():
+    for position, tagged_token in enumerate(nlp_tagged_tokens):
+        token, tag = tagged_token
+        nlp_tagged_records.append({
+            "source_row": source_row,
+            "position": position,
+            "token": token,
+            "POS": tag,
         })
 
+# The table index counts token records; source_row still identifies the original CSV observation.
+nlp_tagged_table = pd.DataFrame(nlp_tagged_records)
+print(nlp_tagged_table.head(10).to_string(index=False))
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# The grain changes from one token sequence per tweet to one row per token occurrence.
+# `source_row` and `position` preserve both the tweet link and the within-tweet order.
+# The first ten rows are a preview; the full table remains available for the next steps.
+#
+# </details>
+
+# %% [markdown]
+# **Step 4 — Prepare dictionary inputs.** Keep the tagged table and add lowercased forms and translated WordNet roles in a working copy.
+
+# %%
+# Each new column still describes the same token row; map leaves unsupported tag prefixes missing.
+nlp_lemma_steps = nlp_tagged_table.copy()
+nlp_lemma_steps["lowercase"] = nlp_lemma_steps["token"].str.lower()
+nlp_lemma_steps["tag_prefix"] = nlp_lemma_steps["POS"].str[0]
+nlp_lemma_steps["wordnet_pos"] = nlp_lemma_steps["tag_prefix"].map(nlp_pos_map)
+nlp_role_columns = ["token", "POS", "lowercase", "wordnet_pos"]
+print(nlp_lemma_steps[nlp_role_columns].head(10).to_string(index=False))
+
+# %% [markdown]
+# `wordnet_pos` translates supported tag prefixes; punctuation and other unsupported tags have no mapped role.
+# Keep those rows, then mark whether lookup is appropriate for each token.
+#
+# **Step 5 — Decide which tokens qualify.** Inspect three Boolean columns before combining them into one eligibility flag.
+
+# %%
+# Each column contains one True/False decision per token; NNP and NNPS indicate estimated proper names.
+nlp_lemma_steps["is_alphabetic"] = nlp_lemma_steps["token"].str.isalpha()
+nlp_lemma_steps["is_proper_name"] = nlp_lemma_steps["POS"].str.startswith("NNP")
+nlp_lemma_steps["has_wordnet_pos"] = nlp_lemma_steps["wordnet_pos"].notna()
+nlp_rule_columns = ["token", "is_alphabetic", "is_proper_name", "has_wordnet_pos"]
+print(nlp_lemma_steps[nlp_rule_columns].head(10).to_string(index=False))
+
+# %% [markdown]
+# The three flags describe separate conditions; a supported role alone does not permit lookup for an estimated proper name.
+# Combine the flags into one decision while keeping every token row.
+
+# %%
+
+# & requires all row conditions; ~ reverses the proper-name flag, preserving those names from dictionary lookup.
+nlp_lemma_steps["eligible"] = (
+    nlp_lemma_steps["is_alphabetic"]
+    & ~nlp_lemma_steps["is_proper_name"]
+    & nlp_lemma_steps["has_wordnet_pos"]
+)
+print(nlp_lemma_steps[["token", "eligible"]].head(10).to_string(index=False))
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# Unlike `and` for individual values, `&` combines whole Boolean columns row by row.
+# A token qualifies only when it is alphabetic, is not tagged as a proper name, and has a supported WordNet role.
+# These are the existing teaching rules; estimated tags can still be wrong.
+#
+# </details>
+
+# %% [markdown]
+# **Step 6 — Look up eligible lemmas.** Read the prepared rows and keep the lowercased form whenever lookup is not allowed.
+
+# %%
+# Collect one result per token in table order; no tweet is dropped or passed to the classifier.
+nlp_lemma_values = []
+for _, token_row in nlp_lemma_steps.iterrows():
+    lower_token = token_row["lowercase"]
+    lemma = lower_token
+    if token_row["eligible"]:
+        wordnet_pos = token_row["wordnet_pos"]
+        lemma = nlp_lemmatizer.lemmatize(lower_token, pos=wordnet_pos)
+    nlp_lemma_values.append(lemma)
+nlp_lemma_steps["lemma"] = nlp_lemma_values
+
+# Compare against the lowercased form, so case-only differences do not count as lemmatization changes.
+nlp_lemma_steps["changed"] = nlp_lemma_steps["lemma"] != nlp_lemma_steps["lowercase"]
+print(nlp_lemma_steps[["token", "lemma", "changed"]].head(10).to_string(index=False))
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# `iterrows()` provides one prepared token row at a time; its eligibility flag controls the dictionary call.
+# Appending in row order keeps the lemma list aligned with the table when it becomes a column.
+# `changed` measures dictionary-lookup effects beyond lowercasing, not classifier improvement.
+#
+# </details>
+
+# %% [markdown]
+# **Step 7 — Inspect the completed comparison.** Keep the original result columns, then select changed occurrences for review.
+
+# %%
 # Token-table indices are record positions; source_row and position retain the original mapping.
 # The changed-only view excludes case changes, so it isolates the dictionary-lookup effect.
-nlp_token_table = pd.DataFrame(nlp_token_records)
-nlp_changed_tokens = nlp_token_table.loc[nlp_token_table["changed"], ["source_row", "token", "POS", "lemma"]]
+nlp_result_columns = [
+    "source_row", "position", "token", "lowercase", "POS", "lemma", "changed",
+]
+nlp_token_table = nlp_lemma_steps[nlp_result_columns].copy()
+nlp_changed_mask = nlp_token_table["changed"]
+nlp_changed_columns = ["source_row", "token", "POS", "lemma"]
+nlp_changed_tokens = nlp_token_table.loc[nlp_changed_mask, nlp_changed_columns]
 print("\nAll changed tokens in the five-example lab:")
 print(nlp_changed_tokens.to_string(index=False))
 print("Token occurrences / changed occurrences:", len(nlp_token_table), len(nlp_changed_tokens))
 print("Distinct lowercased forms / lemmas:", nlp_token_table["lowercase"].nunique(), nlp_token_table["lemma"].nunique())
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# Across 97 token occurrences, 15 change beyond lowercasing; distinct forms decrease from 89 to 87.
+# The changed-only table includes `driven → drive`, `spreading → spread` and `tracks → track`, with source indices retained.
+# Reuse the full token table to reconstruct each tweet and count changes by source row.
+#
+# </details>
+
+# %% [markdown]
+# Reconstruct one display string per tweet to inspect the transformation in context.
+
+# %%
 # Grouping preserves token order within each tweet; joining is for inspection, not model input.
 # These strings may contain new spaces around punctuation and are not exact original text.
-nlp_reconstructed = nlp_token_table.groupby("source_row", sort=False)["lemma"].agg(" ".join)
+nlp_lemmas_by_source = nlp_token_table.groupby("source_row", sort=False)["lemma"]
+nlp_reconstructed = nlp_lemmas_by_source.agg(" ".join)
 print("\nReconstructed lemma strings (teaching output only):")
 print(nlp_reconstructed.to_string())
 
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect dictionary-based changes, tokenize sampled tweets, estimate grammatical roles, and record each token’s proposed lemma.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `.items()` supplies the source index and text; `pos_tag()` estimates roles using the full token sequence before lowercasing.
-# 2. `enumerate()` records token position; `get(tag[0])` maps a tag prefix to WordNet or returns `None`.
-# 3. Only alphabetic tokens with supported roles and no proper-name tag are lemmatized; others retain their lowercased form.
-# 4. The table separates token occurrences from distinct forms; grouping by `source_row` and joining lemmas reconstructs display strings in token order.
-#
-# ```python
-# wordnet_pos = nlp_pos_map.get(tag[0])
-# eligible = (
-#     token.isalpha()
-#     and not tag.startswith("NNP")
-#     and wordnet_pos is not None
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# `changed` excludes case-only changes; estimated tags can be wrong and joining tokens does not exactly recover original spacing or punctuation.
+# `groupby("source_row", sort=False)` collects lemmas while retaining tweet and token order.
+# `" ".join` creates one display string per tweet, adding spaces between tokens.
+# This does not recover original spacing or punctuation, and the strings are not classifier inputs.
 #
 # </details>
 
@@ -1194,11 +1278,35 @@ print(nlp_reconstructed.to_string())
 # The denominator includes punctuation, URLs, and hashtags retained by this tokenizer; this is not a count of linguistic words.
 
 # %%
-# Count token occurrences by source row and change status, then treat source-row identifiers as categories.
-nlp_change_counts = nlp_token_table.assign(
-    status=nlp_token_table["changed"].map({False: "Unchanged", True: "Changed by lemmatization"})
-).groupby(["source_row", "status"]).size().reset_index(name="tokens")
+# Add readable labels in a separate plotting table, preserving the original token table.
+nlp_plot_tokens = nlp_token_table.copy()
+nlp_plot_tokens["status"] = nlp_plot_tokens["changed"].map({
+    False: "Unchanged",
+    True: "Changed by lemmatization",
+})
+
+# Group token occurrences, count each group, then turn its index into plotting columns.
+nlp_tokens_by_status = nlp_plot_tokens.groupby(["source_row", "status"])
+nlp_status_counts = nlp_tokens_by_status.size()
+nlp_change_counts = nlp_status_counts.reset_index(name="tokens")
 nlp_change_counts["source_row"] = nlp_change_counts["source_row"].astype(str)
+print("\nToken counts by sampled tweet and lookup result:")
+print(nlp_change_counts.to_string(index=False))
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# The copy adds readable status labels without changing the original token table.
+# Grouping counts occurrences for each tweet/status pair; `reset_index()` exposes those group keys as columns.
+# Source identifiers become strings so the chart treats them as categories, not a numerical scale.
+#
+# </details>
+
+# %% [markdown]
+# Plot the inspected counts; each stacked bar retains that tweet's full token-occurrence denominator.
+
+# %%
+# The chart displays the existing grouped counts; it does not reprocess text or learn a model.
 nlp_change_figure = px.bar(
     nlp_change_counts, x="source_row", y="tokens", color="status", text="tokens",
     category_orders={"status": ["Unchanged", "Changed by lemmatization"]},
@@ -1213,19 +1321,9 @@ nlp_change_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To show how much lemmatization changed within each sampled tweet, stack changed and unchanged token counts.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `assign()` adds readable status names; `groupby(["source_row", "status"]).size()` counts token records for each pair.
-# 2. `reset_index(name="tokens")` makes a plotting table; `.astype(str)` treats source-row identifiers as categories.
-# 3. Each stacked bar totals that sampled tweet’s token occurrences, including retained punctuation and special text units.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# These counts concern occurrences, not vocabulary size or classifier improvement; case changes are excluded by the existing `changed` flag.
+# Each stacked bar counts changed and unchanged token occurrences for one sampled tweet.
+# Its total includes retained punctuation and special tokens; case-only changes are excluded.
+# These counts describe transformations, not vocabulary size or classifier improvement.
 #
 # </details>
 
@@ -1251,28 +1349,9 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect information loss, trace an invented sentence into kept and removed token lists. No dataset row or model input changes.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `set(stopwords.words("english"))` creates `nlp_stop_words` from NLTK's supplied English list for membership checks.
-#    This set is not learned from our tweets.
-# 2. In `nlp_negation_tokens`, `for word in word_tokenize(nlp_negation_example)` visits tokens in sentence order.
-#    `if word.isalpha()` keeps letter-only tokens; `word.lower()` supplies each retained element of the new list.
-# 3. The first list comprehension keeps tokens absent from the stop-word set, preserving their order and repetitions.
-#    `nlp_filtered_tokens` holds the kept tokens; the opposite `if word in nlp_stop_words` condition collects removed tokens in `nlp_removed_tokens`.
-# 4. `" ".join(nlp_filtered_tokens)` produces a display string; the lists remain available for inspection.
-#
-# ```python
-# nlp_filtered_tokens = [word for word in nlp_negation_tokens if word not in nlp_stop_words]
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Filtering tests membership, not meaning: it removes `not` even though that token reverses the claim.
-# The paired lists expose this loss; they neither measure classification performance nor change the baseline's stop-word policy.
+# The supplied stop-word set is not learned from these tweets; the first comprehension keeps alphabetic tokens and lowercases them.
+# The next two comprehensions partition those tokens by set membership, preserving order and repetitions; joining shows the retained wording.
+# Membership does not measure meaning: removing `not` erases this sentence's denial without changing any baseline input.
 #
 # </details>
 
@@ -1288,29 +1367,20 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 
 # %% [markdown]
 # ### ✅ Evidence, Answer & Limits
-# In source row 2879, `word_tokenize` separates hashtag markers; `TweetTokenizer` keeps hashtag units and the URL together.
-# Token definitions therefore change the units available to later processing, even for the same text.
-# Both are different from the baseline vectorizer's default token rule, which we retain and inspect in the next phase.
-#
-# Across the five sampled tweets, 15 of 97 token occurrences change beyond lowercasing; distinct forms decrease from 89 to 87.
-# Examples include `driven → drive`, `spreading → spread`, and `tracks → track`; these observations describe this sample only.
-# The controlled word table also shows why a noun-default call leaves `running` unchanged, while specifying a verb produces `run`.
-#
-# No filtered or lemmatized string replaces `X_train`, `X_holdout`, or the duplicate-policy key.
+# The tokenizer comparison shows different hashtag and URL handling for the same tweet.
+# The lemma tables show changed word forms; the stop-word example shows loss of an explicit denial.
+# These outputs describe transformations, not a new classifier evaluation.
 #
 # ### 🧠 What We Learned
-# **Data → Information:** Original strings become inspectable token/tag/lemma records, with counted changes and traceable source rows.
-# **Knowledge → Wisdom:** Fewer distinct forms can coexist with lost meaning; inspect both before adopting a transformation.
+# Token definitions and grammatical roles change the representation, while removal can discard essential meaning.
+# The baseline continues with its existing prepared strings; a lemmatization benefit for class-1 F1 remains unestablished.
+# Testing that benefit would need a separately agreed training-only comparison with identical folds and fold-fitted features.
 #
 # > **⚠️ Watch Out — Fewer word forms do not establish better F1**
 # >
-# > The five-example sample measures transformations, not classifier performance.
-# > Its vocabulary reduction establishes neither improved predictions nor better understanding of disaster reports.
+# > The five-tweet example measures transformations; its vocabulary reduction does not establish improved predictions.
 #
-# **Better question:** Does lemmatization improve class-1 F1 when all other modeling choices stay fixed?
-# **Current answer:** Not established; this lab evaluates transformations, not a new classifier.
-# Answering it would need a separately agreed training-only comparison with identical folds and learned features fitted inside each fold.
-# **⚖️ Ethical Takeaway:** Keep the original text available so preprocessing cannot silently turn a denial into an apparent emergency claim.
+# **⚖️ Ethical Takeaway:** Keep original text available so preprocessing cannot silently turn a denial into an apparent emergency claim.
 
 # <!--
 # endregion
@@ -1330,12 +1400,14 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 # objects above. The outcome is one measured baseline for the retained population,
 # not evidence of reliability on every disaster report.
 #
-# The school `guided.ipynb` demonstrates fitting TF-IDF on training text, transforming
-# held-out text, and fitting/evaluating Logistic Regression. Here those steps form
-# one Pipeline. We retain its sound sequence, not its movie-review cleaning,
-# `sag` solver choice, warning suppression, or example scores.
-# The newly inspected `GMT20250226 Pipeline II.ipynb`, cells 20–25, also puts text vectorization inside a model-selection Pipeline.
-# We retain that separation principle; its saved source contains a stray `L` in cell 20, so it is not copied verbatim.
+# The school `guided.ipynb` teaches training-only TF-IDF, then Logistic Regression.
+# Our Pipeline connects that sequence; tweet preparation, defaults and measured scores are project-specific.
+#
+# <details><summary>📋 Teaching sources and adaptations</summary>
+#
+# `guided.ipynb` uses movie-review cleaning and the `sag` solver; neither is transferred here.
+# `GMT20250226 Pipeline II.ipynb`, cells 20–25, also places vectorization inside model selection.
+# Its stray `L` in cell 20 prevents copying it verbatim.
 #
 # DataCamp sources inspected for this adaptation:
 # - [TF-IDF vectors for TED talks](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/tf-idf-and-similarity-scores?ex=3): instructions and starter code for numerical text features.
@@ -1344,10 +1416,12 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 #   and [II](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=7): named steps, fitting, and prediction.
 # - [Assessing a diabetes prediction classifier](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/fine-tuning-your-model-3?ex=3): classification report and confusion matrix.
 #
-# These are inspected instructions and available starter code, not claimed completed
-# official solutions. Our tweet-specific code and explanations are adaptations.
-# Installed scikit-learn 1.5.2 documentation clarifies defaults and API behavior;
-# it supplies no additional modeling method.
+# These inspected instructions and starter examples inform our adaptation; course solutions and scores are not reused.
+# Installed scikit-learn 1.5.2 documentation supplies API details and defaults.
+#
+# </details>
+
+# %% [markdown]
 #
 # ### From the guided manual sequence to our Pipeline
 # The inspected `guided.ipynb` cells below use zero-based notebook positions.
@@ -1373,28 +1447,27 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 # > Guided cell 1's positive/negative variable names disagree with the loaded file suffixes; names alone cannot establish label meaning.
 # > Cell 9 prints the sample count twice, so its displayed feature count is unreliable.
 # > Check actual inputs and matrix dimensions before reusing those displays.
+
+# %% [markdown]
 #
 # ### 6. A — How does text become numerical evidence?
 #
-# **🎯 Goal & Approach — WHY:** Translate each prepared tweet into numerical
-# features so a classifier can learn associations with its recorded label.
-# Learn that representation only from training text to keep evaluation separate.
+# **🎯 Goal & Approach — WHY:** Turn prepared tweets into numerical features,
+# learning the representation only from training text.
 #
 # **🔎 Guiding Questions:** What occupies a matrix row or column? Which information
 # becomes a feature, and which information is lost?
 #
-# Each matrix row represents one document (a tweet); each column represents one
-# vocabulary term. The vectorizer's rule selects text units called tokens;
-# the vocabulary contains the terms found during training.
+# Each matrix row is a tweet; each column is a vocabulary term learned from training.
+# Tokenization defines which text units can enter that vocabulary.
 #
-# Term frequency counts occurrences within a document; inverse document frequency
-# gives more weight to terms appearing in fewer training documents.
-# Defaults multiply counts by smoothed IDF, then scale each nonzero row so its
-# squared weights sum to one. These weights are not probabilities.
+# Term frequency counts occurrences within a tweet. Inverse document frequency (IDF)
+# gives more weight to terms appearing in fewer training tweets.
+# Defaults multiply counts by smoothed IDF, then scale each nonzero row to unit length (L2 normalization).
+# The resulting weights are not probabilities.
 #
-# Most vocabulary terms are absent from a particular tweet, giving that row many
-# zero weights. A sparse matrix stores nonzero entries efficiently instead of a
-# large dense table.
+# Most entries are zero because a tweet contains few vocabulary terms.
+# A sparse matrix saves space by storing nonzero entries and their positions.
 #
 # The default `(?u)\b\w\w+\b` rule selects runs of at least two
 # Unicode word characters: letters, digits, and underscores.
@@ -1431,27 +1504,9 @@ baseline_pipeline = Pipeline(baseline_steps)
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To reuse the same text-to-label sequence during fitting and prediction, connect a vectorizer and one classifier in a Pipeline.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `TfidfVectorizer()` defines tokenization and weighting rules; `LogisticRegression()` defines the classifier and its fixed default settings.
-# 2. Each tuple supplies a step name and object; list order determines which output becomes the next input.
-# 3. `Pipeline(baseline_steps)` connects these objects without fitting either one; the later `fit()` performs learning.
-#
-# ```python
-# baseline_steps = [
-#     ("tfidf", tfidf_vectorizer),
-#     ("classifier", logistic_classifier),
-# ]
-# baseline_pipeline = Pipeline(baseline_steps)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# The classifier learns coefficients and an intercept, not vocabulary; the full Pipeline must receive only appropriate training inputs when fitted.
+# The constructors define an unfitted vectorizer and classifier; each tuple names one step and supplies its object.
+# `Pipeline(baseline_steps)` connects those steps, while the later `fit()` learns vocabulary, IDF, and classifier parameters.
+# Consistent ordering still requires appropriate training inputs; creating a Pipeline does not prevent leakage by itself.
 #
 # </details>
 
@@ -1522,30 +1577,10 @@ print("One training document's feature-matrix shape:", training_example_features
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To keep evaluation inputs outside learning, fit the existing Pipeline on training tweets only. Then inspect one training representation without refitting.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `baseline_pipeline.fit(X_train, y_train)` receives prepared tweet strings and their matching recorded labels.
-#    TF-IDF first learns the vocabulary (term-to-column mapping) and IDF (weights based on training-document frequencies).
-# 2. That fitted vectorizer converts the training strings into a sparse document-term matrix.
-#    Rows are tweets; columns are learned terms; entries are term counts weighted by IDF and normalized per row.
-# 3. Logistic Regression learns coefficients and an intercept from that matrix and `y_train`; TF-IDF does not use these labels.
-#    The existing Pipeline now contains fitted steps; `fit()` does not return holdout predictions.
-# 4. `X_train.head(1)` selects a one-element Series, retaining its source index.
-#    `tfidf_vectorizer.transform(training_example_text)` reuses the fitted vocabulary and IDF to produce one sparse row, without learning new terms.
-#
-# ```python
-# baseline_pipeline.fit(X_train, y_train)
-# training_example_features = tfidf_vectorizer.transform(training_example_text)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Keeping `X_holdout` and `y_holdout` outside this fit prevents evaluation observations from shaping the learned representation or classifier.
-# Later prediction reuses both fitted steps; separation alone does not establish reliable labels, independent events, or a fresh holdout.
+# `fit(X_train, y_train)` learns training vocabulary and IDF, builds a sparse tweet-by-term matrix, then fits classifier coefficients and an intercept.
+# The vectorizer learns from text, while the classifier also uses the recorded labels; neither step sees holdout inputs during fitting.
+# `head(1)` retains one training source index, and `transform()` reuses the fitted representation without learning new terms.
+# This separation protects the evaluation workflow, but does not establish accurate annotations or independent events.
 #
 # </details>
 
@@ -1576,29 +1611,55 @@ print("One training document's feature-matrix shape:", training_example_features
 # %%
 from collections import Counter
 
-# Count tokens using the fitted analyzer; sparse column indices align terms, IDF, and weights without a dense matrix.
-nlp_baseline_tokens = tfidf_vectorizer.build_analyzer()(training_example_text.iloc[0])
+# Reuse the fitted token rule; the Counter maps each term to its count in this one tweet.
+nlp_baseline_analyzer = tfidf_vectorizer.build_analyzer()
+nlp_baseline_tokens = nlp_baseline_analyzer(training_example_text.iloc[0])
 nlp_term_counts = Counter(nlp_baseline_tokens)
+print("Actual baseline tokens, source row", training_example_text.index[0], ":")
+print(nlp_baseline_tokens)
+print("Occurrences within this tweet:")
+print(pd.Series(nlp_term_counts, name="count_in_tweet").to_string())
+
+# %% [markdown]
+# The analyzer returns the baseline's actual terms, including `fant4stic` and `fantasticfour`.
+# Counts describe this tweet alone; TF-IDF also needs the vocabulary positions and IDF learned from all training text.
+
+# %%
+# Sparse column positions identify which learned vocabulary terms occur in this tweet.
 nlp_sparse_row = training_example_features.getrow(0)
 nlp_feature_indices = nlp_sparse_row.indices
-nlp_feature_terms = tfidf_vectorizer.get_feature_names_out()[nlp_feature_indices]
+nlp_all_feature_names = tfidf_vectorizer.get_feature_names_out()
+nlp_feature_terms = nlp_all_feature_names[nlp_feature_indices]
+print("Sparse row shape:", nlp_sparse_row.shape)
+print("Stored nonzero features:", len(nlp_feature_indices))
 
-# One row represents one nonzero feature, aligned by the sparse row's column indices.
-# IDF comes from all training documents; TF-IDF also includes the configured L2 row normalization.
+# %% [markdown]
+# One document occupies 18,494 possible term columns, but only 16 have nonzero weights.
+# Use those stored column positions to align each term with its learned IDF and weight.
+
+# %%
+# Each row describes one present vocabulary term; all arrays use the same sparse column positions.
 nlp_feature_table = pd.DataFrame({
     "term": nlp_feature_terms,
     "count_in_tweet": [nlp_term_counts[term] for term in nlp_feature_terms],
     "training_idf": tfidf_vectorizer.idf_[nlp_feature_indices],
     "tfidf_weight": nlp_sparse_row.data,
-}).sort_values(["tfidf_weight", "term"], ascending=[False, True])
-print("\nActual baseline tokens, source row", training_example_text.index[0], ":")
-print(nlp_baseline_tokens)
-print("Nonzero features / fitted vocabulary:", len(nlp_feature_table), len(tfidf_vectorizer.vocabulary_))
-print("Ten largest TF-IDF weights for this training example:")
-print(nlp_feature_table.head(10).round(4).to_string(index=False))
+})
+nlp_feature_table = nlp_feature_table.sort_values(
+    ["tfidf_weight", "term"], ascending=[False, True]
+)
+print("All nonzero features for this training example:")
+print(nlp_feature_table.round(4).to_string(index=False))
 
+# %% [markdown]
+# `fant4stic` and `fantasticfour` each occur once, with IDF about 9.0042 and normalized weight about 0.3378.
+# For equal counts within this tweet, a higher IDF produces a higher TF-IDF weight.
+# The next chart displays the ten largest weights from this same table.
+
+# %%
 # A small display table keeps the plot readable; other nonzero features remain in nlp_feature_table.
-nlp_feature_plot = nlp_feature_table.head(10).sort_values("tfidf_weight", kind="stable")
+nlp_feature_plot = nlp_feature_table.head(10)
+nlp_feature_plot = nlp_feature_plot.sort_values("tfidf_weight", kind="stable")
 nlp_feature_figure = px.bar(
     nlp_feature_plot, x="tfidf_weight", y="term", orientation="h",
     hover_data={"count_in_tweet": True, "training_idf": ":.3f", "tfidf_weight": ":.4f"},
@@ -1613,51 +1674,27 @@ nlp_feature_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect actual baseline features, reuse one transformed training tweet and build a table of its nonzero term weights.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `build_analyzer()` returns the vectorizer’s token-processing function; calling it on the text produces tokens counted by `Counter`.
-# 2. `getrow(0)` selects the single sparse document row; `.indices` identifies its stored vocabulary columns and `.data` supplies aligned weights.
-# 3. Those column positions select matching feature names and training-derived IDF values; one table row describes one present term.
-# 4. Sorting ranks weights, then `head(10)` limits the chart; the full nonzero-feature table remains available.
-#
-# ```python
-# nlp_feature_indices = nlp_sparse_row.indices
-# nlp_feature_terms = (
-#     tfidf_vectorizer.get_feature_names_out()[
-#         nlp_feature_indices
-#     ]
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# The operations perform no fit; TF-IDF weights include row normalization and are neither classifier coefficients nor causal explanations.
+# `head(10)` selects the largest weights; the second sort arranges those bars without changing membership.
+# Bar length shows normalized TF-IDF; hover adds the term count and training-derived IDF.
+# The complete nonzero-feature table remains above. These weights are inputs, not classifier coefficients or causal explanations.
 #
 # </details>
 
 # %% [markdown]
 # ### ✅ Evidence, Answer & Limits
-# The printed tokens and table answer the feature question using the unchanged fitted baseline, not the language lab's lemmas.
-# Each displayed term has a document count, a training-derived IDF, and a normalized weight; the chart shows only ten nonzero entries.
-# Vocabulary terms absent from the full sparse row have zero weight for this tweet.
-# For equal counts within this document, larger IDF gives larger TF-IDF weight, without establishing greater predictive usefulness.
+# The full 16-row feature table comes from the unchanged fitted baseline; the chart displays its ten largest weights.
+# The other vocabulary terms have zero weight for this tweet.
 #
-# **Better question:** Does a large TF-IDF weight imply that a term supports class 1?
+# ### 🧠 What We Learned
+# A large TF-IDF weight does not by itself imply support for class 1;
+# the classifier's signed coefficient also matters.
+# Fitting establishes a representation and model. Their agreement with recorded
+# holdout labels, including the errors hidden by a single score, is evaluated next.
 #
 # > **⚠️ Watch Out — TF-IDF weight is not a class contribution**
 # >
-# > **Answer:** No; whether a term supports class 1 also depends on the classifier's signed coefficient.
 # > The chart displays input feature weights, not coefficients or their contributions to the decision.
 # > A feature representation does not explain what caused a real disaster.
-#
-# ### 🧠 What We Learned
-# Fitting has established a representation and model, not their performance on unseen
-# observations. **How much agreement does reusing these learned quantities produce
-# with the recorded holdout labels, and which errors does that agreement hide?**
 
 # %%
 # Reuse fitted steps; predictions follow X_holdout positions and have no pandas source index.
@@ -1667,22 +1704,9 @@ print("Holdout predictions:", len(holdout_predictions))
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To evaluate the existing baseline, generate one predicted label for each prepared holdout tweet without refitting.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# `Pipeline.predict()` transforms text with the learned vocabulary and IDF, then passes those features to the fitted classifier.
-# The returned 0/1 array preserves input order; `len()` counts predictions, not correct answers.
-#
-# ```python
-# holdout_predictions = baseline_pipeline.predict(X_holdout)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Keep this positional order when pairing predictions with recorded labels; prediction itself does not assess agreement or verify events.
+# `Pipeline.predict()` reuses the fitted vectorizer, then passes its features to the fitted classifier without refitting.
+# Its 0/1 array follows holdout input order; `len()` counts predictions rather than correct answers.
+# Preserve that positional pairing when comparing predictions with recorded labels.
 #
 # </details>
 
@@ -1743,25 +1767,9 @@ print(confusion_table.to_string())
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To expose both class-level agreement and error types, summarize the same holdout label/prediction pairs in a report and matrix.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. `classification_report()` calculates precision, recall, F1, and support for each class; row `1` supplies the primary F1.
-# 2. `labels=[0, 1]` fixes matrix order: rows are recorded labels, columns are predictions, yielding `[[TN, FP], [FN, TP]]`.
-# 3. The DataFrame adds readable row and column labels without changing counts or pairing observations by their pandas index.
-#
-# ```python
-# confusion_counts = confusion_matrix(
-#     y_holdout, holdout_predictions, labels=[0, 1]
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Support counts recorded examples; these metrics measure agreement with annotations, not independently verified disaster events.
+# `classification_report()` reports precision, recall, F1, and support; class 1 supplies the primary F1.
+# `labels=[0, 1]` fixes the matrix as `[[TN, FP], [FN, TP]]`, with recorded-label rows and prediction columns.
+# The DataFrame adds readable axes; all results measure annotation agreement rather than independently verified disaster events.
 #
 # </details>
 
@@ -1788,18 +1796,9 @@ nlp_confusion_figure.show()
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To locate the errors behind aggregate scores, render the existing confusion matrix as a labeled heatmap.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# `px.imshow()` uses the matrix unchanged; `text_auto=True` prints each count and explicit x/y labels identify its dimensions.
-# The lower-left cell is missed positives, the upper-right false alarms; `zmin` and `zmax` define a count-based color scale.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Color intensity encodes counts, not error rates; the two recorded classes have different denominators.
+# `px.imshow()` displays the existing matrix; `text_auto=True` prints each count.
+# Recorded-label rows and prediction columns place missed positives at lower left and false alarms at upper right.
+# Color encodes counts, not rates; the two recorded classes have different denominators.
 #
 # </details>
 
@@ -1860,27 +1859,9 @@ print(false_negatives.to_string())
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect mistakes without misaligning tweets, attach predictions before filtering and sorting an independent review table.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. The copied table retains source indices; assigning the unlabeled array pairs values by row position.
-# 2. Parenthesized comparisons and `&` form masks for recorded 0/predicted 1 and recorded 1/predicted 0.
-# 3. `.loc` selects matching rows; `.sort_index().head(3)` chooses the three lowest source indices for each error type.
-#
-# ```python
-# holdout_results["prediction"] = holdout_predictions
-# false_positives = (
-#     holdout_results.loc[false_positive_mask]
-#     .sort_index().head(3)
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Assigning a default-index Series or sorting before assignment could misalign labels; these selected examples cannot establish error-pattern prevalence or causes.
+# Assign the prediction array by position before sorting, preserving its pairing with source-indexed holdout rows.
+# The two masks select recorded 0/predicted 1 and recorded 1/predicted 0; `.loc`, `sort_index()`, and `head(3)` select reproducible examples.
+# A default-index Series could misalign predictions, and three examples per error type cannot establish prevalence or causes.
 #
 # </details>
 
@@ -1905,22 +1886,12 @@ print(false_negatives.to_string())
 # No example was relabeled or used to tune settings.
 #
 # ### 🧠 What We Learned
-# The analysis now measures one model's agreement with labels in a defined evaluation
-# population. Precision exceeds recall for class 1: predicted positives often match
-# annotations, but almost one-third of recorded positives are missed.
-# F1 summarizes that tradeoff; the matrix and examples reveal what the summary hides.
-#
-# The retained population excludes conflicting recorded labels, not all ambiguous or
-# incorrectly labeled texts. Zero matching strings across partitions does not prove
-# that reports concern independent events. A single holdout provides neither a
-# deployment-readiness judgment nor evidence of emergency-response benefit.
-#
-# **Better question:** What independent evidence about event overlap and annotation
-# context would be needed before extending this result beyond the retained tweets?
-# Those relationships are not established by the supplied text-only table.
-# Event identifiers or reviewed report links would reveal shared events;
-# annotation guidelines and independent review would help assess label disagreements.
-# Separately collected, representative examples would be needed to evaluate a broader claim.
+# Precision exceeds recall for class 1: almost one-third of recorded positives are missed.
+# F1 summarizes agreement; the matrix and examples reveal the error trade-off.
+# Excluding conflicting labels removes neither all ambiguity nor possible annotation errors.
+# Event independence and emergency-response benefit remain unestablished.
+# Broader claims need reviewed event links, annotation guidance and independent review,
+# followed by evaluation on separately collected, representative examples.
 #
 # **Answer to the Project Question:** Text supports measured agreement with recorded
 # labels in this retained holdout: class-1 F1 is 0.7308, with 208 missed recorded positives.
@@ -1934,55 +1905,38 @@ print(false_negatives.to_string())
 # ### Post-baseline learning — Guided cross-validation and model comparison
 #
 # ### ❓ What is the Question?
-# How do classifier choice and adjacent token pairs change training-fold F1,
-# and how consistent are these comparisons across folds?
+# How do classifier choice and adjacent token pairs change training-fold F1, and how consistent are these comparisons?
 #
-# **📋 Source & Context:** This is a retrospective educational extension,
-# written after the published baseline holdout was inspected.
-# It uses only the existing 5,986 training strings and labels; the 1,497-row holdout
-# and its original baseline results remain separate.
+# **📋 Source & Context:** This retrospective extension uses the existing 5,986 training rows after the original holdout was inspected.
+# The original baseline and 1,497-row holdout remain separate.
 #
-# **🎯 Goal & Approach — WHY:** Compare six configurations on the same
-# ten validation folds to separate classifier choice from adding short token sequences.
-# Keep all learned text transformations inside each fold so its validation text
-# cannot influence vocabulary or IDF.
+# **🎯 Goal & Approach — WHY:** Compare three classifiers at two n-gram settings using the same ten stratified folds.
+# Fit the complete text Pipeline inside each fold so validation text cannot influence vocabulary or IDF.
+# **🔎 Guiding Questions:** Do bigrams improve all three classifiers, and does the highest mean establish a reliable winner?
 #
-# **🔎 Guiding Questions:** What does one fold score describe?
-# Do bigrams improve all three classifiers, and does the highest mean establish a final winner?
-# What does Naive Bayes assume, and why can we use it with these TF-IDF features?
-#
-# ### 9. What we transfer from the actual guided notebook
-# Guided cell 14 computes ten F1 scores, their mean, and their standard deviation.
-# Cell 15 compares Logistic Regression and LinearSVC with `(1, n)` n-grams for
-# `n = 1, 2, 3, 4`; it does not vary Logistic Regression's `C`.
+# Each fold withholds 598 or 599 training observations and fits on the other nine parts.
+# Every training observation is validated once per configuration; fitting subsets overlap, so these are not ten independent experiments.
 #
 # > **⚠️ Watch Out — Learn TF-IDF inside every CV fold**
 # >
-# > Both guided cells fit TF-IDF before CV, allowing each validation fold to influence vocabulary and IDF.
-# > Passing raw prepared strings and the entire Pipeline into CV makes each fold learn its representation from that fold's training rows only.
+# > Guided cells 14–15 precompute TF-IDF before CV, allowing validation text to influence vocabulary and IDF.
+# > Our CV receives raw prepared strings and the entire Pipeline, learning features separately inside each fold.
 #
-# Guided `cv=10` already gives this binary classifier stratified folds without shuffling.
-# We explicitly shuffle within classes with seed 42, retaining approximate class proportions.
-# Reusing the same integer-seeded splitter and input order gives every candidate the same folds.
+# <details><summary>📋 Teaching sources and adaptations</summary>
 #
-# Each validation fold contains 598 or 599 observations; fitting uses the other
-# 5,388 or 5,387 training observations.
-# Each training observation is validated once per configuration, but fitting subsets overlap.
-# These are not ten independent experiments or ten new external datasets.
+# Guided cell 14 summarizes ten F1 scores; cell 15 compares Logistic Regression and LinearSVC with one- to four-token sequences.
+# Here we use only unigram/bigram choices and explicitly shuffle stratified folds with seed 42.
+# Sprint 3 suggests Logistic Regression or Naive Bayes; their comparison here is additional learning, not a missing baseline requirement.
 #
-# The inspected DataCamp instructions and starter code support:
-# - [Cross-validation for R-squared](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/regression-55bf0d67-0cc2-4212-a6e5-bda0d07d3411?ex=9): splitter, seed, and per-fold scores; we adapt the mechanism to stratified classification and F1.
-# - [Analyzing cross-validation metrics](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/regression-55bf0d67-0cc2-4212-a6e5-bda0d07d3411?ex=10): mean and standard deviation; fold quantiles alone are not a confidence interval for generalization performance.
-# - [Visualizing classification model performance](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=14): loop over alternative models; here learned transformations belong inside the evaluated Pipeline.
+# Inspected DataCamp instructions and starter examples support:
+# - [Cross-validation](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/regression-55bf0d67-0cc2-4212-a6e5-bda0d07d3411?ex=9): split and score individual folds; we adapt regression to stratified F1.
+# - [CV summaries](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/regression-55bf0d67-0cc2-4212-a6e5-bda0d07d3411?ex=10): summarize scores with a mean and spread.
+# - [Model comparison](https://campus.datacamp.com/courses/supervised-learning-with-scikit-learn/preprocessing-and-pipelines-4?ex=14): loop over alternatives, keeping learned transformations inside our Pipelines.
+# - [Movie-review Naive Bayes](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/n-gram-models?ex=8): fit MultinomialNB; our adaptation uses tweet TF-IDF and training-only F1.
 #
-# These are inspected teaching examples, not official tweet solutions or imported scores.
-# The following code is our adaptation; the source notebooks remain unchanged.
+# Course examples supply methods, not this project's scores; the source notebooks remain unchanged.
 #
-# Sprint 3 suggests Logistic Regression or Naive Bayes; adding the latter here is
-# a post-baseline learning choice, not a missing required baseline step.
-# DataCamp's [Predicting the sentiment of a movie review](https://campus.datacamp.com/courses/feature-engineering-for-nlp-in-python/n-gram-models?ex=8)
-# supplies inspected instructions and starter code for fitting MultinomialNB to bag-of-words features.
-# Our adaptation uses tweet TF-IDF, class-1 F1, and training-only CV instead of review accuracy; no course solution or score is copied.
+# </details>
 
 # %% [markdown]
 # ### 🗺️ Mental Model — One of ten training-only folds
@@ -2004,49 +1958,33 @@ print(false_negatives.to_string())
 
 # %% [markdown]
 # ### 10. Keep the comparison small and explain the alternatives
-# `(1, 1)` uses individual tokens; `(1, 2)` adds adjacent pairs, such as `not safe`,
-# while retaining individual tokens.
-# Bigrams preserve limited local order, but do not guarantee better scores or understanding of a sentence.
 #
-# Two n-gram choices isolate this small representation change without the guided
-# notebook's longer three- and four-token sequences.
-# Both choices keep the existing tokenization, normalization, stop-word policy, and other TF-IDF defaults.
+# `(1, 1)` uses individual tokens; `(1, 2)` also includes adjacent pairs, such as `not safe`.
+# Bigrams preserve limited local order. All other TF-IDF defaults stay fixed.
 #
-# Logistic Regression learns coefficients using a probability-based loss.
-# LinearSVC learns a linear separating boundary using a margin-based loss;
-# its decision scores are not native probability estimates.
-# A margin measures signed separation from the decision boundary, rather than the probability that a recorded label is correct.
+# | Classifier | What fitting learns | Main distinction |
+# | --- | --- | --- |
+# | Logistic Regression | Coefficients through a probability-based loss | Regularized linear classifier; `lbfgs`, `C=1`. |
+# | LinearSVC | Coefficients through a margin-based loss | Margin-based decision scores, not native probabilities; `C=1`, seed 42. |
+# | MultinomialNB | Class proportions and term weights within each class | Combines evidence using Bayes' rule; assumes features are conditionally independent given the class. |
 #
-# We keep `C=1` and each estimator's remaining defaults; equal `C` does not make
-# their different objectives equivalent.
-# Logistic Regression keeps `lbfgs`; LinearSVC uses its default squared-hinge loss,
-# L2 penalty, and `dual="auto"` optimizer selection, with seed 42 for reproducibility.
+# LinearSVC retains its default squared-hinge loss, L2 penalty and `dual="auto"` optimizer choice.
+# Equal `C` does not make the two objectives equivalent.
 #
-# ### Why add Multinomial Naive Bayes?
-# It offers a different learning assumption while keeping the representation and evaluation fixed.
-# Logistic Regression directly learns class probabilities through its loss; LinearSVC learns a margin-based boundary.
-# Naive Bayes instead estimates class prevalence and term distributions within each class, then combines them using Bayes' rule.
+# **Why Naive Bayes accepts these inputs:** TF-IDF supplies nonnegative feature weights.
+# Scikit-learn accepts these as fractional feature mass, although the multinomial model describes counts.
+# Related words and overlapping n-grams also violate its independence simplification.
 #
-# "Naive" means treating feature evidence as conditionally independent given the class.
-# Related words and overlapping unigrams/bigrams violate that simplification; neither existing classifier requires this independence assumption.
-# A useful classification score would not prove the assumption true or establish calibrated probabilities.
-#
-# The multinomial model describes token counts distributed across a vocabulary within each class.
-# Our TF-IDF values are nonnegative fractional weights, which scikit-learn accepts as feature mass.
-# They are neither literal counts nor probabilities, so this practical application does not establish that the count model holds literally.
-#
-# During fitting, MultinomialNB sums each feature's weight over training documents belonging to each class.
-# Default `alpha=1.0` adds one to every class-feature total before normalization across that class's vocabulary.
-# This Laplace smoothing prevents zero term probabilities for vocabulary terms absent from one class; alpha stays fixed, without tuning.
-#
-# Default `fit_prior=True` estimates class priors from that fold's label proportions.
-# Prediction adds the log prior to the sum of feature weights times log smoothed term probabilities, choosing the higher-scoring class.
-# Logs turn multiplication into addition; unknown tokens remain ignored by that fold's fitted vectorizer.
+# **How Naive Bayes calculates a prediction:** Sum each term's weights within each training class.
+# Default `alpha=1.0` adds one before normalization, preventing zero term probabilities.
+# Default `fit_prior=True` estimates class proportions from that fold's labels.
+# Prediction combines the log prior with weighted log term probabilities, then chooses the higher-scoring class.
+# Logs turn multiplication into addition; the fitted vectorizer ignores unknown tokens.
 #
 # > **⚠️ Watch Out — Compatible inputs do not validate Naive Bayes assumptions**
 # >
-# > Nonnegative TF-IDF permits this calculation; it does not prove independent language features, correct labels, or trustworthy probability estimates.
-# > We compare predicted labels through F1, without interpreting probabilities as certainty about a real disaster.
+# > Nonnegative TF-IDF permits the calculation; it does not prove independent language features, correct labels or trustworthy probabilities.
+# > We compare predicted labels using F1.
 #
 # See the installed-version [Naive Bayes explanation](https://scikit-learn.org/1.5/modules/naive_bayes.html#multinomial-naive-bayes)
 # and [MultinomialNB API](https://scikit-learn.org/1.5/modules/generated/sklearn.naive_bayes.MultinomialNB.html).
@@ -2099,41 +2037,65 @@ cv_classifier_options = [
 ]
 ngram_options = [(1, 1), (1, 2)]
 
-# Each dictionary entry will map a configuration name to its ten validation F1 scores.
-# Each summary record will hold one configuration's descriptive statistics, not tweet rows.
-fold_scores_by_configuration = {}
-cv_summary_records = []
+# %% [markdown]
+# **Step 1 — Build six named configurations.** Pair each classifier with each n-gram range before running cross-validation.
 
+# %%
+# Each dictionary entry holds one unfitted Pipeline; its name will identify the later fold scores.
+cv_pipelines = {}
 for classifier_name, classifier in cv_classifier_options:
     for ngram_range in ngram_options:
-        # This candidate couples a fresh vectorizer with one classifier option.
-        # cross_val_score clones the entire candidate for every fold, leaving it unfitted here.
-        cv_pipeline = Pipeline([
-            ("tfidf", TfidfVectorizer(ngram_range=ngram_range)),
+        cv_vectorizer = TfidfVectorizer(ngram_range=ngram_range)
+        cv_steps = [
+            ("tfidf", cv_vectorizer),
             ("classifier", classifier),
-        ])
-
-        # One array element is class-1 F1 from that fold's withheld training observations.
-        # Each clone fits vocabulary, IDF, and classifier only on the other nine parts.
-        # Run folds sequentially; raise fit errors rather than replacing failures with missing scores.
-        fold_f1_scores = cross_val_score(
-            cv_pipeline, X_train, y_train,
-            cv=cv_splitter, scoring="f1", n_jobs=1, error_score="raise",
-        )
-
-        # A readable configuration key identifies the model and its included n-gram lengths.
-        # Store unrounded scores; mean averages ten folds, and std(ddof=0) describes their spread.
+        ]
+        cv_pipeline = Pipeline(cv_steps)
         configuration = f"{classifier_name} {ngram_range}"
-        fold_scores_by_configuration[configuration] = fold_f1_scores
-        cv_summary_records.append({
-            "configuration": configuration,
-            "mean_f1": fold_f1_scores.mean(),
-            "std_f1": fold_f1_scores.std(ddof=0),
-            "min_f1": fold_f1_scores.min(),
-            "max_f1": fold_f1_scores.max(),
-        })
-        print(f"Completed ten training-only folds: {configuration}")
+        cv_pipelines[configuration] = cv_pipeline
+print("Configurations to compare:")
+print(list(cv_pipelines))
 
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# The two loops combine three classifiers with two n-gram choices; the dictionary contains six named Pipelines.
+# Creating those objects performs no fitting; the next cell evaluates each complete workflow on the same training folds.
+#
+# </details>
+
+# %% [markdown]
+# **Step 2 — Measure fold F1.** Reuse the named Pipelines; each configuration returns ten scores before any averaging.
+
+# %%
+# Reset measured scores when rerunning this cell; each array retains its ten validation F1 values.
+fold_scores_by_configuration = {}
+for configuration, cv_pipeline in cv_pipelines.items():
+    fold_f1_scores = cross_val_score(
+        cv_pipeline,
+        X_train,
+        y_train,
+        cv=cv_splitter,
+        scoring="f1",
+        n_jobs=1,
+        error_score="raise",
+    )
+    fold_scores_by_configuration[configuration] = fold_f1_scores
+    print(f"Completed ten training-only folds: {configuration}")
+
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# `cross_val_score()` clones the complete Pipeline for each fold and returns ten validation F1 values.
+# Each clone fits TF-IDF and its classifier only on that fold's fitting rows; the holdout is absent.
+# Sequential execution and `error_score="raise"` expose fitting failures instead of silently replacing them with missing scores.
+#
+# </details>
+
+# %% [markdown]
+# **Step 3 — Inspect individual folds.** Turn the stored score arrays into a table before reducing them to summaries.
+
+# %%
 # Rows represent fold numbers 1..10, not source-row indices; columns identify configurations.
 # Matching rows use matching validation observations because all candidates share the splitter.
 cv_fold_scores = pd.DataFrame(fold_scores_by_configuration, index=range(1, 11))
@@ -2141,45 +2103,45 @@ cv_fold_scores.index.name = "fold"
 print("\nClass-1 validation F1 by training fold:")
 print(cv_fold_scores.round(4).to_string())
 
-# One row per configuration summarizes all ten scores; the index contains configuration names.
-# min/max show observed extremes; rounding changes printed values only, not stored results.
-cv_summary = pd.DataFrame(cv_summary_records).set_index("configuration")
+# %% [markdown]
+# **Step 4 — Summarize each configuration.** Calculate the mean and spread from those same stored scores, without fitting again.
+
+# %%
+# Each record describes one configuration; ddof=0 preserves the existing descriptive standard-deviation convention.
+cv_summary_records = []
+for configuration, fold_f1_scores in fold_scores_by_configuration.items():
+    mean_f1 = fold_f1_scores.mean()
+    std_f1 = fold_f1_scores.std(ddof=0)
+    min_f1 = fold_f1_scores.min()
+    max_f1 = fold_f1_scores.max()
+    cv_summary_records.append({
+        "configuration": configuration,
+        "mean_f1": mean_f1,
+        "std_f1": std_f1,
+        "min_f1": min_f1,
+        "max_f1": max_f1,
+    })
+
+# Each table row now summarizes ten scores; names become the index instead of ordinary numbered rows.
+cv_summary = pd.DataFrame(cv_summary_records)
+cv_summary = cv_summary.set_index("configuration")
 print("\nRetrospective training-only CV summary (not final holdout performance):")
 print(cv_summary.round(4).to_string())
 
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To compare classifier and n-gram choices fairly, evaluate six complete text-to-label workflows on the same ten training folds.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. The integer-seeded splitter recreates memberships for the same ordered inputs; nested loops combine three classifiers with two n-gram ranges.
-# 2. `cross_val_score()` clones the entire Pipeline per fold, fitting vocabulary, IDF, and classifier only on its other nine parts.
-# 3. `scoring="f1"` evaluates class 1; sequential execution and `error_score="raise"` expose fitting failures instead of replacing them with missing scores.
-# 4. The score table uses fold numbers as its index; the summary averages ten F1 values and describes their spread with `std(ddof=0)`.
-#
-# ```python
-# cv_splitter = StratifiedKFold(
-#     n_splits=10, shuffle=True, random_state=42
-# )
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Prefitting TF-IDF would leak validation-text information; fold spread is descriptive, and these overlapping folds are not independent final tests.
+# Each row summarizes the ten scores already inspected in the fold table; `round(4)` changes printed precision only.
+# Fold spread is descriptive because the training subsets overlap; it is not an independent final test or confidence interval.
 #
 # </details>
 
 # %% [markdown]
 # ### 11. Read the fold results without overstating them
 # ### ✅ Evidence, Answer & Limits
-# The existing Python 3.11.11 / scikit-learn 1.5.2 environment produced the results
-# below with the fixed ten-fold splitter; all 60 fits completed without warnings.
-# The original four configurations reproduce their published means, standard deviations, minima, and maxima at four decimals.
-# Their 40 printed fold scores also match the pre-extension rerun; the added 20 scores measure Naive Bayes on those same folds.
+# The existing Python 3.11.11 / scikit-learn 1.5.2 environment produced these results with the fixed ten-fold splitter.
+# Each score evaluates recorded class-1 labels in one withheld part of the training set.
+# The preceding table prints all ten scores per configuration; matching fold numbers use matching validation rows.
 #
 # | Classifier | N-grams | Mean class-1 F1 | Fold standard deviation | Minimum | Maximum |
 # | --- | --- | ---: | ---: | ---: | ---: |
@@ -2190,80 +2152,29 @@ print(cv_summary.round(4).to_string())
 # | MultinomialNB | `(1, 1)` | 0.7219 | 0.0147 | 0.6991 | 0.7414 |
 # | MultinomialNB | `(1, 2)` | 0.7113 | 0.0156 | 0.6905 | 0.7465 |
 #
-# The executable table prints every candidate's ten fold scores; these are the newly added Naive Bayes observations, rounded only for display.
-# Matching fold numbers identify the same validation rows across configurations.
+# **Classifier comparison:** Unigram LinearSVC has the highest mean, about 0.0048 above unigram Logistic Regression,
+# but leads it in only four of ten folds. Naive Bayes has lower means at both n-gram settings, though it occasionally leads within a fold.
 #
-# | Fold | MultinomialNB `(1, 1)` | MultinomialNB `(1, 2)` |
-# | ---: | ---: | ---: |
-# | 1 | 0.7414 | 0.7000 |
-# | 2 | 0.7040 | 0.7017 |
-# | 3 | 0.7172 | 0.7031 |
-# | 4 | 0.6991 | 0.6981 |
-# | 5 | 0.7051 | 0.6905 |
-# | 6 | 0.7390 | 0.7119 |
-# | 7 | 0.7349 | 0.7465 |
-# | 8 | 0.7339 | 0.7181 |
-# | 9 | 0.7252 | 0.7264 |
-# | 10 | 0.7189 | 0.7166 |
+# **Bigram comparison:** Adding pairs lowers all three means. Logistic Regression declines in all ten folds,
+# Naive Bayes in eight, while LinearSVC changes in both directions. This comparison does not isolate the causes.
 #
-# Unigram LinearSVC has the highest mean, about 0.0048 above unigram Logistic Regression,
-# but exceeds it in only four of ten matching folds.
-# Its fold spread is also larger: 0.0246 versus 0.0197.
-# This observed ranking does not show a consistent advantage across every validation subset.
-#
-# Adding bigrams lowers Logistic Regression's mean from 0.7506 to 0.7293;
-# all ten of its fold scores decrease.
-# LinearSVC's mean also falls, from 0.7554 to 0.7529, although individual folds move in both directions.
-# These scores alone do not establish the cause or predict another dataset's outcome.
-#
-# Naive Bayes has lower means than both existing classifiers at each matching n-gram setting.
-# Its unigram scores exceed unigram Logistic Regression in two folds and unigram LinearSVC in one, so the ordering is not universal.
-# Adding bigrams lowers its mean from 0.7219 to 0.7113, with decreases in eight folds; bigrams improve none of the three averages.
-#
-# Naive Bayes supplies a valid contrasting calculation, but these results do not establish why its F1 is lower.
-# Feature dependence, weighting, and smoothing could affect performance; this comparison does not isolate their effects or validate the model's assumptions.
-#
-# Each score measures agreement with recorded class-1 labels in one withheld part
-# of the original training set, after fitting on the other nine parts.
-# The mean averages ten separate F1 values; it is not F1 calculated from pooled predictions.
-#
-# Standard deviation describes variation among these ten scores, using divisor ten (`ddof=0`).
-# It is neither a confidence interval nor a significance test, and overlapping fitting
-# subsets prevent treating the scores as independent experiments.
-#
-# Unigram Naive Bayes has the smallest observed spread (0.0147), despite its lower mean than either existing unigram classifier.
-# LinearSVC with bigrams still has the smallest spread among the original four (0.0170); neither observation establishes external robustness.
-#
-# The original 0.7308 holdout F1 evaluates a different set and training size;
-# subtracting it from a CV average would not measure an improvement on the same evaluation.
+# **Spread:** Unigram Naive Bayes has the smallest standard deviation (0.0147), despite lower mean F1.
+# Standard deviation uses `ddof=0` and describes these ten scores; it is not a confidence interval or significance test.
+# The mean averages fold F1 values, which differs from F1 calculated on pooled predictions.
 #
 # > **⚠️ Watch Out — The best CV average is not fresh test performance**
 # >
-# > The highest mean identifies only the highest observed average among these six configurations on this partition.
-# > Choosing a configuration and advertising its performance from the same results introduces selection optimism.
-# > Our already inspected holdout cannot become a new independent final evaluation.
+# > Selecting and reporting a configuration on these same folds can produce optimism.
+# > The familiar holdout cannot become a new independent final test, and its F1 is not directly comparable with a CV average.
 #
-# Guided cell 16 refits its chosen configuration and evaluates its test set.
-# We deliberately stop at training-only comparison, keeping the original baseline model,
-# predictions, and published holdout metrics unchanged.
+# Guided cell 16 refits its chosen model; this comparison stops before that step, preserving the original baseline and holdout predictions.
 #
 # ### 🧠 What We Learned
-# Naive Bayes illustrates that a smaller fold spread can accompany lower agreement with recorded positive labels.
-# Spread describes consistency across these folds; it cannot by itself justify preferring a classifier or trusting its probabilities.
+# Mean and spread answer different questions; neither alone establishes a reliable winner.
+# Overlapping training subsets are not independent experiments, and CV cannot repair annotation quality or establish event independence.
+# Reliability beyond these folds remains unestablished; it needs reviewed labels, event relationships and fresh representative evaluation kept separate from model choice.
 #
-# Cross-validation checks sensitivity to training/validation membership within the retained
-# training population; it does not repair annotation quality or establish event independence.
-# **What evidence would justify treating a preferred configuration as more reliable outside these folds?**
-# That claim is not established here: it needs reviewed labels, event relationships,
-# and fresh representative evaluation data kept separate from model choice.
-#
-# **⚖️ Ethical Takeaway:** Report these results as retrospective training-only comparisons,
-# so a favorable CV average is not mistaken for verified disaster-detection reliability.
-#
-# Hugging Face remains a separate learning task: inspect the actual model card,
-# task labels, resources, and dependency needs before any approved setup or inference.
-# Its pretrained-model `pipeline` serves a different purpose from fitting our scikit-learn
-# Pipeline; a sentiment prediction is not a verified disaster annotation.
+# **⚖️ Ethical Takeaway:** Report the population and evaluation limits alongside scores; a favorable CV average does not verify disaster-detection reliability.
 
 # %% [markdown]
 # ### 11.1 Beyond the baseline — a small regularization experiment
@@ -2297,8 +2208,11 @@ from sklearn.model_selection import cross_val_predict
 # Fix the C choices; prediction-table rows retain training source indices and columns identify settings.
 c_values = [0.1, 1.0, 10.0]
 c_oof_predictions = pd.DataFrame(index=y_train.index)
-c_records = []
 
+# %% [markdown]
+# First collect out-of-fold predictions for each fixed C value; then evaluate the stored columns in a separate cell.
+
+# %%
 for c_value in c_values:
     # A fresh candidate leaves the already fitted baseline untouched; all other defaults stay unchanged.
     c_pipeline = Pipeline([
@@ -2311,35 +2225,73 @@ for c_value in c_values:
     c_oof_predictions[c_value] = cross_val_predict(
         c_pipeline, X_train, y_train, cv=cv_splitter, method="predict", n_jobs=1,
     )
-    c_predictions = c_oof_predictions[c_value]
+    print(f"Completed ten training-only folds for C={c_value:g}")
 
-    # labels=[0, 1] fixes row/column order: recorded labels by predicted labels.
-    # Flattening reads correct negatives, false alarms, missed positives, then correct positives.
-    c_tn, c_fp, c_fn, c_tp = confusion_matrix(y_train, c_predictions, labels=[0, 1]).ravel()
+# %% [markdown]
+# <details><summary>💡 Explain this code</summary>
+#
+# Each prediction column retains the training source indices and contains one withheld-fold prediction per training row.
+# A fresh Pipeline is fitted inside each fold, so the later metric calculation can reuse predictions without further fitting.
+# The original fitted baseline and holdout remain separate from these C experiments.
+#
+# </details>
 
-    # Recreate the same fold memberships to summarize stored predictions; this loop performs no fitting.
-    # valid_positions are positional row numbers, so iloc selects matching labels and predictions.
-    c_fold_scores = []
-    for _, valid_positions in cv_splitter.split(X_train, y_train):
-        c_fold_scores.append(f1_score(
-            y_train.iloc[valid_positions], c_predictions.iloc[valid_positions], pos_label=1,
-        ))
+# %% [markdown]
+# Evaluate one prediction column at a time, distinguishing pooled F1 from the mean of ten fold scores.
 
-    # Recall uses recorded positives; precision uses predicted positives; both describe dataset labels.
-    # The two F1 columns deliberately distinguish pooled predictions from the mean of ten fold scores.
-    c_records.append({
+# %%
+# First summarize all withheld predictions together: one record per C setting.
+c_pooled_records = []
+for c_value, c_predictions in c_oof_predictions.items():
+    c_confusion_counts = confusion_matrix(y_train, c_predictions, labels=[0, 1])
+    # Fixed matrix order is TN, FP, FN, TP; these counts use recorded dataset labels.
+    c_tn, c_fp, c_fn, c_tp = c_confusion_counts.ravel()
+    c_pooled_records.append({
         "C": c_value,
         "pooled_recall": recall_score(y_train, c_predictions, pos_label=1),
         "pooled_precision": precision_score(y_train, c_predictions, pos_label=1),
         "pooled_f1": f1_score(y_train, c_predictions, pos_label=1),
-        "mean_fold_f1": pd.Series(c_fold_scores).mean(),
         "missed_positives": c_fn,
         "false_alarms": c_fp,
     })
-    print(f"Completed ten training-only folds for C={c_value:g}")
+c_pooled_summary = pd.DataFrame(c_pooled_records).set_index("C")
+print("Pooled results from all withheld training predictions:")
+print(c_pooled_summary.round(4).to_string())
 
-# Each table row identifies one C setting; rounding affects display only, not stored values.
-c_summary = pd.DataFrame(c_records).set_index("C")
+# %% [markdown]
+# Compared with `C=1`, `C=10` misses fewer recorded positives and produces more false alarms.
+# These pooled scores combine all 5,986 predictions; next inspect F1 separately within each validation fold.
+
+# %%
+# Reuse stored predictions; positional selection pairs each fold's labels and predictions without fitting again.
+c_fold_scores_by_value = {}
+for c_value, c_predictions in c_oof_predictions.items():
+    c_fold_scores = []
+    for _, valid_positions in cv_splitter.split(X_train, y_train):
+        c_fold_labels = y_train.iloc[valid_positions]
+        c_fold_predictions = c_predictions.iloc[valid_positions]
+        c_fold_f1 = f1_score(c_fold_labels, c_fold_predictions, pos_label=1)
+        c_fold_scores.append(c_fold_f1)
+    c_fold_scores_by_value[c_value] = c_fold_scores
+
+# Rows identify the same validation folds; columns identify the three C settings.
+c_fold_score_table = pd.DataFrame(c_fold_scores_by_value, index=range(1, 11))
+c_fold_score_table.index.name = "fold"
+print("F1 for each training validation fold:")
+print(c_fold_score_table.round(4).to_string())
+
+# %% [markdown]
+# Each column contains ten F1 values, calculated on the same fold memberships across settings.
+# Average each column separately, then place that mean beside its pooled metrics to keep the two calculations distinguishable.
+
+# %%
+# Preserve the original mean-of-folds calculation; Series indices align each mean with its C setting.
+c_mean_fold_scores = {}
+for c_value, c_fold_scores in c_fold_scores_by_value.items():
+    c_mean_fold_scores[c_value] = pd.Series(c_fold_scores).mean()
+c_mean_fold_f1 = pd.Series(c_mean_fold_scores)
+c_summary = c_pooled_summary.copy()
+c_summary.insert(3, "mean_fold_f1", c_mean_fold_f1)
 print(f"\nTraining-only OOF comparison: {len(y_train)} rows; "
       f"{y_train.eq(1).sum()} recorded positives; {y_train.eq(0).sum()} recorded negatives.")
 print(c_summary.round(4).to_string())
@@ -2347,26 +2299,9 @@ print(c_summary.round(4).to_string())
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To compare regularization and error trade-offs, obtain one out-of-fold prediction per training tweet for each fixed `C` setting.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. Each fresh Pipeline changes only `C`; `cross_val_predict()` clones and fits all steps inside each fold and returns predictions in input order.
-# 2. Assigning its array to the indexed table preserves correspondence; `.ravel()` reads matrix counts in TN, FP, FN, TP order.
-# 3. Recreated validation positions select stored predictions with `.iloc`; this second loop scores them without further fitting.
-# 4. Pooled precision, recall, and F1 use all withheld predictions; `mean_fold_f1` averages the ten separately calculated F1 scores.
-#
-# ```python
-# c_tn, c_fp, c_fn, c_tp = confusion_matrix(
-#     y_train, c_predictions, labels=[0, 1]
-# ).ravel()
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# `C` changes the coefficient penalty, not sample size; pooled F1 and mean fold F1 differ, and neither is a fresh holdout result.
+# The final table reuses pooled results and inserts each C setting's mean of ten fold F1 values.
+# Index alignment matches the C keys, while `round(4)` changes only printed precision.
+# Pooled F1 and mean fold F1 summarize different calculations; neither is a new holdout result.
 #
 # </details>
 
@@ -2541,20 +2476,9 @@ print("Sentiment labels:", sentiment_pipeline.model.config.id2label)
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To make the sentiment demonstration reproducible, construct its pipeline from a fixed local model snapshot.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# 1. The model ID and immutable revision identify files; `local_files_only=True` and the explicit cache path restrict lookup to this project.
-# 2. `snapshot_download()` locates the cached snapshot here; the subsequent file checks reject incomplete copies without downloading replacements.
-# 3. The AutoClasses load matching tokenizer/configuration and safetensors weights with remote code disabled; `pipeline()` combines them for CPU inference.
-# 4. `id2label` reveals how numerical output positions map to sentiment names.
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# Loading pretrained weights is not learning from these tweets; the sentiment labels have no connection to the project’s disaster-label numbers.
+# The model ID, pinned revision, and project cache identify the local snapshot; missing or incomplete files stop loading without downloads.
+# AutoClasses load its tokenizer and safetensors weights with remote code disabled; the CPU pipeline combines them and `id2label` exposes sentiment names.
+# Loading external weights performs no tweet training, and those label numbers do not describe disaster classes.
 #
 # </details>
 
@@ -2572,22 +2496,9 @@ print("Observed sentiment result:", sentiment_result)
 # %% [markdown]
 # <details><summary>💡 Explain this code</summary>
 #
-# **📖 Overview — WHAT**
-#
-# To inspect the pretrained sentiment interface, submit one illustrative movie-review sentence and examine its returned label and score.
-#
-# **🔢 Step-by-step breakdown — HOW**
-#
-# Calling `sentiment_pipeline(demo_text)` tokenizes natural text, runs the fixed model, and processes its two raw class scores with softmax.
-# The result is a one-item list containing a dictionary with the top sentiment label and its score; no weights are updated.
-#
-# ```python
-# sentiment_result = sentiment_pipeline(demo_text)
-# ```
-#
-# **💡 Why this matters — WHY & LIMITS**
-#
-# One prediction tests the inference path, not population accuracy; a sentiment softmax score is neither disaster F1 nor verified correctness.
+# Calling the pipeline tokenizes the illustrative sentence, runs fixed weights, and applies softmax to its two raw class scores.
+# The one-item result contains the highest-scoring sentiment label and its score.
+# One prediction tests the inference path; that score is neither population accuracy nor disaster F1.
 #
 # </details>
 
@@ -2613,18 +2524,11 @@ print("Observed sentiment result:", sentiment_result)
 
 # %% [markdown]
 # ### 🧠 What We Learned
-# The sentence and observed output are **Data**; the checkpoint, English sentiment
-# task, and label definitions give them context as **Information**.
-# **Knowledge:** a working inference path can answer its configured task while
-# providing no evidence for another task, even when its score is high.
-#
-# **Wisdom:** restrict this result to a sentiment demonstration.
-# The task mismatch makes checking label meaning more useful than treating a large score as success on our project question.
-#
-# **Better Question:** What evidence would justify using a pretrained model for disaster classification?
-# **Current answer: not established here.** It would require task-aligned labels and
-# independent, representative disaster evaluation with reviewed annotations and event relationships.
-# This demonstration supplies neither; the question does not authorize another experiment.
+# The sentence and output are **Data**; the checkpoint, task and label definitions
+# provide **Information**. **Knowledge:** successful inference answers only that model's task.
+# **Wisdom:** check label meaning before interpreting a large score as project success.
+# Suitability for disaster classification is not established here; it needs task-aligned
+# labels and independent, representative evaluation with reviewed annotations and event relationships.
 #
 # **⚖️ Ethical Takeaway:** Do not present sentiment confidence as evidence that a disaster occurred.
 
@@ -2646,13 +2550,13 @@ print("Observed sentiment result:", sentiment_result)
 # **🧠 What We Learned:** Data quality and evaluation boundaries determine what a successful run can establish.
 # Labels remain annotations, excluded conflicts change the population, and different wording can describe the same event.
 # The training-text lab also shows that reducing word forms and preserving meaning are different goals; no lemmatized classifier was evaluated.
+# Performance on independently reviewed tweets from separate events remains unestablished;
+# the present experiment cannot supply that new evaluation evidence.
 #
 # **Recommendation:** Preserve this measured baseline and report its limitations alongside its scores.
 # Before broader use, review annotations and event relationships, then evaluate on fresh representative examples.
 # No operational benefit or emergency-response readiness has been demonstrated.
 #
-# **Better Question:** Would performance hold on independently reviewed tweets from separate events?
-# **Current answer:** Not established; this requires new evaluation evidence beyond the present experiment.
 # **Ethical takeaway:** A model prediction should not be presented as verification that a disaster occurred.
 # <!--
 # endregion

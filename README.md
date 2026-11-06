@@ -14,6 +14,12 @@ It retrospectively documents the analysis without claiming a new school submissi
 | [disaster_tweets_classification.py](disaster_tweets_classification.py) | School baseline and original holdout; supplementary Plotly EDA, NLTK teaching, six training-only CV configurations and one DistilBERT sentiment example |
 | [disaster_tweets_huggingface.py](disaster_tweets_huggingface.py) | **Beyond the Baseline:** frozen MiniLM embeddings with Logistic Regression and LinearSVC, training-only CV and a retrospective holdout comparison |
 
+## Follow the learning sequence
+
+Run each file's cells from top to bottom: **prepare an object → inspect its output → read the interpretation → reuse it**.
+The baseline follows source rows → prepared rows → fixed split → fitted TF-IDF/classifier → predictions → metrics and errors.
+EDA and language examples produce conclusions about the data or transformations; the baseline continues with its established prepared inputs.
+
 ## Data and consequential decisions
 
 The supplied [training CSV](DATA/train.csv) contains **7,613 rows**, with `text` and `target` columns: `1` means disaster, `0` non-disaster.
@@ -66,34 +72,30 @@ Despite matching 78.89% of all labels, the model misses **32.65% of recorded pos
 
 ## What the mistakes teach us
 
-The analysis inspects three false positives and three false negatives, selected by lowest source index for reproducibility.
-Figurative fire language appears among false positives, while fire reports and abbreviated context appear among false negatives.
-These observations suggest questions about representation and context; they do not establish causes or representative error frequencies.
+Three false positives and three false negatives are selected by lowest source index for reproducibility.
+Figurative fire language appears among false positives; fire reports and abbreviated context appear among false negatives.
+These examples suggest representation hypotheses without establishing why the models erred, whether annotations are correct, or how common these patterns are.
 
-Single-token features lose word order and phrase context, while unfamiliar vocabulary contributes no learned feature.
-That limitation helps frame hypotheses, but the inspected examples do not measure which features caused individual predictions.
-Neither recorded labels nor a small illustrative sample can settle those explanations.
-
-## Transferable lessons and limits
+## What We Learned
 
 Preparation determines the population being evaluated; excluding conflicting groups does not remove every ambiguous or incorrectly labeled example.
-Consistent transformation protects the feature-learning sequence, while trustworthy evaluation also needs appropriate labels and independence between observations.
-A single fixed holdout provides evidence for this experiment, without demonstrating emergency-response benefit or deployment readiness.
+Reusing fitted transformations keeps feature columns consistent, while unigrams discard order and unknown terms contribute no learned feature.
+The fixed holdout measures agreement with retained annotations; reliability on new events and emergency-response benefit remain unestablished.
 
-**Better question:** What independent evidence about event overlap and annotation context would justify extending these findings beyond the retained tweets?
-The supplied text-only table does not establish those relationships, so broader claims remain unsupported.
-Later training-only CV and Transformer examples extend the learning; they do not change this original baseline or make its holdout fresh again.
+Broader claims need annotation review, evidence linking related reports, and fresh representative evaluation kept separate from model choice.
+Later training-only CV and Transformer examples extend the learning without making the original holdout a fresh final test.
 
 **⚖️ Ethical Takeaway:** Disclose exclusions and missed positives so readers do not mistake this educational baseline for reliable detection of every disaster report.
 
 ## Beyond the Baseline
 
 The main file compares Logistic Regression, LinearSVC and MultinomialNB at two n-gram settings using the same ten training folds.
-Every fold fits its own complete TF-IDF Pipeline. Its separate DistilBERT example predicts movie-review sentiment, not disaster labels.
+Every fold fits its own complete TF-IDF Pipeline; a separate comparison varies Logistic Regression's regularization at `C=0.1, 1, 10`.
+Its DistilBERT example predicts movie-review sentiment, not disaster labels.
 
-The MiniLM file keeps the encoder frozen and fits two classical classifiers to its 384-feature vectors.
-Its explanations and Plotly comparisons distinguish current measurements from historical TF-IDF references, including the false-positive / false-negative trade-off.
-External pretraining and retrospective reuse of the inspected holdout limit the claims; no encoder fine-tuning or operational deployment is demonstrated.
+The MiniLM file first illustrates masking, averaging and normalization with invented values, then encodes tweets as frozen 384-feature vectors.
+It compares Logistic Regression and LinearSVC, reports retrospective holdout results, and separately tests three C settings using training folds only.
+External pretraining and the familiar holdout limit broader claims; the encoder is never fine-tuned here.
 
 ## Run both analyses in the existing environment
 
@@ -144,8 +146,9 @@ From the repository root, run each complete script separately with the existing 
 .venv/bin/python -B disaster_tweets_huggingface.py
 ```
 
-The main script includes all 60 classical CV fits and the sentiment inference; MiniLM includes encoding, 20 CV fits and two final classifier fits.
-Both use the unchanged `DATA/train.csv`; the second script reconstructs the same approved preparation and split independently.
+The main script fits the baseline, runs 60 configuration-CV fits and 30 regularization-CV fits, then performs sentiment inference.
+MiniLM encodes the tweets, runs 20 classifier-CV fits, fits two holdout classifiers, and runs 60 regularization-CV fits.
+Both use unchanged `DATA/train.csv`, matching preparation and split; the invented pooling example adds no model fits.
 
 For VS Code, open this repository folder and select its `.venv/bin/python` kernel for each Python file's Interactive Window.
 Restart the kernel before running cells from top to bottom, especially after earlier sessions loaded global NLTK corpora or model objects.
@@ -155,17 +158,16 @@ Plotly display depends on the active renderer; successful terminal execution doe
 
 ### Verification and limits
 
-Local verification on **2026-11-01** executed both complete files through `runpy` in the existing `.venv`, with Hub offline mode and network connections blocked.
-All imports, the 13 requirement pins and `pip check` passed; both resource locations and missing/incomplete-cache errors were checked.
-Preparation, split membership/order and all ten folds matched across scripts. The baseline, six classical CV summaries and MiniLM holdout results matched their documented precision.
-The 20 recorded Naive Bayes and 20 MiniLM fold scores also matched; the other 40 historical fold values are not recorded individually in the source.
-DistilBERT again returned `POSITIVE` with score `0.999887`; this remains a sentiment demonstration.
-All 14 Plotly figures were constructed and serialized using the terminal JSON renderer.
+The **2026-11-01** environment audit checked imports, selected package pins, `pip check` and missing/incomplete local resources.
+Its focused Interactive Window check covered the interpreter, resource loading, both inferences and one Plotly chart.
 
-A fresh VS Code Interactive Window verified the actual interpreter/folder, current resource-loading cells, both model inferences and the original class-balance Plotly chart.
-This was a focused UI check, not a second full analysis run in the GUI or a website-export check.
-The kernel emitted an optional `IProgress not found` warning; model loading, inference and Plotly display still succeeded without installing widgets.
-The existing environment and global resources were preserved; no clean-install reproduction or new independent holdout evaluation was performed.
+The **2026-11-05** readability refactor was checked by executing both complete scripts before and after changes, with network connections blocked.
+Comparison covered prepared tables and indices, split/fold membership, fitted baseline parameters, embeddings, predictions, metrics and all 14 serialized Plotly figures.
+These analytical outputs were preserved exactly; elapsed encoding times naturally vary and are not benchmark results.
+Individual-cell checks also covered preparation, the NLP lab and the invented pooling calculation without relying on a script filename.
+
+Terminal execution and figure serialization do not establish the current GUI rendering or a website export.
+No clean-install reproduction or new independent holdout evaluation was performed; learner understanding remains **UNASSESSED**.
 
 ## Sources and provenance
 
