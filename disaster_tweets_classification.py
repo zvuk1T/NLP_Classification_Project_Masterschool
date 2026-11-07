@@ -380,6 +380,19 @@ print("Rows belonging to conflicting groups:", conflicting_row_count)
 # Complete fields do not establish distinct inputs or consistent labels.
 # Before applying the retention policy, check whether normalization makes previously different strings equal.
 
+#
+# ### 🤔 Question Yourself
+# In the earlier three-row example, identical texts have labels `0, 0, 1`.
+# How many additional text occurrences and distinct labels are there? How does that differ from identical whole-row duplicates?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# There are three rows, two additional text occurrences, and two distinct labels.
+# Only one additional `(text, target)` row is identical, because the third label differs.
+# The group has conflicting annotations; these counts do not determine the correct label.
+#
+# </details>
+
 # %% [markdown]
 # ### 1.3 Understand what normalization changes
 #
@@ -446,6 +459,19 @@ print(prepared.loc[collision_mask].to_string())
 # ### 🧠 What We Learned
 # Equality depends on the representation used.
 # The retention policy must use `conflicting_keys` from prepared text, so it also excludes the newly equivalent group member.
+
+#
+# ### 🤔 Question Yourself
+# Two different original strings become equal after normalization.
+# Why is checking duplicates and label conflicts only in the original strings insufficient?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# The classifier receives prepared strings, so different originals can become identical model inputs.
+# Grouping by `prepared_text` can reveal repetition or conflicts that exact original-string comparisons miss.
+# The retention policy therefore uses prepared keys while preserving original text for inspection.
+#
+# </details>
 
 # %% [markdown]
 # ### 1.4 Apply the retention policy and account for the population
@@ -699,7 +725,7 @@ print("Shared prepared texts:", len(prepared_overlap))
 # Any later learned text transformation must be fitted on training data only.
 # The holdout is reserved for evaluation, not tuning; no model is fitted in this preparation section.
 #
-# ### 🧑‍💼 Recruiter / Transfer Check
+# ### 🤔 Question Yourself
 # A different dataset has balanced labels and no exact text matches across a split.
 # Is that enough to claim its test observations are independent? Explain the gap.
 #
@@ -852,6 +878,19 @@ eda_parts_figure.show()
 # URLs and annotation context in training data could investigate it.
 #
 # **⚖️ Ethical Takeaway:** Longer text is not evidence that a report describes a real emergency.
+
+#
+# ### 🤔 Question Yourself
+# The recorded classes contain different numbers of training examples.
+# Why do the character-length histograms use percentages within each class rather than raw counts?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# Each bin is divided by its own class total, so bar heights compare the share of each class at those lengths.
+# Raw counts would also reflect the different class sizes.
+# Shared bins and axes make these distribution shapes comparable; they do not establish predictive performance.
+#
+# </details>
 
 # %% [markdown]
 # ### Text Preprocessing: Tokenization & Lemmatization
@@ -1388,6 +1427,19 @@ print("After that removal:", " ".join(nlp_filtered_tokens))
 #
 # **⚖️ Ethical Takeaway:** Keep original text available so preprocessing cannot silently turn a denial into an apparent emergency claim.
 
+#
+# ### 🤔 Question Yourself
+# A preprocessing step reduces the vocabulary but removes `not` from a denial.
+# What would you need before claiming it improves disaster classification?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# Vocabulary reduction describes a transformation, not predictive performance.
+# Compare task-aligned predictions with identical training folds and fold-fitted features, while checking whether important meaning survives.
+# The language lab did not evaluate a lemmatized classifier.
+#
+# </details>
+
 # <!--
 # endregion
 # region 3. Predictive Modeling, Comparison & Evaluation
@@ -1602,6 +1654,19 @@ print("One training document's feature-matrix shape:", training_example_features
 # features and the recorded training labels to learn coefficients and an intercept.
 # Prediction reuses all of these quantities without updating them from holdout text or labels.
 #
+#
+# ### 🤔 Question Yourself
+# A holdout tweet contains a word absent from the fitted training vocabulary.
+# Does prediction add a feature column or learn a new IDF value for it?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. Prediction reuses the training vocabulary and IDF values; the unknown term is ignored.
+# If no known tokens remain, the feature row is zero and the classifier uses only its intercept.
+# Refitting on holdout text would change the evaluation procedure.
+#
+# </details>
+
 # %% [markdown]
 # ### From tokens to visible TF-IDF features
 #
@@ -1703,6 +1768,19 @@ nlp_feature_figure.show()
 # >
 # > The chart displays input feature weights, not coefficients or their contributions to the decision.
 # > A feature representation does not explain what caused a real disaster.
+
+#
+# ### 🤔 Question Yourself
+# A term has the largest TF-IDF weight in the displayed tweet.
+# Does that mean it provides the strongest support for the disaster class?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. TF-IDF describes an input feature; its classifier coefficient determines the sign and size of its contribution.
+# For this linear classifier, that contribution is the feature weight multiplied by its coefficient.
+# The full decision combines all contributions with the intercept.
+#
+# </details>
 
 # %%
 # Reuse fitted steps; predictions follow X_holdout positions and have no pandas source index.
@@ -1908,6 +1986,17 @@ print(false_negatives.to_string())
 #
 # The written reasoning is a learning resource. Data's independent Learning PASS
 # remains **UNASSESSED**; successful execution does not demonstrate understanding.
+
+#
+# ### 🤔 Question Yourself
+# A classifier has high overall accuracy. Can that alone tell you whether it finds most disaster-labelled tweets?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. Accuracy includes both recorded classes, so correctly ignored negatives can conceal missed positives.
+# Read class-1 recall and the confusion matrix to see how many recorded positives were found and missed.
+#
+# </details>
 
 # %% [markdown]
 # ### Post-baseline learning — Guided cross-validation and model comparison
@@ -2185,6 +2274,19 @@ print(cv_summary.round(4).to_string())
 #
 # **⚖️ Ethical Takeaway:** Report the population and evaluation limits alongside scores; a favorable CV average does not verify disaster-detection reliability.
 
+#
+# ### 🤔 Question Yourself
+# Suppose TF-IDF is fitted on all training texts before cross-validation, without using their labels.
+# Can information still leak from a validation fold?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# Yes. Validation texts would already influence the vocabulary and IDF, even without their labels.
+# Fit the complete Pipeline separately on each fold's training subset, then transform its validation texts without refitting.
+# This keeps validation text out of feature learning.
+#
+# </details>
+
 # %% [markdown]
 # ### 11.1 Beyond the baseline — a small regularization experiment
 #
@@ -2340,6 +2442,17 @@ print(c_summary.round(4).to_string())
 # **Would the additional detections justify the additional false alarms?** That decision is not established by F1 alone.
 # It requires an agreed purpose, acceptable review workload, and error costs; these educational labels do not establish operational benefits.
 # Preserve the original baseline and treat `C=10` as a candidate for further investigation, with independent evidence needed for broader claims.
+
+#
+# ### 🤔 Question Yourself
+# A setting has the highest F1 on the training folds. Does that justify selecting it using the holdout as a tie-breaker?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. Using holdout scores to choose a setting turns that holdout into selection data.
+# Keep selection within training validation; report exploratory differences with their error trade-offs and seek independent evidence for broader claims.
+#
+# </details>
 
 # <!--
 # endregion
@@ -2543,6 +2656,17 @@ print("Observed sentiment result:", sentiment_result)
 #
 # **⚖️ Ethical Takeaway:** Do not present sentiment confidence as evidence that a disaster occurred.
 
+#
+# ### 🤔 Question Yourself
+# A sentiment model returns `POSITIVE` with a score near one. What does that tell you about whether a disaster occurred?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# It reports the model's sentiment prediction for that input, not a disaster label or verified event.
+# The score does not establish accuracy on disaster tweets; that would require task-aligned labels and representative evaluation.
+#
+# </details>
+
 # <!--
 # endregion
 # region 5. Key Insights, Limitations & Recommendations
@@ -2570,6 +2694,18 @@ print("Observed sentiment result:", sentiment_result)
 # No operational benefit or emergency-response readiness has been demonstrated.
 #
 # **Ethical takeaway:** A model prediction should not be presented as verification that a disaster occurred.
+#
+# ### 🤔 Question Yourself
+# What evidence would move this project from agreement with familiar labels towards a claim about new events?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# Review annotation quality and event relationships, then evaluate a fixed workflow on fresh, representative examples from separate events.
+# Define acceptable misses and false alarms for the intended use.
+# The current results do not establish those conditions or operational benefit.
+#
+# </details>
+
 # <!--
 # endregion
 # -->

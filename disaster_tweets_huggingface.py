@@ -159,6 +159,17 @@ print("Validation rows per training fold:", [len(validation) for _, validation i
 # Matching observations makes the workflows comparable, but does not establish performance
 # across separate events. That needs event relationships and fresh evaluation evidence.
 
+#
+# ### 🤔 Question Yourself
+# Two workflows use the same rows and split. Does that establish independence from previously seen events?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. Matching rows controls which observations are compared; it does not establish event separation or annotation accuracy.
+# The already inspected holdout remains retrospective evidence, even when both workflows reuse exactly the same observations.
+#
+# </details>
+
 # %% [markdown]
 # ## 2. Turn each tweet into a frozen representation
 #
@@ -454,6 +465,20 @@ print("Training vector lengths, min/max:", np.linalg.norm(train_embeddings, axis
 # Encoding produces features; labeled validation supplies evidence of their usefulness.
 # The next unit shows higher mean CV F1 for both classifiers than their historical TF-IDF references.
 
+#
+#
+# ### 🤔 Question Yourself
+# In the invented pooling example, why is the masked sum divided by two rather than three?
+# What is the mean vector before L2 normalization?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# The mask `[1, 1, 0]` selects two real token positions and excludes the padding position.
+# Their vector sum is `[6, 6, 6]`, so dividing by two gives `[3, 3, 3]`.
+# Padding's invented `[99, 99, 99]` must contribute neither to the sum nor to the count.
+#
+# </details>
+
 # %% [markdown]
 # ## 3. Compare the same classifiers in the same ten folds
 #
@@ -641,6 +666,17 @@ comparison_figure.show()
 # A higher mean describes these folds. It does not establish fewer consequential errors
 # on other events; ten overlapping training folds cannot supply independent population evidence.
 
+#
+# ### 🤔 Question Yourself
+# A classifier has a higher mean fold F1 and overlapping error bars. Have we established a statistically reliable advantage?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. These standard deviations describe variation among the ten fold scores, not a significance test.
+# Training subsets overlap, and a higher mean does not establish reliability on independently collected events.
+#
+# </details>
+
 # %% [markdown]
 # ## 4. Report the two predeclared models on the existing holdout
 #
@@ -780,6 +816,18 @@ for classifier_name, predictions in holdout_predictions.items():
 # > An embedding can encode context and still support a wrong prediction. A high F1 does not verify that a described disaster occurred.
 # > Negation handling was not specifically tested here; dedicated counterexamples would be needed to assess it.
 
+#
+# ### 🤔 Question Yourself
+# If the classifiers were specified before this comparison, why is the holdout still not a fresh independent final test?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# This project had already inspected that holdout before the MiniLM study.
+# Predeclaring these classifiers does not undo earlier exposure.
+# The scores describe the fixed workflows on familiar observations; broader claims require fresh evaluation evidence.
+#
+# </details>
+
 # %% [markdown]
 # ## 5. Insights and evidence limits
 #
@@ -794,6 +842,18 @@ for classifier_name, predictions in holdout_predictions.items():
 # **🧠 What We Learned:** Matching labels, rows and settings makes the measured differences interpretable.
 # External pretraining supplies additional information, even though only our classifiers learn from disaster labels.
 # Improvement on separately collected, independently annotated reports remains unestablished.
+
+#
+# ### 🤔 Question Yourself
+# Does the measured MiniLM advantage establish that Transformers will outperform TF-IDF on another collection of tweets?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. The comparison supports differences between these specified workflows on these observations.
+# Frozen MiniLM also brings information from external pretraining.
+# A claim about another population needs a task-aligned comparison on representative, independently evaluated examples.
+#
+# </details>
 
 # %% [markdown]
 # ## 6. Ethical interpretation and responsible use
@@ -815,6 +875,17 @@ for classifier_name, predictions in holdout_predictions.items():
 # Use the following charts to inspect measured differences while retaining these evidence limits.
 #
 # **⚖️ Ethical Takeaway:** Report error counts and uncertainty together; neither representation establishes emergency-response readiness.
+
+#
+# ### 🤔 Question Yourself
+# Fewer missed reports come with more false alarms. Can F1 alone decide which balance is appropriate?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. F1 summarizes agreement with recorded labels but does not measure the consequences or costs of either mistake.
+# That judgment needs a defined use context, acceptable error trade-offs, and fresh evaluation evidence.
+#
+# </details>
 
 # %% [markdown]
 # ## 7. Visual comparison — TF-IDF and Hugging Face features
@@ -1016,6 +1087,18 @@ error_change_figure.show()
 # The charts establish a measured error trade-off; usefulness in a real setting remains unestablished.
 # That decision needs fresh evaluation and evidence about error costs, alongside the ethical limits in Section 6.
 
+#
+# ### 🤔 Question Yourself
+# The chart shows 43 fewer missed positives. Does that mean exactly 43 previously missed tweets were corrected?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# No. It is a net difference between error counts.
+# Some previously missed tweets may be found while other previously found tweets become misses.
+# Identifying those movements requires comparing paired predictions for each tweet.
+#
+# </details>
+
 # %% [markdown]
 # ## 8. Beyond the baseline — adjust the classifiers, keep MiniLM fixed
 #
@@ -1186,3 +1269,16 @@ print(minilm_c_summary.round(4).to_string())
 # **Does this justify replacing the existing MiniLM configuration?** This limited comparison provides no F1-based reason to replace Logistic Regression at `C=1`.
 # The small LinearSVC change remains exploratory; a claim about new events would require independent evaluation and an agreed error trade-off.
 # Stop this bounded comparison here: preserve the original workflows and report all six settings without refitting a selected winner.
+#
+#
+# ### 🤔 Question Yourself
+# Does changing `C` from `1` to `0.1` strengthen or weaken regularization?
+# Why does a larger `C` not guarantee a higher F1?
+#
+# <details><summary>💡 Show answer</summary>
+#
+# It strengthens regularization: smaller `C` penalizes large classifier coefficients more strongly.
+# A larger `C` permits more flexibility, which can also fit patterns that do not transfer to withheld examples.
+# Compare settings on the fixed training folds; choosing among those results does not establish an independent improvement.
+#
+# </details>
