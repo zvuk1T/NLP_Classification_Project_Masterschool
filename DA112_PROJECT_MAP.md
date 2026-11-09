@@ -45,7 +45,7 @@ Sources have different purposes. Do not flatten them into a single set of compul
 | **D — Dataset and competition facts** | Kaggle official Disaster Tweets competition | Dataset semantics, competition data schema/rules, and F1 evaluation |
 | **E — Actual project state** | Live inspection of this GitHub repository plus a separate local Git preflight | What files/code really exist; never infer local status from GitHub |
 | **F — Optional post-core learning** | MasterSchool Hugging Face and GPT/Llama closing lessons; Hugging Face official documentation | Small practical learning experiment **after** the baseline, not a Sprint 3 requirement |
-| **G — Teaching references** | Relevant official DataCamp lessons and available code, selected through `HOW-WE-WORK-AND-LEARN.md` | Accessible implementation patterns, analytical questions, Data Literacy, storytelling, and ethics; not additional compulsory courses |
+| **G — Teaching references** | Relevant official DataCamp lessons and available code, selected through [Project Learning Context](PROJECT-LEARNING-CONTEXT.md) and the [shared Master School learning methodology](https://github.com/zvuk1T/zarko-vukovic-homepage/blob/main/docs/MASTER-SCHOOL-HOW-WE-WORK-AND-LEARN.md) | Accessible implementation patterns, analytical questions, Data Literacy, storytelling, and ethics; not additional compulsory courses |
 
 **Conflict procedure:**
 1. Platform/tool safety rules and Data's latest explicit authorization constrain all actions.
@@ -446,7 +446,7 @@ The preparation checkmarks record the published implementation and Spock's repor
 - Verified project files:
   https://github.com/zvuk1T/NLP_Classification_Project_Masterschool
 - Relevant official DataCamp teaching and conceptual references:
-  See `HOW-WE-WORK-AND-LEARN.md`, sections 4 and 6.
+  See [Project Learning Context](PROJECT-LEARNING-CONTEXT.md) for DA112 sources and implementation, and the [shared Master School guide](https://github.com/zvuk1T/zarko-vukovic-homepage/blob/main/docs/MASTER-SCHOOL-HOW-WE-WORK-AND-LEARN.md) for source-first teaching and Data Literacy.
 
 ---
 
